@@ -1,0 +1,43 @@
+# /
+/build
+/archives
+
+# /packaged/
+
+# /packaged/bin/
+/packaged/bin
+
+
+/COPYING
+/INSTALL
+/Makefile
+/Makefile.in
+/aclocal.m4
+/autom4te.cache
+/aux_cache
+/config.log
+/config.status
+/configure
+/doc
+/libtool
+/packaged/Makefile
+/packaged/Makefile.in
+/packaged/doc/Doxyfile
+/packaged/doc/Makefile
+/packaged/doc/Makefile.in
+/packaged/doc/doxyfile.stamp
+/packaged/include/Makefile
+/packaged/include/Makefile.in
+/packaged/lib
+/packaged/src/model/.deps
+/packaged/src/model/.dirstamp
+/tests/.deps
+/tests/Makefile
+/tests/Makefile.in
+/tests/test-suite.log
+/tests/tests
+/tests/unit_t
+/tests/unit_t.log
+/tests/unit_t.trs
+/tests/valgrind.supp
+/unit_t.log
