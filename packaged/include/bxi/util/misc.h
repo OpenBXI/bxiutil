@@ -28,9 +28,9 @@
 #include <sys/signalfd.h>
 #include <sysexits.h>
 
-#include "bxierr.h"
-#include "bxitime.h"
-#include "bxilog.h"
+#include "bxi/base/err.h"
+#include "bxi/base/time.h"
+#include "bxi/base/log.h"
 
 
 
