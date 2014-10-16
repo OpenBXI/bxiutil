@@ -51,6 +51,7 @@ The '--test-name', '--log-file' and '--trs-file' options are mandatory.
 END
 }
 
+BXITESTS_DIR=""
 # TODO: better error handling in option parsing (in particular, ensure
 # TODO: $log_file, $trs_file and $test_name are defined).
 test_name= # Used for reporting.

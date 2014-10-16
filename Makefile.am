@@ -1,4 +1,7 @@
-SUBDIRS=packaged tests
+
+ACLOCAL_AMFLAGS="-I ./.autotools_cache/m4"
+
+SUBDIRS=packaged tests doc
 
 
 current_makefile=$(lastword $(MAKEFILE_LIST))
@@ -193,6 +196,6 @@ config.h:svnversion template_config.h
 
 
 svnversion:
-	if test -z $(top_srcdir)/$@; then \
-		echo "\$Revision: Unknown\$"\
+	if ! test -z $(top_srcdir)/$@; then \
+		echo "\$$Revision: Unknown\$$" >> $@;\
 	fi

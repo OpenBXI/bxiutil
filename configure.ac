@@ -64,6 +64,7 @@ AC_TYPE_UINT32_T
 AC_TYPE_UINT64_T
 AC_TYPE_UINT8_T
 
+
 ###########################
 # debug
 ###########################
@@ -115,8 +116,8 @@ fi
 
 ################################ Internal dependencies ###########################
 ## Checks for libraries.
-AC_CHECK_LIB([bxi], [bxitime_get],[],
-             [AC_MSG_ERROR([Could not find bxi library])])
+AC_CHECK_LIB([bxibase], [bxitime_get],[],
+             [AC_MSG_ERROR([Could not find bxibase library])])
 
 
 ################################ link dependences ################################
@@ -179,7 +180,7 @@ if test x"$enable_doc" != "xno" ; then
         if ! test -z "$DOT";
         then
             ENABLE_DOC="yes"
-            AC_CONFIG_FILES([packaged/doc/Doxyfile])
+            AC_CONFIG_FILES([doc/Doxyfile])
         fi
     fi
 fi
@@ -221,9 +222,11 @@ AC_FUNC_ERROR_AT_LINE
 AC_FUNC_STRERROR_R
 AC_CHECK_FUNCS([gethostname memset mkdir pow strdup strtol])
 
+AM_PATH_PYTHON
+
 
 #TODO add the pc.in file
-AC_CONFIG_FILES([Makefile packaged/Makefile packaged/include/Makefile doc/Makefile tests/Makefile])
+AC_CONFIG_FILES([Makefile packaged/Makefile packaged/lib/Makefile packaged/include/Makefile doc/Makefile tests/Makefile])
 AC_OUTPUT
 
 echo "summary   :"
@@ -237,4 +240,7 @@ echo "          ENABLE_DOC      : ${ENABLE_DOC}"
 echo "          enable valgrind : $run_valgrind"
 echo "          VALGRIND        : $VALGRIND"
 echo "          GCOV            : ${enable_gcov}"
+echo
+echo
+echo "          python site dir : "${pythondir}
 
