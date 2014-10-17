@@ -158,15 +158,6 @@ PKG_CHECK_MODULES([UUID], [uuid], [], [
 LDFLAGS+=" $ZMQ_LIBS "
 
 
-#
-#
-##-----------------
-## Switch Simulator
-##-----------------
-#OpenMPI>=1.4.3
-#Net-SNMP==5.7
-#
-#
 
 ###########################
 # warnings
