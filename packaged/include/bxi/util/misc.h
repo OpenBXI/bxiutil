@@ -58,7 +58,7 @@
 #define BITNSLOTS(nb) ((nb + CHAR_BIT - 1) / CHAR_BIT)
 
 
-/*
+/**
  * MIN / MAX macros
  */
 #define MIN(a,b)                                \
@@ -71,11 +71,17 @@
         (a) > (b) ? (a) : (b);                  \
     })
 
+#define BXIMISC_NODIGITS_ERR 1917  // IGIT in leet speek
 
 // *********************************************************************************
 // ********************************** Types   **************************************
 // *********************************************************************************
 
+/**
+ * Used by `bximisc_stats()`.
+ *
+ * @see bximisc_stats()
+ */
 typedef struct {
     uint32_t min, max;
     double mean, stddev;
@@ -89,12 +95,12 @@ typedef struct {
 // ********************************** Interface ************************************
 // *********************************************************************************
 
-/*
+/**
  * Returns the filename of the given stream
  */
 char * bximisc_get_filename(FILE * stream);
 
-/*
+/**
  * Return the name of the file the given link_name is pointing to.
  *
  * The returned string will have to be freed().
@@ -102,7 +108,7 @@ char * bximisc_get_filename(FILE * stream);
  */
 char * bximisc_readlink(const char * link_name);
 
-/*
+/**
  * Return a string representing the given tuple;
  * In: n the maximum number of elements in the given tuple, an endmark
  * (the tuple are read up to the endmark or until n tuples has been processed),
@@ -114,8 +120,27 @@ char * bximisc_readlink(const char * link_name);
 char * bximisc_tuple_str(size_t n, const uint8_t * tuple, uint8_t endmark,
                          char prefix, char sep, char suffix);
 
+/**
+ * Create an array from a string description of the following format: (xx, yy, zz)
+ *
+ * Note: the given string is modified. The given result should be large enough to
+ * hold all dimensions
+ * Pre-condition: *start == '(', *end == ')'
+ * Post-condition: dim < DIM_MAX
+ *
+ * @param start the starting pointer of the string to parse
+ * @param end the end of the string (might not be '\0')
+ * @param dim the number of element found
+ * @param result a pointer on the resulting data
+ * @return BXIERR_OK on success, anything else on error
+ */
+bxierr_p bximisc_str_tuple(const char * start, char * end,
+                           const char prefix, const char sep, const char suffix,
+                           uint8_t * const dim,
+                           uint8_t * const result);
 
-/*
+
+/**
  *  NAME:
  *     Crc32_ComputeBuf() - computes the CRC-32 value of a memory buffer
  *  DESCRIPTION:
@@ -134,7 +159,7 @@ char * bximisc_tuple_str(size_t n, const uint8_t * tuple, uint8_t endmark,
  \*----------------------------------------------------------------------------*/
 uint32_t bximisc_crc32(uint32_t inCrc32, const void *buf, size_t bufLen);
 
-/*
+/**
  * Return the IP of the given hostname as a string.
  *
  * If the given host has several IPs, the first one is returned.
@@ -142,24 +167,24 @@ uint32_t bximisc_crc32(uint32_t inCrc32, const void *buf, size_t bufLen);
 char * bximisc_get_ip(char * hostname);
 
 
-/*
- * Equivalent to strtoul but exit on parsing error.
+/**
+ * Equivalent to strtoul but return a bxierr_p.
  */
-unsigned long bximisc_strtoul(const char * str, int base);
+bxierr_p bximisc_strtoul(const char * str, int base, unsigned long *result);
 
 
-/*
- *  Equivalent to strtol but exit on parsing error.
+/**
+ *  Equivalent to strtol but return a bxierr_p.
  */
-long bximisc_strtol(const char * str, int base);
+bxierr_p bximisc_strtol(const char * str, int base, long *result);
 
-/*
+/**
  * Return a string representing the given bitarray.
  * n represents the number of useful bit
  */
 char * bximisc_bitarray_str(const char *bitarray, size_t n);
 
-/*
+/**
  * Return statistics on the given data.
  */
 #ifdef __cplusplus

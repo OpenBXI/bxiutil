@@ -35,6 +35,7 @@
 #include <sys/signalfd.h>
 #endif
 
+#include "bxi/base/log.h"
 #include "bxi/util/misc.h"
 
 // *********************************************************************************
@@ -191,6 +192,81 @@ char * bximisc_tuple_str(const size_t n,
     return (p);
 }
 
+bxierr_p bximisc_str_tuple(const char * start, char * end,
+                           const char prefix, const char sep, const char suffix,
+                           uint8_t * const dim,
+                           uint8_t * const result) {
+
+    BXIASSERT(BXIMISC_LOGGER, start != NULL && end != NULL);
+    BXIASSERT(BXIMISC_LOGGER, result != NULL && dim != NULL);
+
+    long int len = end-start+2;
+    BXIASSERT(BXIMISC_LOGGER, len > 1);
+    char * original_str = bximem_calloc((size_t) len * sizeof(*original_str));
+    memcpy(original_str, start, (size_t) len - 1);
+    // original_str[len] = '\0';  // Already done by bximem_calloc()
+    // Next character should be the first dimension
+    if (prefix != '\0') start++;
+    // Change last ')' into a ',': (xx, yy, zz) -> xx, yy, zz,
+    if (suffix != '\0') *end = sep;
+    end++;
+//    // We have reached the end of the array, or the end of the line or
+//    // the end of the string
+//    if (*end != ' ' && *end != '\n' && *end != '\0') {
+//        return bxierr_new(340,
+//                          original_str,
+//                          free,
+//                          NULL,
+//                          "Expecting a space after ')' or ']' in %s but read a '%c'",
+//                          original_str, *end);
+//    }
+    *end = '\0';
+    int tmp_dim = 0;
+    for (int i = 0;; i++) {
+        // We have reached the end of the string
+        if (start >= end) break;
+        const char * comma = strchr(start, sep);
+        if (comma == NULL) {
+            if (suffix != '\0') {
+                return bxierr_new(340,
+                                  original_str,
+                                  free,
+                                  NULL,
+                                  "Separator %c expected in %s", sep, original_str);
+            }
+            comma = end; // Ensure the condition start >= end will hold on next step
+                         // after last instruction in this loop
+        }
+        unsigned long val;
+        bxierr_p err = bximisc_strtoul(start, 10, &val);
+        if (bxierr_isko(err)) {
+            if (BXIMISC_NODIGITS_ERR == err->code && tmp_dim == 0) {
+                *dim = 0;
+                return BXIERR_OK;
+            } else return  bxierr_new(340,
+                                      original_str, free,
+                                      err,
+                                      "Calling bximisc_strtoul() "
+                                      "failed with %s",
+                                      original_str);
+        }
+        /* If we got here, strtoul() successfully parsed a number */
+        if (val > UINT8_MAX) {
+            return bxierr_new(340,
+                              original_str, free,
+                              NULL,
+                              "Value too large %lu > %d in %s",
+                              val, UINT8_MAX, original_str);
+        }
+        result[i] = (uint8_t) val;
+        // Next character
+        start = comma + 1;
+        tmp_dim++;
+    }
+    *dim = (uint8_t) tmp_dim;
+    BXIFREE(original_str);
+    return BXIERR_OK;
+}
 
 /*----------------------------------------------------------------------------*\
  * This code has been taken from: http://www.csbruce.com/~csbruce/software/crc32.c
@@ -301,39 +377,35 @@ char * bximisc_get_ip(char * hostname) {
     return (result);
 }
 
-unsigned long bximisc_strtoul(const char * const str, const int base) {
+bxierr_p bximisc_strtoul(const char * const str,
+                         const int base,
+                         unsigned long * const result) {
     errno = 0;
     char * endptr;
-    const unsigned long val = strtoul(str, &endptr, base);
-    if (errno != 0) {
-        BXIEXIT(EX_DATAERR,
-                bxierr_error("Error while parsing number: '%s'", str),
-                BXIMISC_LOGGER, BXILOG_CRITICAL);
-
-    }
-    if (val == 0 && endptr == str) {
-        BXIEXIT(EX_DATAERR,
-                bxierr_fromidx(EINVAL, NULL,  "No digits were found in '%s'", str),
-                BXIMISC_LOGGER, BXILOG_CRITICAL);
-    }
-    return (val);
+    *result = strtoul(str, &endptr, base);
+    if (0 != errno) return bxierr_error("Error while parsing number: '%s'", str);
+    if (0 == *result && endptr == str) return bxierr_new(BXIMISC_NODIGITS_ERR,
+                                                         strdup(str),
+                                                         free,
+                                                         NULL,
+                                                         "No digit found in '%s'",
+                                                         str);
+    return BXIERR_OK;
 }
 
 
-long bximisc_strtol(const char * const str, const int base) {
+bxierr_p bximisc_strtol(const char * const str, const int base, long * result) {
     errno = 0;
     char * endptr;
-    const long val = strtol(str, &endptr, base);
-    if (errno != 0) {
-        BXIEXIT(EX_DATAERR, bxierr_error("Error while parsing number: '%s'", str),
-                BXIMISC_LOGGER, BXILOG_CRITICAL);
-    }
-    if (val == 0 && endptr == str) {
-        BXIEXIT(EX_DATAERR,
-                bxierr_fromidx(EINVAL, NULL, "No digits were found in '%s'", str),
-                BXIMISC_LOGGER, BXILOG_CRITICAL);
-    }
-	return (val);
+    *result = strtol(str, &endptr, base);
+    if (0 != errno) return bxierr_error("Error while parsing number: '%s'", str);
+    if (0 == *result && endptr == str) return bxierr_new(BXIMISC_NODIGITS_ERR,
+                                                         strdup(str),
+                                                         free,
+                                                         NULL,
+                                                         "No digit found in '%s'",
+                                                         str);
+	return BXIERR_OK;
 }
 
 

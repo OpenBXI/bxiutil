@@ -387,7 +387,9 @@ bxierr_p bximap_init(size_t * nb_threads){
         char * nb_threads_s = getenv("BXIMAP_NB_THREADS");
         long sys_cpu = 0;
         if (nb_threads_s != NULL){
-            sys_cpu = bximisc_strtol(nb_threads_s, 10);
+            bxierr_p err2 = bximisc_strtol(nb_threads_s, 10, &sys_cpu);
+            BXIERR_CHAIN(err, err2);
+            if (bxierr_isko(err)) return err;
             TRACE(MAPPER_LOGGER,
                   "Mapper getenv returned: %s, bximisc_strtol: %ld",
                   nb_threads_s, sys_cpu);
