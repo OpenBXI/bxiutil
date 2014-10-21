@@ -410,7 +410,7 @@ bxierr_p bximisc_strtol(const char * const str, const int base, long * result) {
 
 
 #define UNKNOWN_LAST UINT64_MAX
-char * bximisc_bitarray_str(const char * const bitarray, const size_t n) {
+char * bximisc_bitarray_str(const char * const bitarray, const uint64_t n) {
     assert(bitarray != NULL && n < UNKNOWN_LAST);
     // Create the line for printing
     char * line = NULL;
@@ -419,8 +419,8 @@ char * bximisc_bitarray_str(const char * const bitarray, const size_t n) {
     fprintf(fd, "[");
     bool hole = true; // A hole, is a contiguous zone of cleared bits
     bool first = true;
-    size_t last = UNKNOWN_LAST; // Last known bit in a series of set bit
-    for (size_t i = 0; i < n; i++) {
+    uint64_t last = UNKNOWN_LAST; // Last known bit in a series of set bit
+    for (uint64_t i = 0; i < n; i++) {
         if (BITTEST(bitarray, i)) { // The bit i is set, print it
             if (hole) { // Only if we had a hole, that is previous bit set was not i-1
                 if (last == UNKNOWN_LAST) { // Print a space if last bit set is unknown
@@ -428,19 +428,19 @@ char * bximisc_bitarray_str(const char * const bitarray, const size_t n) {
                         fprintf(fd, " ");
                     } else first = !first;
                 }
-                fprintf(fd, "%lu", i); // Print the bit
+                fprintf(fd, "%lu", (unsigned long)i); // Print the bit
                 hole = false;   // we were in a hole, but this is no
                                 // more the case since i bit i set
             } else last = i; // do not display contiguous bit set, but record the last
         } else { // The bit is unset
             if (last != UNKNOWN_LAST) { // displays the last if known
-                fprintf(fd, "-%lu", last);
+                fprintf(fd, "-%lu", (unsigned long)last);
                 last = UNKNOWN_LAST;
             }
             hole = true; // a cleared bit defines a hole
         }
     }
-    if (last != UNKNOWN_LAST && !hole) fprintf(fd, "-%lu", last);
+    if (last != UNKNOWN_LAST && !hole) fprintf(fd, "-%lu", (unsigned long)last);
     fprintf(fd, "]");
     fclose(fd);
     return line;

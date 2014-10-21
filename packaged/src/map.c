@@ -307,7 +307,7 @@ bxierr_p bximap_execute(bximap_ctx_p context){
         next_task = __sync_fetch_and_add (&shared_info.next_task, 1);
     }
     INFO(MAPPER_LOGGER, "Timing thread:%zd worked %f seconds for %zu iterations",
-         0l, running_duration, nb_iterations);
+         (size_t)0, running_duration, nb_iterations);
 
 #ifdef FADD
     while(shared_info.ended < shared_info.nb_threads - 1){

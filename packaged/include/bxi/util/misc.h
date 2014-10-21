@@ -182,7 +182,7 @@ bxierr_p bximisc_strtol(const char * str, int base, long *result);
  * Return a string representing the given bitarray.
  * n represents the number of useful bit
  */
-char * bximisc_bitarray_str(const char *bitarray, size_t n);
+char * bximisc_bitarray_str(const char *bitarray, uint64_t n);
 
 /**
  * Return statistics on the given data.

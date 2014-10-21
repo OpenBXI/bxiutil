@@ -70,7 +70,7 @@ AC_TYPE_UINT8_T
 ###########################
 AC_ARG_ENABLE([debug], [AS_HELP_STRING([--disable-debug], [enable debugging, default: yes])])
 if test x"$enable_debug" != "xno"; then
-    CFLAGS="-g3 -O0 ";
+    CFLAGS="-g3 -O0 $CFLAGS";
 fi
 
 ###########################
@@ -114,20 +114,10 @@ fi
  AC_SUBST(VALGRIND_ARGS)
 
 
-################################ Internal dependencies ###########################
-## Checks for libraries.
-AC_CHECK_LIB([bxibase], [bxitime_get],[],
-             [AC_MSG_ERROR([Could not find bxibase library])])
-
-
-################################ link dependences ################################
 
 AC_CHECK_LIB([m], [floor], [],
              [AC_MSG_ERROR([Could not find math library])])
 
-#msgpack>=0.5.6
-AC_CHECK_LIB([msgpack], [msgpack_object_print], [],
-             [AC_MSG_ERROR([Could not find msgpack library])])
 AC_CHECK_LIB([pthread], [pthread_create], [],
              [AC_MSG_ERROR([Could not find pthread library])])
 AC_CHECK_LIB([rt], [clock_gettime], [],
@@ -150,13 +140,15 @@ PKG_CHECK_MODULES([CZMQ], [libczmq >= 1.0.0], [],
                   #AC_SUBST([UUID_CFLAGS])
                   #AC_SUBST([UUID_LDFLAGS])
 
-PKG_CHECK_MODULES([UUID], [uuid], [], [
-                   AC_CHECK_LIB([uuid], [uuid_generate], [], [AC_MSG_ERROR([Could not find uuid library])])
-                 ])
-
-
 LDFLAGS+=" $ZMQ_LIBS "
 
+################################ Internal dependencies ###########################
+## Checks for libraries.
+AC_CHECK_LIB([bxibase], [bxitime_get],[],
+             [AC_MSG_ERROR([Could not find bxibase library])])
+
+
+################################ link dependences ################################
 
 
 ###########################
