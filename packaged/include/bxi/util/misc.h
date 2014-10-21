@@ -193,4 +193,25 @@ void bximisc_stats(size_t n, uint32_t *data, bximisc_stats_s * stats_p);
 void bximisc_stats(size_t n, uint32_t data[n], bximisc_stats_s * stats_p);
 #endif
 
+/* --------------------------------------------------------------------------*/
+/**
+ * Map the file name filename on the process's memory.
+ *
+ * @param filename
+ * @param size
+ * @param exist
+ * @param link_onfile
+ * @param MMAP_PROT
+ * @param addr
+ *
+ * @returns   
+ */
+/* ----------------------------------------------------------------------------*/
+bxierr_p bximisc_file_map(const char * filename,
+                        size_t size, /**< Size of the file wanted */
+                        bool exist, /**< define if the file existe or not*/
+                        bool link_onfile, /**< Should the file link on the file*/
+                        int MMAP_PROT, /**< flags provided to mmap for the page rights*/
+                        char ** addr /**< return the addr of mapped file*/);
+
 #endif /* BXIMISC_H_ */

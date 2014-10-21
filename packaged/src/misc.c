@@ -55,6 +55,8 @@
 // **************************** Static function declaration ************************
 // *********************************************************************************
 
+static bxierr_p _create_writable_file(const char * filename, size_t size, int *fd);
+
 // *********************************************************************************
 // ********************************** Global Variables *****************************
 // *********************************************************************************
@@ -467,7 +469,90 @@ void bximisc_stats(size_t n, uint32_t data[n], bximisc_stats_s * stats_p) {
     }
     stats_p->stddev = sqrt((double) tmp2 / (double)n);
 }
+
+bxierr_p bximisc_file_map(const char * filename,
+                        size_t size,
+                        bool load,
+                        bool link_onfile,
+                        int MMAP_PROT,
+                        char ** addr){
+    BXIASSERT(FILE_LOGGER, addr != NULL);
+
+    int file = -1;
+    errno = 0;
+    char * init_file_addr = NULL;
+    if (!link_onfile){
+        init_file_addr = mmap(NULL, size, MMAP_PROT,
+                              MAP_PRIVATE | MAP_ANONYMOUS, file, 0);
+    } else {
+        if (load){
+            errno = 0;
+            file = open(filename, O_RDONLY ,  S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+            if (file == -1){
+              bxierr_p bxierr = bxierr_error("Can't open %s", filename);
+              ERROR(FILE_LOGGER, "%s", bxierr_str(bxierr));
+              return bxierr;
+            }
+            errno = 0;
+            init_file_addr = mmap(NULL, size, MMAP_PROT,
+                                  MAP_PRIVATE, file, 0);
+        } else {
+            bxierr_p rc = _create_writable_file(filename, size, &file);
+            // TODO: If we do not want thread cancellation point, we might use the following line
+            // and have some extra boost on performance. We might use an #ifdef NOCANCELLATION ...
+            //    FILE * const file = fopen(filename, "wc");
+            if (BXIERR_OK != rc) {
+                bxierr_p bxierr = bxierr_error("Problem for mapping file %s", filename);
+                char * err_str = bxierr_str(bxierr);
+                ERROR(FILE_LOGGER, "%s", err_str);
+                BXIFREE(err_str);
+                return bxierr;
+            }
+            errno = 0;
+            init_file_addr = mmap(NULL, size, MMAP_PROT,
+                                  MAP_SHARED, file, 0);
+        }
+        if (-1 == close(file)) {
+            bxierr_p bxierr = bxierr_error("An error occured while closing %s.", filename);
+            char * err_str = bxierr_str(bxierr);
+            ERROR(FILE_LOGGER, "%s", err_str);
+            BXIFREE(err_str);
+            bxierr = bxierr_new(BXIAPI_FILE_CLOSE_ERROR, (void*)(uint64_t)file, NULL, bxierr, "An error occured while closing %s.", filename);
+            return bxierr;
+        }
+    }
+    if (MAP_FAILED == init_file_addr) {
+        bxierr_p bxierr = bxierr_error("An error occured while mapping %s.", filename);
+        ERROR(FILE_LOGGER, "%s", bxierr_str(bxierr));
+        return bxierr;
+    }
+
+    *addr = init_file_addr;
+    return BXIERR_OK;
+}
+
 // *********************************************************************************
 // ********************************** Static Functions  ****************************
 // *********************************************************************************
+
+bxierr_p _create_writable_file(const char * filename, size_t size, int *fd) {
+    BXIASSERT(FILE_LOGGER, fd != NULL);
+    errno = 0;
+    *fd = open(filename, O_CREAT|O_RDWR|O_TRUNC,  S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+    if (*fd == -1){
+        return bxierr_error("Can't open %s", filename);
+    }
+
+    off_t rc = lseek(*fd, (off_t)size-1, SEEK_SET);
+    if (rc == -1){
+        return bxierr_error("Can't lseek %s for size %zu", filename, size);
+
+    }
+
+    ssize_t rc_w = write(*fd, "", 1);
+    if (rc_w == -1){
+        return bxierr_error("Can't write %s", filename);
+    }
+    return BXIERR_OK;
+}
 
