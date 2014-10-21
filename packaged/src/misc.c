@@ -522,7 +522,9 @@ void bximisc_stats(size_t n, uint32_t *data, bximisc_stats_s * stats_p) {
                 char * err_str = bxierr_str(bxierr);
                 ERROR(BXIMISC_LOGGER, "%s", err_str);
                 BXIFREE(err_str);
-                bxierr = bxierr_new(BXIMISC_FILE_CLOSE_ERROR, (void*)file, NULL, bxierr, "An error occured while closing %s.", filename);
+                int * file_p = bximem_calloc(sizeof(*file_p));
+                *file_p = file;
+                bxierr = bxierr_new(BXIMISC_FILE_CLOSE_ERROR, file_p, free, bxierr, "An error occured while closing %s.", filename);
                 return bxierr;
             }
         }
