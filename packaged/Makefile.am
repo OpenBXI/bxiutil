@@ -30,6 +30,6 @@ lib_libbxiutil_la_LIBADD=$(LIB_LIBS)
 
 #########################  PYTHON  ######################
 
-SUBDIRS=lib include
+SUBDIRS=lib include doc
 
 #########################################################

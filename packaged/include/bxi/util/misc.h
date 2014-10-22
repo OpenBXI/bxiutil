@@ -33,23 +33,40 @@
 #include "bxi/base/log.h"
 
 
+/**
+ * @file    misc.h
+ * @brief   Miscellaneous but useful functions.
+ *
+ * For bitarray manipulation
+ * To declare an ``array'' of 47 bits:
+ *
+ *      char bitarray[BITNSLOTS(47)];
+ *
+ * To set the 23rd bit:
+ *
+ *      BITSET(bitarray, 23);
+ *
+ * To test the 35th bit:
+ *
+ *      if(BITTEST(bitarray, 35)) ...
+ *
+ * To compute the union of two bit arrays and place it in a third array
+ * (with all three arrays declared as above):
+ *
+ *      for(i = 0; i < BITNSLOTS(47); i++)
+ *          array3[i] = array1[i] | array2[i];
+ *
+ * To compute the intersection, use & instead of |.
+ */
+
 
 // *********************************************************************************
 // ********************************** Defines **************************************
 // *********************************************************************************
 
-/* Taken from c-faq.com: http://c-faq.com/misc/bitsets.html
- For bitarray manipulation
- To declare an ``array'' of 47 bits:
- char bitarray[BITNSLOTS(47)];
- To set the 23rd bit: BITSET(bitarray, 23);
- To test the 35th bit: if(BITTEST(bitarray, 35)) ...
- To compute the union of two bit arrays and place it in a third array
- (with all three arrays declared as above):
-    for(i = 0; i < BITNSLOTS(47); i++)
-        array3[i] = array1[i] | array2[i];
- To compute the intersection, use & instead of |.
- */
+
+
+// Taken from c-faq.com: http://c-faq.com/misc/bitsets.html
 #define BITMASK(b) (1 << ((b) % CHAR_BIT))
 #define BITSLOT(b) ((b) / CHAR_BIT)
 #define BITSET(a, b) ((a)[BITSLOT(b)] |= (char)BITMASK(b))
@@ -59,19 +76,30 @@
 
 
 /**
- * MIN / MAX macros
+ * Return the MIN of two values
  */
 #define BXIMISC_MIN(a,b)                                \
     ({                                          \
         (a) < (b) ? (a) : (b);                  \
     })
 
+/**
+ * Return the MAX of two values
+ */
 #define BXIMISC_MAX(a,b)                                \
     ({                                          \
         (a) > (b) ? (a) : (b);                  \
     })
 
+/**
+ * The error code returned when no digits are found in a given string.
+ */
 #define BXIMISC_NODIGITS_ERR 1917  // IGIT in leet speek
+
+/**
+ * The error code returned when an error happened while closing a file
+ *
+ */
 #define BXIMISC_FILE_CLOSE_ERROR 1918
 
 // *********************************************************************************
@@ -79,13 +107,15 @@
 // *********************************************************************************
 
 /**
- * Used by `bximisc_stats()`.
+ * The data structure used by `bximisc_stats()`.
  *
  * @see bximisc_stats()
  */
 typedef struct {
-    uint32_t min, max;
-    double mean, stddev;
+    uint32_t min;               //!< the minimum value found
+    uint32_t max;               //!< the maximum value found
+    double mean;                //!< the mean value computed
+    double stddev;              //!< the standard deviation computed
 } bximisc_stats_s;
 
 // *********************************************************************************
@@ -98,6 +128,9 @@ typedef struct {
 
 /**
  * Returns the filename of the given stream
+ *
+ * @param stream the stream to get the filename of
+ * @return the name of the related file
  */
 char * bximisc_get_filename(FILE * stream);
 
@@ -106,17 +139,28 @@ char * bximisc_get_filename(FILE * stream);
  *
  * The returned string will have to be freed().
  *
+ * @param link_name the name of the link
+ *
+ * @return the name of the file the given `link_name` points to.
  */
 char * bximisc_readlink(const char * link_name);
 
 /**
  * Return a string representing the given tuple;
- * In: n the maximum number of elements in the given tuple, an endmark
- * (the tuple are read up to the endmark or until n tuples has been processed),
- * a prefix, a suffix and a separator characters.
  *
- * Out: a string representing the given tuple.
- * It will have to be freed using FREE().
+ * Note: the tuple is read up to the endmark or until n values has been processed
+ *
+ * The returned string is allocated on the heap. It has to be freed using BXIFREE().
+ *
+ * @param n the maximum number of elements in the given tuple
+ * @param tuple the tuple to get the string representation of
+ * @param endmark a value representing an endmark
+ * @param prefix the prefix character (can be '\0')
+ * @param sep a separator character
+ * @param suffix the suffix character (can be '\0\)
+ *
+ * @return a string representing the given tuple.
+
  */
 char * bximisc_tuple_str(size_t n, const uint8_t * tuple, uint8_t endmark,
                          char prefix, char sep, char suffix);
@@ -142,51 +186,79 @@ bxierr_p bximisc_str_tuple(const char * start, char * end,
 
 
 /**
- *  NAME:
- *     Crc32_ComputeBuf() - computes the CRC-32 value of a memory buffer
- *  DESCRIPTION:
- *     Computes or accumulates the CRC-32 value for a memory buffer.
- *     The 'inCrc32' gives a previously accumulated CRC-32 value to allow
- *     a CRC to be generated for multiple sequential buffer-fuls of data.
- *     The 'inCrc32' for the first buffer must be zero.
- *  ARGUMENTS:
- *     inCrc32 - accumulated CRC-32 value, must be 0 on first call
- *     buf     - buffer to compute CRC-32 value for
- *     bufLen  - number of bytes in buffer
- *  RETURNS:
- *     crc32 - computed CRC-32 value
- *  ERRORS:
- *     (no errors are possible)
- \*----------------------------------------------------------------------------*/
+ *  Computes the CRC-32 value of a memory buffer
+ *
+ *  Computes or accumulates the CRC-32 value for a memory buffer.
+ *
+ *  The `inCrc32` gives a previously accumulated CRC-32 value to allow
+ *  a CRC to be generated for multiple sequential buffer-full of data.
+ *
+ *  The 'inCrc32' for the first buffer must be zero.
+ *
+ *
+ *  @param inCrc32 accumulated CRC-32 value, must be 0 on first call
+ *  @param buf     buffer to compute CRC-32 value for
+ *  @param bufLen  number of bytes in buffer
+ *
+ *  @return computed CRC-32 value
+ */
 uint32_t bximisc_crc32(uint32_t inCrc32, const void *buf, size_t bufLen);
 
 /**
  * Return the IP of the given hostname as a string.
  *
  * If the given host has several IPs, the first one is returned.
+ *
+ * @param hostname the hostname
+ *
+ * @return the IP of the given hostname
  */
 char * bximisc_get_ip(char * hostname);
 
 
 /**
  * Equivalent to strtoul but return a bxierr_p.
+ *
+ * @param str the string to parse
+ * @param base the radix
+ * @param result a pointer on the result
+ *
+ * @return BXIERR_OK on success, anything else on error
+ *
  */
 bxierr_p bximisc_strtoul(const char * str, int base, unsigned long *result);
 
 
 /**
  *  Equivalent to strtol but return a bxierr_p.
+ *
+ * @param str the string to parse
+ * @param base the radix
+ * @param result a pointer on the result
+ *
+ * @return BXIERR_OK on success, anything else on error
  */
 bxierr_p bximisc_strtol(const char * str, int base, long *result);
 
 /**
  * Return a string representing the given bitarray.
+ *
  * n represents the number of useful bit
+ *
+ * @param bitarray a bitarray
+ * @param n the number of bits in the given bitarray
+ *
+ * @return a string representing the given bitarray
  */
 char * bximisc_bitarray_str(const char *bitarray, uint64_t n);
 
 /**
  * Return statistics on the given data.
+ *
+ * @param n the number of data
+ * @param data the actual data to get statistics on
+ * @param stats_p a pointer on a `bximisc_stats_s` data structure to be filled
+ *
  */
 #ifdef __cplusplus
 void bximisc_stats(size_t n, uint32_t *data, bximisc_stats_s * stats_p);
@@ -205,7 +277,7 @@ void bximisc_stats(size_t n, uint32_t data[n], bximisc_stats_s * stats_p);
  * @param MMAP_PROT
  * @param addr
  *
- * @returns   
+ * @returns
  */
 /* ----------------------------------------------------------------------------*/
 bxierr_p bximisc_file_map(const char * filename,

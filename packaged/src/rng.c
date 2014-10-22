@@ -150,9 +150,7 @@ void bxirng_new_rngs(uint32_t seed, size_t n, bxirng_s ** rngs_p) {
 // *********************************************************************************
 
 void _init_rng(bxirng_p self, uint32_t seed) {
-    //TODO MANTIS 0018767: LOG during the seed generation
-    //https://novahpc.frec.bull.fr/mantis-default/mantis/view.php?id=18767&cur_project_id=32
-    //TRACE(BXIRNG_LOGGER, "Setting seed: %u for rng: %p", seed, self);
+    TRACE(BXIRNG_LOGGER, "Setting seed: %u for rng: %p", seed, self);
     self->seed = seed;
 }
 

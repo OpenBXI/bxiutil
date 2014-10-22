@@ -17,6 +17,15 @@
 
 #include "bxi/base/log.h"
 
+
+/**
+ * @file    vector.h
+ * @brief   Growable arrays implementation -- aka vectors
+ *
+ * ### Overview
+ * This module implements growable arrays -- aka vectors.
+ */
+
 // *********************************************************************************
 // ********************************** Defines **************************************
 // *********************************************************************************
@@ -31,7 +40,7 @@
 // *********************************************************************************
 
 /**
- * Extendable array implementation as a vector
+ * The `vector` abtract data type.
  */
 typedef struct bxivector_s_t *bxivector_p;
 
