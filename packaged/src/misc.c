@@ -464,8 +464,8 @@ void bximisc_stats(size_t n, uint32_t *data, bximisc_stats_s * stats_p) {
         stats_p->max = 0;
         for (size_t i = 0; i < n; ++i) {
             tmp += data[i];
-            stats_p->min = MIN(stats_p->min, data[i]);
-            stats_p->max = MAX(stats_p->max, data[i]);
+            stats_p->min = BXIMISC_MIN(stats_p->min, data[i]);
+            stats_p->max = BXIMISC_MAX(stats_p->max, data[i]);
         }
         stats_p->mean = (double) tmp / (double) n;
         double tmp2 = 0;

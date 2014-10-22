@@ -134,14 +134,14 @@ void test_bitarray(void) {
 
 void test_min_max() {
     int a1 = 1, b1 = 2;
-    CU_ASSERT_EQUAL(MIN(a1,b1), a1);
-    CU_ASSERT_EQUAL(MAX(a1,b1), b1);
+    CU_ASSERT_EQUAL(BXIMISC_MIN(a1,b1), a1);
+    CU_ASSERT_EQUAL(BXIMISC_MAX(a1,b1), b1);
 
     float a2 = 0.1f, b2 = 0.2f;
-    CU_ASSERT_EQUAL(MIN(a2,b2), a2);
-    CU_ASSERT_EQUAL(MAX(a2,b2), b2);
+    CU_ASSERT_EQUAL(BXIMISC_MIN(a2,b2), a2);
+    CU_ASSERT_EQUAL(BXIMISC_MAX(a2,b2), b2);
 
     double a3 = 0.1, b3 = 0.2;
-    CU_ASSERT_EQUAL(MIN(a3,b3), a3);
-    CU_ASSERT_EQUAL(MAX(a3,b3), b3);
+    CU_ASSERT_EQUAL(BXIMISC_MIN(a3,b3), a3);
+    CU_ASSERT_EQUAL(BXIMISC_MAX(a3,b3), b3);
 }

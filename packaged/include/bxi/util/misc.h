@@ -61,12 +61,12 @@
 /**
  * MIN / MAX macros
  */
-#define MIN(a,b)                                \
+#define BXIMISC_MIN(a,b)                                \
     ({                                          \
         (a) < (b) ? (a) : (b);                  \
     })
 
-#define MAX(a,b)                                \
+#define BXIMISC_MAX(a,b)                                \
     ({                                          \
         (a) > (b) ? (a) : (b);                  \
     })
