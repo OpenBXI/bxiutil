@@ -136,24 +136,25 @@ void test_mktemp() {
     char * tmp = NULL;
     char * res = NULL;
 
-    bxierr_p err = bximisc_mkstemp(tmp, &res);
-    CU_ASSERT_NOT_EQUAL(err, BXIERR_OK);
-    CU_ASSERT_EQUAL(res, NULL);
-    bxierr_destroy(&err);
-
+    bxierr_p err = bximisc_mkstemp(tmp, &res, NULL);
+    CU_ASSERT_EQUAL(err, BXIERR_OK);
     tmp = "tmp";
-    err = bximisc_mkstemp(tmp, &res);
-    CU_ASSERT_NOT_EQUAL(err, BXIERR_OK);
-    CU_ASSERT_EQUAL(res, NULL);
-    bxierr_destroy(&err);
+    err = bximisc_mkstemp(tmp, &res, NULL);
+    CU_ASSERT_EQUAL(err, BXIERR_OK);
 
 
     tmp = "tmp-XXXXXX";
-    err = bximisc_mkstemp(tmp, &res);
+    int fd = 0;
+    err = bximisc_mkstemp(tmp, &res, &fd);
     char * tmpdir = getenv("TMPDIR");
+    if (tmpdir == NULL) {
+        tmpdir= "/tmp";
+    }
     CU_ASSERT_EQUAL(err, BXIERR_OK);
-    CU_ASSERT_NOT_EQUAL(res, NULL);
+    CU_ASSERT_NOT_EQUAL_FATAL(res, NULL);
     CU_ASSERT_TRUE(strncmp(res, tmpdir, strlen(tmpdir)) == 0);
+    CU_ASSERT_NOT_EQUAL_FATAL(fd, 0);
+    close(fd);
     unlink(res);
     BXIFREE(res);
 
@@ -161,23 +162,23 @@ void test_mktemp() {
     res = NULL;
 
     err = bximisc_mkdtemp(tmp, &res);
-    CU_ASSERT_NOT_EQUAL(err, BXIERR_OK);
-    CU_ASSERT_EQUAL(res, NULL);
+    CU_ASSERT_EQUAL(err, BXIERR_OK);
+    CU_ASSERT_NOT_EQUAL_FATAL(res, NULL);
     bxierr_destroy(&err);
 
     tmp = "tmp";
     err = bximisc_mkdtemp(tmp, &res);
-    CU_ASSERT_NOT_EQUAL(err, BXIERR_OK);
-    CU_ASSERT_EQUAL(res, NULL);
-    bxierr_destroy(&err);
+    CU_ASSERT_EQUAL(err, BXIERR_OK);
+    CU_ASSERT_NOT_EQUAL_FATAL(res, NULL);
+    CU_ASSERT_TRUE(strncmp(res, tmpdir, strlen(tmpdir)) == 0);
+    unlinkat(0, res, AT_REMOVEDIR);
+    BXIFREE(res);
 
 
     tmp = "tmp-XXXXXX";
     err = bximisc_mkdtemp(tmp, &res);
-    tmpdir = getenv("TMPDIR");
-    CU_ASSERT_TRUE(strncmp(res, tmpdir, strlen(tmpdir) == 0));
-    CU_ASSERT_NOT_EQUAL(err, BXIERR_OK);
-    CU_ASSERT_EQUAL(res, NULL);
+    CU_ASSERT_NOT_EQUAL_FATAL(res, NULL);
+    CU_ASSERT_TRUE(strncmp(res, tmpdir, strlen(tmpdir)) == 0);
     unlinkat(0, res, AT_REMOVEDIR);
     BXIFREE(res);
 }

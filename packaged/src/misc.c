@@ -32,6 +32,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <unistd.h>
 
 
 #ifdef __linux__
@@ -544,26 +545,47 @@ bxierr_p bximisc_mkdtemp(char * tmp_name, char ** res) {
     {
         tmpdir = "/tmp" ;
     }
-    char * full_tmp_name = bxistr_new("%s/%s", tmpdir, tmp_name);
+    char * prefix="bxi";
+    if (tmp_name != NULL) {
+        prefix=tmp_name;
+    }
+    char * full_tmp_name = bxistr_new("%s/%s-XXXXXX", tmpdir, prefix);
     *res = mkdtemp(full_tmp_name);
     if (*res == NULL) {
+        bxierr_p err = bxierr_error("mkdtemp can't handle the string %s", full_tmp_name);
         BXIFREE(full_tmp_name);
-        return bxierr_error("mkdtemp can't handle the string %s", tmp_name);
+        return err;
     }
     return BXIERR_OK;
 }
 
-bxierr_p bximisc_mkstemp(char * tmp_name, char ** res) {
+bxierr_p bximisc_mkstemp(char * tmp_name, char ** res, int *fd) {
     BXIASSERT(BXIMISC_LOGGER, res != NULL);
+    char * prefix="bxi";
+    if (tmp_name != NULL) {
+        prefix = tmp_name;
+    }
     char * tmpdir = getenv("TMPDIR");
     if( tmpdir == NULL )
     {
         tmpdir = "/tmp" ;
     }
-    char * full_tmp_name = bxistr_new("%s/%s", tmpdir, tmp_name);
+    char * full_tmp_name = bxistr_new("%s/%s-XXXXXX", tmpdir, prefix);
     int rc = mkstemp(full_tmp_name);
-    if (rc != 0) {
-        return bxierr_error("mkstemp can't handle the string %s", tmp_name);
+    if (rc == -1) {
+        bxierr_p err = bxierr_error("mkstemp can't handle the string %s", full_tmp_name);
+        BXIFREE(full_tmp_name);
+        return err;
+    }
+    if (fd != NULL) {
+        *fd = rc;
+    } else {
+        rc = close(rc);
+        if (rc != 0) {
+            bxierr_p err = bxierr_error("close error on file descriptor %d for file %s", fd, full_tmp_name);
+            BXIFREE(full_tmp_name);
+            return err;
+        }
     }
     *res = full_tmp_name;
     return BXIERR_OK;

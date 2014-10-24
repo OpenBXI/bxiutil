@@ -266,41 +266,41 @@ void bximisc_stats(size_t n, uint32_t *data, bximisc_stats_s * stats_p);
 /**
  * Map the file name filename on the process's memory.
  *
- * @param filename
- * @param size
- * @param exist
- * @param link_onfile
- * @param MMAP_PROT
- * @param addr
+ * @param filename path of the map file
+ * @param size of the wanted or existing file
+ * @param exist define if the file exist or not
+ * @param link_onfile specify if the required memory is link on a disk file
+ * @param MMAP_PROT flags provided to mmap for the page rights
+ * @param addr of the mapped memory
  *
  * @returns
  */
 /* ----------------------------------------------------------------------------*/
-bxierr_p bximisc_file_map(const char * filename, /**< path of the file to map*/
-                          size_t size, /**< Size of the file wanted */
-                          bool exist, /**< define if the file existe or not*/
-                          bool link_onfile, /**< Should the file link on the file*/
-                          int MMAP_PROT, /**< flags provided to mmap for the page rights*/
-                          char ** addr /**< return the addr of mapped file*/);
+bxierr_p bximisc_file_map(const char * filename,
+                          size_t size,
+                          bool exist,
+                          bool link_onfile,
+                          int MMAP_PROT,
+                          char ** addr);
 
 /* --------------------------------------------------------------------------*/
 /**
  * Create a file as mkstemp but take into account of the environment variable tmpdir
  *
- * @param tmp_name
- * @param res
+ * @param tmp_name string containing the prefix wanted
+ * @param res is a new allocated string with the file name
  *
  * @returns   
  */
 /* ----------------------------------------------------------------------------*/
-bxierr_p bximisc_mkstemp(char * tmp_name, char ** res);
+bxierr_p bximisc_mkstemp(char * tmp_name, char ** res, int * fd);
 
 /* --------------------------------------------------------------------------*/
 /**
  * Create a directory as mkdtemp but take into account of the environment variable tmpdir
  *
- * @param tmp_name
- * @param res
+ * @param tmp_name string containing prefix wanted
+ * @param res is a new allocated string with the directory name
  *
  * @returns   
  */
