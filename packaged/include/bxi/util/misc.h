@@ -1,15 +1,15 @@
 /* -*- coding: utf-8 -*-
- ###############################################################################
- # Author: Pierre Vigneras <pierre.vigneras@bull.net>
- # Created on: May 24, 2013
- # Contributors:
- ###############################################################################
- # Copyright (C) 2013  Bull S. A. S.  -  All rights reserved
- # Bull, Rue Jean Jaures, B.P.68, 78340, Les Clayes-sous-Bois
- # This is not Free or Open Source software.
- # Please contact Bull S. A. S. for details about its license.
- ###############################################################################
- */
+###############################################################################
+# Author: Pierre Vigneras <pierre.vigneras@bull.net>
+# Created on: May 24, 2013
+# Contributors:
+###############################################################################
+# Copyright (C) 2013  Bull S. A. S.  -  All rights reserved
+# Bull, Rue Jean Jaures, B.P.68, 78340, Les Clayes-sous-Bois
+# This is not Free or Open Source software.
+# Please contact Bull S. A. S. for details about its license.
+###############################################################################
+*/
 
 #ifndef BXIMISC_H_
 #define BXIMISC_H_
@@ -80,16 +80,16 @@
  */
 #define BXIMISC_MIN(a,b)                                \
     ({                                          \
-        (a) < (b) ? (a) : (b);                  \
-    })
+     (a) < (b) ? (a) : (b);                  \
+     })
 
 /**
  * Return the MAX of two values
  */
 #define BXIMISC_MAX(a,b)                                \
     ({                                          \
-        (a) > (b) ? (a) : (b);                  \
-    })
+     (a) > (b) ? (a) : (b);                  \
+     })
 
 /**
  * The error code returned when no digits are found in a given string.
@@ -161,7 +161,7 @@ char * bximisc_readlink(const char * link_name);
  *
  * @return a string representing the given tuple.
 
- */
+*/
 char * bximisc_tuple_str(size_t n, const uint8_t * tuple, uint8_t endmark,
                          char prefix, char sep, char suffix);
 
@@ -260,11 +260,7 @@ char * bximisc_bitarray_str(const char *bitarray, uint64_t n);
  * @param stats_p a pointer on a `bximisc_stats_s` data structure to be filled
  *
  */
-#ifdef __cplusplus
 void bximisc_stats(size_t n, uint32_t *data, bximisc_stats_s * stats_p);
-#else
-void bximisc_stats(size_t n, uint32_t data[n], bximisc_stats_s * stats_p);
-#endif
 
 /* --------------------------------------------------------------------------*/
 /**
@@ -280,11 +276,11 @@ void bximisc_stats(size_t n, uint32_t data[n], bximisc_stats_s * stats_p);
  * @returns
  */
 /* ----------------------------------------------------------------------------*/
-bxierr_p bximisc_file_map(const char * filename,
-                        size_t size, /**< Size of the file wanted */
-                        bool exist, /**< define if the file existe or not*/
-                        bool link_onfile, /**< Should the file link on the file*/
-                        int MMAP_PROT, /**< flags provided to mmap for the page rights*/
-                        char ** addr /**< return the addr of mapped file*/);
+bxierr_p bximisc_file_map(const char * filename, /**< path of the file to map*/
+                          size_t size, /**< Size of the file wanted */
+                          bool exist, /**< define if the file existe or not*/
+                          bool link_onfile, /**< Should the file link on the file*/
+                          int MMAP_PROT, /**< flags provided to mmap for the page rights*/
+                          char ** addr /**< return the addr of mapped file*/);
 
 #endif /* BXIMISC_H_ */

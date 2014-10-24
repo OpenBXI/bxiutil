@@ -40,6 +40,7 @@
 #include <sys/signalfd.h>
 #endif
 
+#include "bxi/base/str.h"
 #include "bxi/base/log.h"
 #include "bxi/util/misc.h"
 
@@ -453,113 +454,143 @@ char * bximisc_bitarray_str(const char * const bitarray, const uint64_t n) {
     return line;
 }
 
-#ifdef __cplusplus
 void bximisc_stats(size_t n, uint32_t *data, bximisc_stats_s * stats_p) {
-#else
-    void bximisc_stats(size_t n, uint32_t data[n], bximisc_stats_s * stats_p) {
-#endif
-        assert(NULL != stats_p);
-        uint32_t tmp = 0;
-        stats_p->min = UINT32_MAX;
-        stats_p->max = 0;
-        for (size_t i = 0; i < n; ++i) {
-            tmp += data[i];
-            stats_p->min = BXIMISC_MIN(stats_p->min, data[i]);
-            stats_p->max = BXIMISC_MAX(stats_p->max, data[i]);
-        }
-        stats_p->mean = (double) tmp / (double) n;
-        double tmp2 = 0;
-        for (size_t i = 0; i < n; ++i) {
-            tmp2 += ((double) data[i]-stats_p->mean)*((double) data[i]-stats_p->mean);
-        }
-        stats_p->stddev = sqrt((double) tmp2 / (double)n);
+    assert(NULL != stats_p);
+    uint32_t tmp = 0;
+    stats_p->min = UINT32_MAX;
+    stats_p->max = 0;
+    for (size_t i = 0; i < n; ++i) {
+        tmp += data[i];
+        stats_p->min = BXIMISC_MIN(stats_p->min, data[i]);
+        stats_p->max = BXIMISC_MAX(stats_p->max, data[i]);
     }
+    stats_p->mean = (double) tmp / (double) n;
+    double tmp2 = 0;
+    for (size_t i = 0; i < n; ++i) {
+        tmp2 += ((double) data[i]-stats_p->mean)*((double) data[i]-stats_p->mean);
+    }
+    stats_p->stddev = sqrt((double) tmp2 / (double)n);
+}
 
-    bxierr_p bximisc_file_map(const char * filename,
-                              size_t size,
-                              bool load,
-                              bool link_onfile,
-                              int MMAP_PROT,
-                              char ** addr){
-        BXIASSERT(BXIMISC_LOGGER, addr != NULL);
 
-        int file = -1;
-        errno = 0;
-        char * init_file_addr = NULL;
-        if (!link_onfile){
-            init_file_addr = mmap(NULL, size, MMAP_PROT,
-                                  MAP_PRIVATE | MAP_ANONYMOUS, file, 0);
-        } else {
-            if (load){
-                errno = 0;
-                file = open(filename, O_RDONLY ,  S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
-                if (file == -1){
-                    bxierr_p bxierr = bxierr_error("Can't open %s", filename);
-                    ERROR(BXIMISC_LOGGER, "%s", bxierr_str(bxierr));
-                    return bxierr;
-                }
-                errno = 0;
-                init_file_addr = mmap(NULL, size, MMAP_PROT,
-                                      MAP_PRIVATE, file, 0);
-            } else {
-                bxierr_p rc = _create_writable_file(filename, size, &file);
-                // TODO: If we do not want thread cancellation point, we might use the following line
-                // and have some extra boost on performance. We might use an #ifdef NOCANCELLATION ...
-                //    FILE * const file = fopen(filename, "wc");
-                if (BXIERR_OK != rc) {
-                    bxierr_p bxierr = bxierr_error("Problem for mapping file %s", filename);
-                    char * err_str = bxierr_str(bxierr);
-                    ERROR(BXIMISC_LOGGER, "%s", err_str);
-                    BXIFREE(err_str);
-                    return bxierr;
-                }
-                errno = 0;
-                init_file_addr = mmap(NULL, size, MMAP_PROT,
-                                      MAP_SHARED, file, 0);
+
+bxierr_p bximisc_file_map(const char * filename,
+                          size_t size,
+                          bool load,
+                          bool link_onfile,
+                          int MMAP_PROT,
+                          char ** addr){
+    BXIASSERT(BXIMISC_LOGGER, addr != NULL);
+
+    int file = -1;
+    errno = 0;
+    char * init_file_addr = NULL;
+    if (!link_onfile){
+        init_file_addr = mmap(NULL, size, MMAP_PROT,
+                              MAP_PRIVATE | MAP_ANONYMOUS, file, 0);
+    } else {
+        if (load){
+            errno = 0;
+            file = open(filename, O_RDONLY ,  S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+            if (file == -1){
+                bxierr_p bxierr = bxierr_error("Can't open %s", filename);
+                ERROR(BXIMISC_LOGGER, "%s", bxierr_str(bxierr));
+                return bxierr;
             }
-            if (-1 == close(file)) {
-                bxierr_p bxierr = bxierr_error("An error occured while closing %s.", filename);
+            errno = 0;
+            init_file_addr = mmap(NULL, size, MMAP_PROT,
+                                  MAP_PRIVATE, file, 0);
+        } else {
+            bxierr_p rc = _create_writable_file(filename, size, &file);
+            // TODO: If we do not want thread cancellation point, we might use the following line
+            // and have some extra boost on performance. We might use an #ifdef NOCANCELLATION ...
+            //    FILE * const file = fopen(filename, "wc");
+            if (BXIERR_OK != rc) {
+                bxierr_p bxierr = bxierr_error("Problem for mapping file %s", filename);
                 char * err_str = bxierr_str(bxierr);
                 ERROR(BXIMISC_LOGGER, "%s", err_str);
                 BXIFREE(err_str);
-                int * file_p = bximem_calloc(sizeof(*file_p));
-                *file_p = file;
-                bxierr = bxierr_new(BXIMISC_FILE_CLOSE_ERROR, file_p, free, bxierr, "An error occured while closing %s.", filename);
                 return bxierr;
             }
+            errno = 0;
+            init_file_addr = mmap(NULL, size, MMAP_PROT,
+                                  MAP_SHARED, file, 0);
         }
-        if (MAP_FAILED == init_file_addr) {
-            bxierr_p bxierr = bxierr_error("An error occured while mapping %s.", filename);
-            ERROR(BXIMISC_LOGGER, "%s", bxierr_str(bxierr));
+        if (-1 == close(file)) {
+            bxierr_p bxierr = bxierr_error("An error occured while closing %s.", filename);
+            char * err_str = bxierr_str(bxierr);
+            ERROR(BXIMISC_LOGGER, "%s", err_str);
+            BXIFREE(err_str);
+            int * file_p = bximem_calloc(sizeof(*file_p));
+            *file_p = file;
+            bxierr = bxierr_new(BXIMISC_FILE_CLOSE_ERROR, file_p, free, bxierr, "An error occured while closing %s.", filename);
             return bxierr;
         }
-
-        *addr = init_file_addr;
-        return BXIERR_OK;
+    }
+    if (MAP_FAILED == init_file_addr) {
+        bxierr_p bxierr = bxierr_error("An error occured while mapping %s.", filename);
+        ERROR(BXIMISC_LOGGER, "%s", bxierr_str(bxierr));
+        return bxierr;
     }
 
-    // *********************************************************************************
-    // ********************************** Static Functions  ****************************
-    // *********************************************************************************
+    *addr = init_file_addr;
+    return BXIERR_OK;
+}
 
-    bxierr_p _create_writable_file(const char * filename, size_t size, int *fd) {
-        BXIASSERT(BXIMISC_LOGGER, fd != NULL);
-        errno = 0;
-        *fd = open(filename, O_CREAT|O_RDWR|O_TRUNC,  S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
-        if (*fd == -1){
-            return bxierr_error("Can't open %s", filename);
-        }
-
-        off_t rc = lseek(*fd, (off_t)size-1, SEEK_SET);
-        if (rc == -1){
-            return bxierr_error("Can't lseek %s for size %zu", filename, size);
-
-        }
-
-        ssize_t rc_w = write(*fd, "", 1);
-        if (rc_w == -1){
-            return bxierr_error("Can't write %s", filename);
-        }
-        return BXIERR_OK;
+bxierr_p bximisc_mkdtemp(char * tmp_name, char ** res) {
+    BXIASSERT(BXIMISC_LOGGER, res != NULL);
+    char * tmpdir = getenv("TMPDIR");
+    if( tmpdir == NULL )
+    {
+        tmpdir = "/tmp" ;
     }
+    char * full_tmp_name = bxistr_new("%s/%s", tmpdir, tmp_name);
+    *res = mkdtemp(full_tmp_name);
+    if (*res == NULL) {
+        BXIFREE(full_tmp_name);
+        return bxierr_error("mkdtemp can't handle the string %s", tmp_name);
+    }
+    return BXIERR_OK;
+}
+
+bxierr_p bximisc_mkstemp(char * tmp_name, char ** res) {
+    BXIASSERT(BXIMISC_LOGGER, res != NULL);
+    char * tmpdir = getenv("TMPDIR");
+    if( tmpdir == NULL )
+    {
+        tmpdir = "/tmp" ;
+    }
+    char * full_tmp_name = bxistr_new("%s/%s", tmpdir, tmp_name);
+    int rc = mkstemp(full_tmp_name);
+    if (rc != 0) {
+        return bxierr_error("mkstemp can't handle the string %s", tmp_name);
+    }
+    *res = full_tmp_name;
+    return BXIERR_OK;
+}
+
+// *********************************************************************************
+// ********************************** Static Functions  ****************************
+// *********************************************************************************
+
+bxierr_p _create_writable_file(const char * filename, size_t size, int *fd) {
+    BXIASSERT(BXIMISC_LOGGER, fd != NULL);
+    errno = 0;
+    *fd = open(filename, O_CREAT|O_RDWR|O_TRUNC,  S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+    if (*fd == -1){
+        return bxierr_error("Can't open %s", filename);
+    }
+
+    off_t rc = lseek(*fd, (off_t)size-1, SEEK_SET);
+    if (rc == -1){
+        return bxierr_error("Can't lseek %s for size %zu", filename, size);
+
+    }
+
+    ssize_t rc_w = write(*fd, "", 1);
+    if (rc_w == -1){
+        return bxierr_error("Can't write %s", filename);
+    }
+    return BXIERR_OK;
+}
 

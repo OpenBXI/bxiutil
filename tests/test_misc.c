@@ -132,6 +132,56 @@ void test_bitarray(void) {
 
 }
 
+void test_mktemp() {
+    char * tmp = NULL;
+    char * res = NULL;
+
+    bxierr_p err = bximisc_mkstemp(tmp, &res);
+    CU_ASSERT_NOT_EQUAL(err, BXIERR_OK);
+    CU_ASSERT_EQUAL(res, NULL);
+    bxierr_destroy(&err);
+
+    tmp = "tmp";
+    err = bximisc_mkstemp(tmp, &res);
+    CU_ASSERT_NOT_EQUAL(err, BXIERR_OK);
+    CU_ASSERT_EQUAL(res, NULL);
+    bxierr_destroy(&err);
+
+
+    tmp = "tmp-XXXXXX";
+    err = bximisc_mkstemp(tmp, &res);
+    char * tmpdir = getenv("TMPDIR");
+    CU_ASSERT_EQUAL(err, BXIERR_OK);
+    CU_ASSERT_NOT_EQUAL(res, NULL);
+    CU_ASSERT_TRUE(strncmp(res, tmpdir, strlen(tmpdir)) == 0);
+    unlink(res);
+    BXIFREE(res);
+
+    tmp = NULL;
+    res = NULL;
+
+    err = bximisc_mkdtemp(tmp, &res);
+    CU_ASSERT_NOT_EQUAL(err, BXIERR_OK);
+    CU_ASSERT_EQUAL(res, NULL);
+    bxierr_destroy(&err);
+
+    tmp = "tmp";
+    err = bximisc_mkdtemp(tmp, &res);
+    CU_ASSERT_NOT_EQUAL(err, BXIERR_OK);
+    CU_ASSERT_EQUAL(res, NULL);
+    bxierr_destroy(&err);
+
+
+    tmp = "tmp-XXXXXX";
+    err = bximisc_mkdtemp(tmp, &res);
+    tmpdir = getenv("TMPDIR");
+    CU_ASSERT_TRUE(strncmp(res, tmpdir, strlen(tmpdir) == 0));
+    CU_ASSERT_NOT_EQUAL(err, BXIERR_OK);
+    CU_ASSERT_EQUAL(res, NULL);
+    unlinkat(0, res, AT_REMOVEDIR);
+    BXIFREE(res);
+}
+
 void test_min_max() {
     int a1 = 1, b1 = 2;
     CU_ASSERT_EQUAL(BXIMISC_MIN(a1,b1), a1);

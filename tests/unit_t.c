@@ -135,6 +135,7 @@ int main(int argc, char * argv[]) {
         || (NULL == CU_add_test(pSuite, "test bad file", test_bad_file))
         || (NULL == CU_add_test(pSuite, "test misc_tuple2str", test_misc_tuple2str))
         || (NULL == CU_add_test(pSuite, "test min/max", test_min_max))
+        || (NULL == CU_add_test(pSuite, "test min/max", test_mktemp))
 
         || (NULL == CU_add_test(pSuite, "test comment", test_comment))
         || (NULL == CU_add_test(pSuite, "test unknown topo", test_unknown_token))
