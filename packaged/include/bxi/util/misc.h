@@ -78,16 +78,16 @@
 /**
  * Return the MIN of two values
  */
-#define BXIMISC_MIN(a,b)                                \
-    ({                                          \
+#define BXIMISC_MIN(a,b)                     \
+    ({                                       \
      (a) < (b) ? (a) : (b);                  \
      })
 
 /**
  * Return the MAX of two values
  */
-#define BXIMISC_MAX(a,b)                                \
-    ({                                          \
+#define BXIMISC_MAX(a,b)                     \
+    ({                                       \
      (a) > (b) ? (a) : (b);                  \
      })
 
@@ -273,7 +273,7 @@ void bximisc_stats(size_t n, uint32_t *data, bximisc_stats_s * stats_p);
  * @param MMAP_PROT flags provided to mmap for the page rights
  * @param addr of the mapped memory
  *
- * @returns
+ * @return BXIERR_OK on success, anything else on error
  */
 /* ----------------------------------------------------------------------------*/
 bxierr_p bximisc_file_map(const char * filename,
@@ -291,7 +291,7 @@ bxierr_p bximisc_file_map(const char * filename,
  * @param res is a new allocated string with the file name
  * @param fd file descriptor on the created file
  *
- * @returns   
+ * @return BXIERR_OK on success, anything else on error
  */
 /* ----------------------------------------------------------------------------*/
 bxierr_p bximisc_mkstemp(char * tmp_name, char ** res, int * fd);
@@ -303,7 +303,7 @@ bxierr_p bximisc_mkstemp(char * tmp_name, char ** res, int * fd);
  * @param tmp_name string containing prefix wanted
  * @param res is a new allocated string with the directory name
  *
- * @returns   
+ * @return BXIERR_OK on success, anything else on error
  */
 /* ----------------------------------------------------------------------------*/
 bxierr_p bximisc_mkdtemp(char * tmp_name, char ** res);
