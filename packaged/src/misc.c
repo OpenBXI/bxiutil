@@ -251,6 +251,8 @@ bxierr_p bximisc_str_tuple(const char * start, char * end,
         if (bxierr_isko(err)) {
             if (BXIMISC_NODIGITS_ERR == err->code && tmp_dim == 0) {
                 *dim = 0;
+                bxierr_destroy(&err);
+                BXIFREE(original_str);
                 return BXIERR_OK;
             } else return  bxierr_new(340,
                                       original_str, free,

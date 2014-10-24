@@ -289,6 +289,7 @@ bxierr_p bximisc_file_map(const char * filename,
  *
  * @param tmp_name string containing the prefix wanted
  * @param res is a new allocated string with the file name
+ * @param fd file descriptor on the created file
  *
  * @returns   
  */
