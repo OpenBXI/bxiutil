@@ -283,4 +283,27 @@ bxierr_p bximisc_file_map(const char * filename, /**< path of the file to map*/
                           int MMAP_PROT, /**< flags provided to mmap for the page rights*/
                           char ** addr /**< return the addr of mapped file*/);
 
+/* --------------------------------------------------------------------------*/
+/**
+ * Create a file as mkstemp but take into account of the environment variable tmpdir
+ *
+ * @param tmp_name
+ * @param res
+ *
+ * @returns   
+ */
+/* ----------------------------------------------------------------------------*/
+bxierr_p bximisc_mkstemp(char * tmp_name, char ** res);
+
+/* --------------------------------------------------------------------------*/
+/**
+ * Create a directory as mkdtemp but take into account of the environment variable tmpdir
+ *
+ * @param tmp_name
+ * @param res
+ *
+ * @returns   
+ */
+/* ----------------------------------------------------------------------------*/
+bxierr_p bximisc_mkdtemp(char * tmp_name, char ** res);
 #endif /* BXIMISC_H_ */
