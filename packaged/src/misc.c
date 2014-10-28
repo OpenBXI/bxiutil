@@ -83,7 +83,7 @@ char * bximisc_get_filename(FILE * const stream) {
     const int fd = fileno(stream);
     if (-1 == fd) {
         BXIEXIT(EX_IOERR,
-                bxierr_error("Bad stream: %x", stream),
+                bxierr_errno("Bad stream: %x", stream),
                 BXIMISC_LOGGER, BXILOG_CRITICAL);
     }
     sprintf(path, "/proc/self/fd/%d", fd);
@@ -92,7 +92,7 @@ char * bximisc_get_filename(FILE * const stream) {
     const ssize_t rc = readlink(path, result, n - 1);
     if (rc == -1) {
         BXIEXIT(EX_IOERR,
-                bxierr_error("Can't read: %s", path),
+                bxierr_errno("Can't read: %s", path),
                 BXIMISC_LOGGER, BXILOG_CRITICAL);
     }
     return (result);
@@ -103,7 +103,7 @@ char * bximisc_readlink(const char * const linkname) {
     errno = 0;
     if (lstat(linkname, &sb) == -1) {
         BXIEXIT(EX_IOERR,
-                bxierr_error("Calling lstat(%s) failed", linkname),
+                bxierr_errno("Calling lstat(%s) failed", linkname),
                 BXIMISC_LOGGER, BXILOG_CRITICAL);
     }
     char *targetname = bximem_calloc((size_t) (sb.st_size + 1));
@@ -350,7 +350,7 @@ char * bximisc_get_ip(char * hostname) {
         int rc = gethostname(tmp, 254);
         if (rc == -1) {
             BXIEXIT(EX_NOHOST,
-                    bxierr_error("Can't get host name from %s", hostname),
+                    bxierr_errno("Can't get host name from %s", hostname),
                     BXIMISC_LOGGER, BXILOG_CRITICAL);
         }
         hostname = tmp;
@@ -394,7 +394,7 @@ bxierr_p bximisc_strtoul(const char * const str,
     errno = 0;
     char * endptr;
     *result = strtoul(str, &endptr, base);
-    if (0 != errno) return bxierr_error("Error while parsing number: '%s'", str);
+    if (0 != errno) return bxierr_errno("Error while parsing number: '%s'", str);
     if (0 == *result && endptr == str) return bxierr_new(BXIMISC_NODIGITS_ERR,
                                                          strdup(str),
                                                          free,
@@ -409,7 +409,7 @@ bxierr_p bximisc_strtol(const char * const str, const int base, long * result) {
     errno = 0;
     char * endptr;
     *result = strtol(str, &endptr, base);
-    if (0 != errno) return bxierr_error("Error while parsing number: '%s'", str);
+    if (0 != errno) return bxierr_errno("Error while parsing number: '%s'", str);
     if (0 == *result && endptr == str) return bxierr_new(BXIMISC_NODIGITS_ERR,
                                                          strdup(str),
                                                          free,
@@ -496,7 +496,7 @@ bxierr_p bximisc_file_map(const char * filename,
             errno = 0;
             file = open(filename, O_RDONLY ,  S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
             if (file == -1){
-                bxierr_p bxierr = bxierr_error("Can't open %s", filename);
+                bxierr_p bxierr = bxierr_errno("Can't open %s", filename);
                 ERROR(BXIMISC_LOGGER, "%s", bxierr_str(bxierr));
                 return bxierr;
             }
@@ -509,7 +509,7 @@ bxierr_p bximisc_file_map(const char * filename,
             // and have some extra boost on performance. We might use an #ifdef NOCANCELLATION ...
             //    FILE * const file = fopen(filename, "wc");
             if (BXIERR_OK != rc) {
-                bxierr_p bxierr = bxierr_error("Problem for mapping file %s", filename);
+                bxierr_p bxierr = bxierr_errno("Problem for mapping file %s", filename);
                 char * err_str = bxierr_str(bxierr);
                 ERROR(BXIMISC_LOGGER, "%s", err_str);
                 BXIFREE(err_str);
@@ -520,7 +520,7 @@ bxierr_p bximisc_file_map(const char * filename,
                                   MAP_SHARED, file, 0);
         }
         if (-1 == close(file)) {
-            bxierr_p bxierr = bxierr_error("An error occured while closing %s.", filename);
+            bxierr_p bxierr = bxierr_errno("An error occured while closing %s.", filename);
             char * err_str = bxierr_str(bxierr);
             ERROR(BXIMISC_LOGGER, "%s", err_str);
             BXIFREE(err_str);
@@ -531,7 +531,7 @@ bxierr_p bximisc_file_map(const char * filename,
         }
     }
     if (MAP_FAILED == init_file_addr) {
-        bxierr_p bxierr = bxierr_error("An error occured while mapping %s.", filename);
+        bxierr_p bxierr = bxierr_errno("An error occured while mapping %s.", filename);
         ERROR(BXIMISC_LOGGER, "%s", bxierr_str(bxierr));
         return bxierr;
     }
@@ -554,7 +554,7 @@ bxierr_p bximisc_mkdtemp(char * tmp_name, char ** res) {
     char * full_tmp_name = bxistr_new("%s/%s-XXXXXX", tmpdir, prefix);
     *res = mkdtemp(full_tmp_name);
     if (*res == NULL) {
-        bxierr_p err = bxierr_error("mkdtemp can't handle the string %s", full_tmp_name);
+        bxierr_p err = bxierr_errno("mkdtemp can't handle the string %s", full_tmp_name);
         BXIFREE(full_tmp_name);
         return err;
     }
@@ -575,7 +575,7 @@ bxierr_p bximisc_mkstemp(char * tmp_name, char ** res, int *fd) {
     char * full_tmp_name = bxistr_new("%s/%s-XXXXXX", tmpdir, prefix);
     int rc = mkstemp(full_tmp_name);
     if (rc == -1) {
-        bxierr_p err = bxierr_error("mkstemp can't handle the string %s", full_tmp_name);
+        bxierr_p err = bxierr_errno("mkstemp can't handle the string %s", full_tmp_name);
         BXIFREE(full_tmp_name);
         return err;
     }
@@ -584,7 +584,7 @@ bxierr_p bximisc_mkstemp(char * tmp_name, char ** res, int *fd) {
     } else {
         rc = close(rc);
         if (rc != 0) {
-            bxierr_p err = bxierr_error("close error on file descriptor %d for file %s", fd, full_tmp_name);
+            bxierr_p err = bxierr_errno("close error on file descriptor %d for file %s", fd, full_tmp_name);
             BXIFREE(full_tmp_name);
             return err;
         }
@@ -602,18 +602,18 @@ bxierr_p _create_writable_file(const char * filename, size_t size, int *fd) {
     errno = 0;
     *fd = open(filename, O_CREAT|O_RDWR|O_TRUNC,  S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
     if (*fd == -1){
-        return bxierr_error("Can't open %s", filename);
+        return bxierr_errno("Can't open %s", filename);
     }
 
     off_t rc = lseek(*fd, (off_t)size-1, SEEK_SET);
     if (rc == -1){
-        return bxierr_error("Can't lseek %s for size %zu", filename, size);
+        return bxierr_errno("Can't lseek %s for size %zu", filename, size);
 
     }
 
     ssize_t rc_w = write(*fd, "", 1);
     if (rc_w == -1){
-        return bxierr_error("Can't write %s", filename);
+        return bxierr_errno("Can't write %s", filename);
     }
     return BXIERR_OK;
 }

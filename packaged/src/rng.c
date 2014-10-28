@@ -61,7 +61,7 @@ uint32_t bxirng_new_seed() {
     int fd = open(RANDOM_GEN_FILE, O_RDONLY);
     if (-1 == fd) {
         BXIEXIT(EX_OSFILE,
-                bxierr_error("Can't open '%s'", RANDOM_GEN_FILE),
+                bxierr_errno("Can't open '%s'", RANDOM_GEN_FILE),
                 BXIRNG_LOGGER, BXILOG_CRITICAL);
     }
     uint32_t seed;
@@ -70,7 +70,7 @@ uint32_t bxirng_new_seed() {
     ssize_t result = read(fd, &seed, sizeof(seed));
     if (0 > result) {
         BXIEXIT(EX_IOERR,
-                bxierr_error("Can't read %zu bytes from '%s'", sizeof(seed), RANDOM_GEN_FILE),
+                bxierr_errno("Can't read %zu bytes from '%s'", sizeof(seed), RANDOM_GEN_FILE),
                 BXIRNG_LOGGER, BXILOG_CRITICAL);
     }
     int rc = close(fd);
