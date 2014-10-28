@@ -242,7 +242,7 @@ void test_mapper_fork(void) {
     switch(cpid) {
     case -1: {
         BXIEXIT(EXIT_FAILURE,
-                bxierr_perror("Can't fork()"),
+                bxierr_error("Can't fork()"),
                 TEST_LOGGER, BXILOG_CRITICAL);
         break;
     }
@@ -289,7 +289,7 @@ void test_mapper_fork(void) {
         pid_t w = waitpid(cpid, &status, WUNTRACED);
         if (-1 == w) {
             BXIEXIT(EXIT_FAILURE,
-                    bxierr_perror("Can't wait()"),
+                    bxierr_error("Can't wait()"),
                     TEST_LOGGER, BXILOG_CRITICAL);
         }
         CU_ASSERT_TRUE(WIFEXITED(status));

@@ -371,7 +371,7 @@ char * bximisc_get_ip(char * hostname) {
 
     if (info == NULL) {
         BXIEXIT(EX_UNAVAILABLE,
-                bxierr_pgen("Function getaddrinfo() returned NULL!"),
+                bxierr_gen("Function getaddrinfo() returned NULL!"),
                 BXIMISC_LOGGER, BXILOG_CRITICAL);
     }
     struct sockaddr_in * addr = (struct sockaddr_in*) info->ai_addr;
