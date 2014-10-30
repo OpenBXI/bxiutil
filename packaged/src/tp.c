@@ -195,7 +195,7 @@ void _call_cb_err(const bxitp_context_p ctx, const bxitp_error_e errcode,
     assert(len > 0);
     const bxitp_error_e rc = ctx->cbs->err_cb(errcode, msg, ctx->data, ctx->line,
                                               ctx->line_nb);
-    if (rc != 0) {
+    if (0 != rc) {
         BXIEXIT(EX_SOFTWARE,
                 bxierr_gen("Callback returned an error (%d) at line %u, exiting.", rc,
                            ctx->line_nb),
