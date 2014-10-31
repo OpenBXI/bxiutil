@@ -234,18 +234,6 @@ bxierr_p bximisc_str_tuple(const char * start, char * end,
     for (int i = 0;; i++) {
         // We have reached the end of the string
         if (start >= end) break;
-        const char * comma = strchr(start, sep);
-        if (comma == NULL) {
-            if (suffix != '\0') {
-                return bxierr_new(340,
-                                  original_str,
-                                  free,
-                                  NULL,
-                                  "Separator %c expected in %s", sep, original_str);
-            }
-            comma = end; // Ensure the condition start >= end will hold on next step
-            // after last instruction in this loop
-        }
         unsigned long val;
         bxierr_p err = bximisc_strtoul(start, 10, &val);
         if (bxierr_isko(err)) {
@@ -254,13 +242,23 @@ bxierr_p bximisc_str_tuple(const char * start, char * end,
                 bxierr_destroy(&err);
                 BXIFREE(original_str);
                 return BXIERR_OK;
-            } else return  bxierr_new(340,
-                                      original_str, free,
-                                      err,
+            }
+            if (BXIMISC_REMAINING_CHAR == err->code) { // The whole string contains sep
+                const char * comma = (char *) err->data;
+
+                if (*comma != sep && *comma != suffix) {
+                    return  bxierr_new(340, original_str, free, err,
+                                       "Bad char '%c', expecting '%c' or '%c' in '%s'",
+                                       *comma, sep, suffix, original_str);
+                }
+                bxierr_destroy(&err);
+                // Next character
+                start = comma + 1;
+            } else return  bxierr_new(340, original_str, free, err,
                                       "Calling bximisc_strtoul() "
-                                      "failed with %s",
+                                      "failed with string '%s'",
                                       original_str);
-        }
+        } else start = end + 1; // The whole string is a digit.
         /* If we got here, strtoul() successfully parsed a number */
         if (val > UINT8_MAX) {
             return bxierr_new(340,
@@ -270,8 +268,6 @@ bxierr_p bximisc_str_tuple(const char * start, char * end,
                               val, UINT8_MAX, original_str);
         }
         result[i] = (uint8_t) val;
-        // Next character
-        start = comma + 1;
         tmp_dim++;
     }
     *dim = (uint8_t) tmp_dim;
@@ -395,12 +391,19 @@ bxierr_p bximisc_strtoul(const char * const str,
     char * endptr;
     *result = strtoul(str, &endptr, base);
     if (0 != errno) return bxierr_errno("Error while parsing number: '%s'", str);
-    if (0 == *result && endptr == str) return bxierr_new(BXIMISC_NODIGITS_ERR,
-                                                         strdup(str),
-                                                         free,
-                                                         NULL,
-                                                         "No digit found in '%s'",
-                                                         str);
+    if (endptr == str) return bxierr_new(BXIMISC_NODIGITS_ERR,
+                                         strdup(str),
+                                         free,
+                                         NULL,
+                                         "No digit found in '%s'",
+                                         str);
+    if (*endptr != '\0') {
+        return bxierr_new(BXIMISC_REMAINING_CHAR,
+                          endptr,
+                          NULL,
+                          NULL,
+                          "Some non digits characters remain in string '%s'", str);
+    }
     return BXIERR_OK;
 }
 
@@ -410,12 +413,19 @@ bxierr_p bximisc_strtol(const char * const str, const int base, long * result) {
     char * endptr;
     *result = strtol(str, &endptr, base);
     if (0 != errno) return bxierr_errno("Error while parsing number: '%s'", str);
-    if (0 == *result && endptr == str) return bxierr_new(BXIMISC_NODIGITS_ERR,
-                                                         strdup(str),
-                                                         free,
-                                                         NULL,
-                                                         "No digit found in '%s'",
-                                                         str);
+    if (endptr == str) return bxierr_new(BXIMISC_NODIGITS_ERR,
+                                         strdup(str),
+                                         free,
+                                         NULL,
+                                         "No digit found in '%s'",
+                                         str);
+    if (*endptr != '\0') {
+        return bxierr_new(BXIMISC_REMAINING_CHAR,
+                          endptr,
+                          NULL,
+                          NULL,
+                          "Some non digits characters remain in string '%s'", str);
+    }
     return BXIERR_OK;
 }
 

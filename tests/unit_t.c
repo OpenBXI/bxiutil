@@ -122,6 +122,7 @@ int main(int argc, char * argv[]) {
 
     /* add the tests to the suite */
     if (false
+        || (NULL == CU_add_test(pSuite, "test strto", test_misc_strto))
         || (NULL == CU_add_test(pSuite, "test bitarray", test_bitarray))
 
         || (NULL == CU_add_test(pSuite, "test vector", test_vector))

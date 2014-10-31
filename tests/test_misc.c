@@ -12,6 +12,140 @@
  */
 
 
+void test_misc_strto(void) {
+    long vall;
+    unsigned long valul;
+
+    bxierr_p err = bximisc_strtol("", 10, &vall);
+    OUT(TEST_LOGGER, "Error msg is: %s", err->msg);
+    CU_ASSERT_TRUE(bxierr_isko(err));
+    CU_ASSERT_EQUAL(err->code, BXIMISC_NODIGITS_ERR);
+    bxierr_destroy(&err);
+
+    err = bximisc_strtoul("", 10, &valul);
+    OUT(TEST_LOGGER, "Error msg is: %s", err->msg);
+    CU_ASSERT_TRUE(bxierr_isko(err));
+    CU_ASSERT_EQUAL(err->code, BXIMISC_NODIGITS_ERR);
+    bxierr_destroy(&err);
+
+    err = bximisc_strtol("foo", 10, &vall);
+    OUT(TEST_LOGGER, "Error msg is: %s", err->msg);
+    CU_ASSERT_TRUE(bxierr_isko(err));
+    CU_ASSERT_EQUAL(err->code, BXIMISC_NODIGITS_ERR);
+    bxierr_destroy(&err);
+
+    err = bximisc_strtoul("bar", 10, &valul);
+    OUT(TEST_LOGGER, "Error msg is: %s", err->msg);
+    CU_ASSERT_TRUE(bxierr_isko(err));
+    CU_ASSERT_EQUAL(err->code, BXIMISC_NODIGITS_ERR);
+    bxierr_destroy(&err);
+
+    err = bximisc_strtol("2", 10, &vall);
+    OUT(TEST_LOGGER, "Error msg is: %s", err->msg);
+    CU_ASSERT_TRUE(bxierr_isok(err));
+    bxierr_destroy(&err);
+    CU_ASSERT_EQUAL(vall, 2);
+
+    err = bximisc_strtoul("4", 10, &valul);
+    OUT(TEST_LOGGER, "Error msg is: %s", err->msg);
+    CU_ASSERT_TRUE(bxierr_isok(err));
+    bxierr_destroy(&err);
+    CU_ASSERT_EQUAL(valul, 4);
+
+    err = bximisc_strtol("-8", 10, &vall);
+    OUT(TEST_LOGGER, "Error msg is: %s", err->msg);
+    CU_ASSERT_TRUE(bxierr_isok(err));
+    bxierr_destroy(&err);
+    CU_ASSERT_EQUAL(vall, -8);
+
+    err = bximisc_strtoul("-16", 10, &valul);
+    OUT(TEST_LOGGER, "Error msg is: %s", err->msg);
+    CU_ASSERT_TRUE(bxierr_isok(err));
+    CU_ASSERT_EQUAL(valul, (unsigned long) -16);
+    bxierr_destroy(&err);
+
+    err = bximisc_strtol("32 bytes", 10, &vall);
+    OUT(TEST_LOGGER, "Error msg is: %s", err->msg);
+    CU_ASSERT_TRUE(bxierr_isko(err));
+    CU_ASSERT_EQUAL(err->code, BXIMISC_REMAINING_CHAR);
+    CU_ASSERT_EQUAL(*((char *) err->data), ' ');
+    CU_ASSERT_EQUAL(vall, 32);
+    bxierr_destroy(&err);
+
+    err = bximisc_strtoul("64 bytes", 10, &valul);
+    OUT(TEST_LOGGER, "Error msg is: %s", err->msg);
+    CU_ASSERT_TRUE(bxierr_isko(err));
+    CU_ASSERT_EQUAL(err->code, BXIMISC_REMAINING_CHAR);
+    CU_ASSERT_EQUAL(*((char *) err->data), ' ');
+    CU_ASSERT_EQUAL(valul, 64);
+    bxierr_destroy(&err);
+
+    err = bximisc_strtol("-128 bytes", 10, &vall);
+    OUT(TEST_LOGGER, "Error msg is: %s", err->msg);
+    CU_ASSERT_TRUE(bxierr_isko(err));
+    CU_ASSERT_EQUAL(err->code, BXIMISC_REMAINING_CHAR);
+    CU_ASSERT_EQUAL(*((char *) err->data), ' ');
+    CU_ASSERT_EQUAL(vall, -128);
+    bxierr_destroy(&err);
+
+    err = bximisc_strtoul("-256 bytes", 10, &valul);
+    OUT(TEST_LOGGER, "Error msg is: %s", err->msg);
+    CU_ASSERT_TRUE(bxierr_isko(err));
+    CU_ASSERT_EQUAL(err->code, BXIMISC_REMAINING_CHAR);
+    CU_ASSERT_EQUAL(*((char *) err->data), ' ');
+    CU_ASSERT_EQUAL(valul, (unsigned long) -256);
+    bxierr_destroy(&err);
+
+    err = bximisc_strtol("FF hex", 16, &vall);
+    OUT(TEST_LOGGER, "Error msg is: %s", err->msg);
+    CU_ASSERT_TRUE(bxierr_isko(err));
+    CU_ASSERT_EQUAL(err->code, BXIMISC_REMAINING_CHAR);
+    CU_ASSERT_EQUAL(*((char *) err->data), ' ');
+    CU_ASSERT_EQUAL(vall, 255);
+    bxierr_destroy(&err);
+
+    err = bximisc_strtol("-FF hex", 16, &vall);
+    OUT(TEST_LOGGER, "Error msg is: %s", err->msg);
+    CU_ASSERT_TRUE(bxierr_isko(err));
+    CU_ASSERT_EQUAL(err->code, BXIMISC_REMAINING_CHAR);
+    CU_ASSERT_EQUAL(*((char *) err->data), ' ');
+    CU_ASSERT_EQUAL(vall, -255);
+    bxierr_destroy(&err);
+
+    err = bximisc_strtoul("FF hex (unsigned)", 16, &valul);
+    OUT(TEST_LOGGER, "Error msg is: %s", err->msg);
+    CU_ASSERT_TRUE(bxierr_isko(err));
+    CU_ASSERT_EQUAL(err->code, BXIMISC_REMAINING_CHAR);
+    CU_ASSERT_EQUAL(*((char *) err->data), ' ');
+    CU_ASSERT_EQUAL(valul, 255);
+    bxierr_destroy(&err);
+
+    err = bximisc_strtoul("-FF hex (unsigned)", 16, &valul);
+    OUT(TEST_LOGGER, "Error msg is: %s", err->msg);
+    CU_ASSERT_TRUE(bxierr_isko(err));
+    CU_ASSERT_EQUAL(err->code, BXIMISC_REMAINING_CHAR);
+    CU_ASSERT_EQUAL(*((char *) err->data), ' ');
+    CU_ASSERT_EQUAL(valul, (unsigned long) -255);
+    bxierr_destroy(&err);
+
+    err = bximisc_strtol("FFFFFFFFFFFFFFFFF", 16, &vall);
+    OUT(TEST_LOGGER, "Error msg is: %s", err->msg);
+    CU_ASSERT_TRUE(bxierr_isko(err));
+    CU_ASSERT_EQUAL(err->code, ERANGE);
+    bxierr_destroy(&err);
+
+    err = bximisc_strtol("-FFFFFFFFFFFFFFFFF", 16, &vall);
+    OUT(TEST_LOGGER, "Error msg is: %s", err->msg);
+    CU_ASSERT_TRUE(bxierr_isko(err));
+    CU_ASSERT_EQUAL(err->code, ERANGE);
+    bxierr_destroy(&err);
+
+    err = bximisc_strtoul("FFFFFFFFFFFFFFFFFF", 16, &valul);
+    OUT(TEST_LOGGER, "Error msg is: %s", err->msg);
+    CU_ASSERT_TRUE(bxierr_isko(err));
+    CU_ASSERT_EQUAL_FATAL(err->code, ERANGE);
+    bxierr_destroy(&err);
+}
 
 void test_misc_tuple2str(void) {
     const uint8_t tuple[] = { 1, 2, 3, 0, 0 };
@@ -29,6 +163,7 @@ void test_misc_tuple2str(void) {
     CU_ASSERT_STRING_EQUAL(str, "[01]");
     err = bximisc_str_tuple(str, str + strlen(str) - 1, '[', ',', ']', &dim, dst);
     CU_ASSERT_TRUE(bxierr_isok(err));
+    BXILOG_REPORT(TEST_LOGGER, BXILOG_ERROR, err, "Error");
     for (size_t i = 0; i < dim; i++) CU_ASSERT_EQUAL(tuple[i], dst[i]);
     BXIFREE(str);
     str = bximisc_tuple_str(2, tuple, 0, '[', ',', ']');
@@ -62,7 +197,7 @@ void test_misc_tuple2str(void) {
     str = bximisc_tuple_str(5, tuple, 11, '[', '.', ']');
     DEBUG(TEST_LOGGER, "All elements tuple with end mark and max reached: %s", str);
     CU_ASSERT_STRING_EQUAL(str, "[01.02.03.00.00]");
-    err = bximisc_str_tuple(str, str + strlen(str) - 1, '[', ',', ']', &dim, dst);
+    err = bximisc_str_tuple(str, str + strlen(str) - 1, '[', '.', ']', &dim, dst);
     CU_ASSERT_TRUE(bxierr_isok(err));
     for (size_t i = 0; i < dim; i++) CU_ASSERT_EQUAL(tuple[i], dst[i]);
     BXIFREE(str);

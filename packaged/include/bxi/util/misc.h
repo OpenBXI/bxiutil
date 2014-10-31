@@ -92,9 +92,25 @@
      })
 
 /**
- * The error code returned when no digits are found in a given string.
+ * The error code returned when no digits are found in a given string .
+ *
+ * @see bximisc_strtol()
+ * @see bximisc_strtoul()
  */
-#define BXIMISC_NODIGITS_ERR 1917  // IGIT in leet speek
+#define BXIMISC_NODIGITS_ERR 1917  // nodIGIT in leet speek
+
+/**
+ * The error code returned when non-digits remains in a given string.
+ *
+ * In such a case, `bxierr_p.data` contains a pointer on the first found
+ * non-digit character.
+ *
+ * @see bximisc_strtol()
+ * @see bximisc_strtoul()
+ *
+ */
+#define BXIMISC_REMAINING_CHAR 834116    //REmAInInG in leet speek
+
 
 /**
  * The error code returned when an error happened while closing a file
@@ -217,26 +233,40 @@ char * bximisc_get_ip(char * hostname);
 
 
 /**
- * Equivalent to strtoul but return a bxierr_p.
+ * Equivalent to `strtoul()` but return a `bxierr_p`.
+ *
+ * Note: see `bximisc_strtol()` for error handling.
  *
  * @param str the string to parse
  * @param base the radix
  * @param result a pointer on the result
  *
- * @return BXIERR_OK on success, anything else on error
+ * @return BXIERR_OK, BXIMISC_NODIGITS_ERR, BXIMISC_REMAINING_CHAR
  *
  */
 bxierr_p bximisc_strtoul(const char * str, int base, unsigned long *result);
 
 
 /**
- *  Equivalent to strtol but return a bxierr_p.
+ * Equivalent to strtol but return a bxierr_p.
+ *
+ * Note, if a non-digit character remains after the parsing,
+ * error `BXIMISC_REMAINING_CHAR` is returned, and the `bxierr_p.data` points
+ * to it. Use it like this:
+ *
+ *          long val;
+ *          bxierr_p err = bximisc_strtol("-134 bytes", 10, &val);
+ *          if (bxierr_isko(err)) {
+ *              if (BXIMISC_REMAINING_CHAR != err->code) return err;
+ *              char * non-digit = (char *) err->data;
+ *              BXIASSERT(MY_LOGGER, 0 == strcmp(non-digit, "bytes"));
+ *          }
  *
  * @param str the string to parse
  * @param base the radix
  * @param result a pointer on the result
  *
- * @return BXIERR_OK on success, anything else on error
+ * @return BXIERR_OK, BXIERR_OK, BXIMISC_NODIGITS_ERR, BXIMISC_REMAINING_CHAR
  */
 bxierr_p bximisc_strtol(const char * str, int base, long *result);
 
