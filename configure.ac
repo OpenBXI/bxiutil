@@ -70,7 +70,7 @@ AC_TYPE_UINT8_T
 ###########################
 AC_ARG_ENABLE([debug], [AS_HELP_STRING([--disable-debug], [enable debugging, default: yes])])
 if test x"$enable_debug" != "xno"; then
-    CFLAGS="-g3 -O0 $CFLAGS";
+    CFLAGS="$CFLAGS -g3 -O0";
 fi
 
 ###########################
