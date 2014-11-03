@@ -122,7 +122,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 %{_bindir}/*
 %{_libdir}/*
-%{_includedir}/*
+%{_includedir}/bxi/util/*.h
 
 
 #%config(noreplace) %{target_conf_dir}/my.conf
