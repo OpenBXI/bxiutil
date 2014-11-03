@@ -4,7 +4,7 @@
 ###############################################################################
 
 #TODO: define your package name
-%define name bxiapi
+%define name bxiutil
 
 # Bull software starts with 1.1-Bull.1.0
 # For versionning policy, please see wiki:
@@ -36,12 +36,13 @@
 
 %define target_conf_dir /etc/
 %define target_bin_dir /usr/bin
-%define target_lib_dir /usr/lib
+%define target_lib_dir /usr/lib*
+%define target_python_lib_dir %{python2_sitelib}
 %define target_man_dir %{_mandir}
 %define target_doc_dir /usr/share/doc/%{name}
 
 # TODO: Give your summary
-Summary:	The bxiapi provides all functions and objects related to BXI objects
+Summary:	The bxiutil provides all functions and objects that are used by BXI objects
 Name:		%{name}
 Version:	%{version}
 Release:	%{release}
@@ -63,18 +64,18 @@ BuildArch:	x86_64
 URL:	 	https://novahpc.frec.bull.fr
 
 #TODO: What do you provide
-Provides: bxiapi
+Provides: %{name}
 #Conflicts:
 #TODO: What do you require
 Requires: zeromq3
 Requires: czmq
 
-Requires: bxiclib >= 1.0.0
-Requires: bxicbb >= 1.0.0
+Requires: bxibase >= 2.0.0
+Requires: bxibackbone >= 2.0.0
 
 #TODO: Give a description (seen by rpm -qi) (No more than 80 characters)
 %description
-Implementation of the bxi backbone to communicate between the component of the FM
+BXI utils functions
 
 ###############################################################################
 # Prepare the files to be compiled
@@ -95,7 +96,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 #%postun old
 #%posttrans new
 %build
-autoreconf -i
+#autoreconf -i
 %configure 
 %{__make}
 
@@ -120,9 +121,12 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 # Specify files to be placed into the package
 %files
 %defattr(-,root,root)
-%{_bindir}/*
-%{_libdir}/*
 %{_includedir}/bxi/util/*.h
+%{target_lib_dir}/lib*
+%{target_python_lib_dir}/*
+#%{target_bin_dir}/*
+
+
 
 
 #%config(noreplace) %{target_conf_dir}/my.conf
