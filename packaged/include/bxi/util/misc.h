@@ -191,8 +191,8 @@ char * bximisc_tuple_str(size_t n, const uint8_t * tuple, uint8_t endmark,
  *
  * @param start the starting pointer of the string to parse
  * @param end the end of the string (might not be '\0')
- * @param dim the number of element found
- * @param result a pointer on the resulting data
+ * @param[out] dim the number of element found
+ * @param[out] result a pointer on the resulting data
  * @return BXIERR_OK on success, anything else on error
  */
 bxierr_p bximisc_str_tuple(const char * start, char * end,
@@ -239,7 +239,7 @@ char * bximisc_get_ip(char * hostname);
  *
  * @param str the string to parse
  * @param base the radix
- * @param result a pointer on the result
+ * @param[out] result a pointer on the result
  *
  * @return BXIERR_OK, BXIMISC_NODIGITS_ERR, BXIMISC_REMAINING_CHAR
  *
@@ -264,7 +264,7 @@ bxierr_p bximisc_strtoul(const char * str, int base, unsigned long *result);
  *
  * @param str the string to parse
  * @param base the radix
- * @param result a pointer on the result
+ * @param[out] result a pointer on the result
  *
  * @return BXIERR_OK, BXIERR_OK, BXIMISC_NODIGITS_ERR, BXIMISC_REMAINING_CHAR
  */
@@ -287,25 +287,23 @@ char * bximisc_bitarray_str(const char *bitarray, uint64_t n);
  *
  * @param n the number of data
  * @param data the actual data to get statistics on
- * @param stats_p a pointer on a `bximisc_stats_s` data structure to be filled
+ * @param[out] stats_p a pointer on a `bximisc_stats_s` data structure to be filled
  *
  */
 void bximisc_stats(size_t n, uint32_t *data, bximisc_stats_s * stats_p);
 
-/* --------------------------------------------------------------------------*/
 /**
- * Map the file name filename on the process's memory.
+ * Map the file name `filename` on the process's memory.
  *
- * @param filename path of the map file
+ * @param filename path of the file to map
  * @param size of the wanted or existing file
- * @param exist define if the file exist or not
- * @param link_onfile specify if the required memory is link on a disk file
+ * @param exist define if the file exists or not
+ * @param link_onfile specify if the required memory is linked on a disk file
  * @param MMAP_PROT flags provided to mmap for the page rights
- * @param addr of the mapped memory
+ * @param[out] addr address of the mapped memory
  *
  * @return BXIERR_OK on success, anything else on error
  */
-/* ----------------------------------------------------------------------------*/
 bxierr_p bximisc_file_map(const char * filename,
                           size_t size,
                           bool exist,
@@ -313,28 +311,31 @@ bxierr_p bximisc_file_map(const char * filename,
                           int MMAP_PROT,
                           char ** addr);
 
-/* --------------------------------------------------------------------------*/
 /**
- * Create a file as mkstemp but take into account of the environment variable tmpdir
+ * Create a file as mkstemp but take into account the environment variable TMPDIR
  *
- * @param tmp_name string containing the prefix wanted
- * @param res is a new allocated string with the file name
- * @param fd file descriptor on the created file
+ * Note:
+ *      - the returned string in *res will have to be freed (use BXIFREE())
+ *      - the returned file descriptor will have to be closed() (use close())
+ *
+ * @param prefix the prefix of the file name to generate
+ * @param[out] res is a new allocated string representing the full name of
+ *             the created file
+ * @param[out] fd the file descriptor on the created file
  *
  * @return BXIERR_OK on success, anything else on error
  */
-/* ----------------------------------------------------------------------------*/
 bxierr_p bximisc_mkstemp(char * tmp_name, char ** res, int * fd);
 
-/* --------------------------------------------------------------------------*/
 /**
- * Create a directory as mkdtemp but take into account of the environment variable tmpdir
+ * Create a directory as mkdtemp but take into account the environment variable TMPDIR
  *
- * @param tmp_name string containing prefix wanted
- * @param res is a new allocated string with the directory name
+ * Note: the returned string in *res will have to be freed (use BXIFREE()).
+ *
+ * @param prefix the prefix of the directory name to generate
+ * @param[out] res is a new allocated string with the directory full name
  *
  * @return BXIERR_OK on success, anything else on error
  */
-/* ----------------------------------------------------------------------------*/
 bxierr_p bximisc_mkdtemp(char * tmp_name, char ** res);
 #endif /* BXIMISC_H_ */

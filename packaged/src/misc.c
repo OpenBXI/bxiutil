@@ -553,13 +553,12 @@ bxierr_p bximisc_file_map(const char * filename,
 bxierr_p bximisc_mkdtemp(char * tmp_name, char ** res) {
     BXIASSERT(BXIMISC_LOGGER, res != NULL);
     char * tmpdir = getenv("TMPDIR");
-    if( tmpdir == NULL )
-    {
+    if (tmpdir == NULL) {
         tmpdir = "/tmp" ;
     }
     char * prefix="bxi";
     if (tmp_name != NULL) {
-        prefix=tmp_name;
+        prefix = tmp_name;
     }
     char * full_tmp_name = bxistr_new("%s/%s-XXXXXX", tmpdir, prefix);
     *res = mkdtemp(full_tmp_name);
@@ -578,8 +577,7 @@ bxierr_p bximisc_mkstemp(char * tmp_name, char ** res, int *fd) {
         prefix = tmp_name;
     }
     char * tmpdir = getenv("TMPDIR");
-    if( tmpdir == NULL )
-    {
+    if (tmpdir == NULL) {
         tmpdir = "/tmp" ;
     }
     char * full_tmp_name = bxistr_new("%s/%s-XXXXXX", tmpdir, prefix);
@@ -594,7 +592,8 @@ bxierr_p bximisc_mkstemp(char * tmp_name, char ** res, int *fd) {
     } else {
         rc = close(rc);
         if (rc != 0) {
-            bxierr_p err = bxierr_errno("close error on file descriptor %d for file %s", fd, full_tmp_name);
+            bxierr_p err = bxierr_errno("close error on file descriptor %d for file %s",
+                                        fd, full_tmp_name);
             BXIFREE(full_tmp_name);
             return err;
         }
