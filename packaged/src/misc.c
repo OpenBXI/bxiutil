@@ -340,11 +340,11 @@ char * bximisc_get_ip(char * hostname) {
     struct addrinfo hints, *info, *p;
     char tmp[255]; // Should be in this scope for hostname to point towards it.
 
-    if (hostname == NULL || strcmp(hostname, "localhost") == 0) {
+    if (NULL == hostname || 0 == strcmp(hostname, "localhost")) {
         tmp[254] = '\0';
         errno = 0;
         int rc = gethostname(tmp, 254);
-        if (rc == -1) {
+        if (-1 == rc) {
             BXIEXIT(EX_NOHOST,
                     bxierr_errno("Can't get host name from %s", hostname),
                     BXIMISC_LOGGER, BXILOG_CRITICAL);
@@ -358,14 +358,14 @@ char * bximisc_get_ip(char * hostname) {
     hints.ai_flags = AI_CANONNAME;
 
     int rc = getaddrinfo(hostname, NULL, &hints, &info);
-    if (rc != 0) {
+    if (0 != rc) {
         BXIEXIT(EX_UNAVAILABLE,
                 bxierr_gen("Function getaddrinfo() failed: %s",
                            gai_strerror(rc)),
                 BXIMISC_LOGGER, BXILOG_CRITICAL);
     }
 
-    if (info == NULL) {
+    if (NULL == info) {
         BXIEXIT(EX_UNAVAILABLE,
                 bxierr_gen("Function getaddrinfo() returned NULL!"),
                 BXIMISC_LOGGER, BXILOG_CRITICAL);
