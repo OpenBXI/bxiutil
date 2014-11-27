@@ -11,7 +11,7 @@
  ###############################################################################
  */
 
-#include <stdio.h>
+
 bxierr_p  test_function(size_t start, size_t end, size_t thread, void *usr_data){
     int * test = (int*) usr_data;
 
@@ -53,6 +53,7 @@ bxierr_p  test_function2(size_t start, size_t end, size_t thread_id, void *usr_d
 
 
 void test_scheduler(void) {
+    DEBUG(TEST_LOGGER, "Starting test");
     size_t max_nb_cpu = (size_t)sysconf(_SC_NPROCESSORS_ONLN);;
 
     bxierr_p err = bximap_on_cpu(65356);
@@ -62,6 +63,12 @@ void test_scheduler(void) {
     err = bximap_on_cpu(max_nb_cpu);
     CU_ASSERT_TRUE(bxierr_isko(err));
     bxierr_destroy(&err);
+    errno = 0;
+    if (sched_getcpu() == -1) {
+         bxierr_p err = bxierr_errno("Getting the cpu calling sched_getcpu()");
+        BXILOG_REPORT(TEST_LOGGER, BXILOG_WARNING, err, "Can't be call sched_getcpu");
+        return;
+    }
 
     for (size_t i=0; i < max_nb_cpu; i++) {
         bxierr_p err = bximap_on_cpu(i);
@@ -157,6 +164,7 @@ void test_scheduler(void) {
     bximap_destroy(&task);
 
 
+    DEBUG(TEST_LOGGER, "End test");
 }
 
 void test_map(void) {
