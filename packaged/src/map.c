@@ -602,11 +602,7 @@ bxierr_p bximap_translate_cpumask(const char * cpus, bxivector_p * vcpus) {
         }
     }
 
-    bxierr_p err = _fill_vector_with_cpu(previous_cpu, cpu, *vcpus);
-    if (bxierr_isko(err)) {
-        bxivector_destroy(vcpus, NULL);
-    }
-    return err;
+    return BXIERR_OK;
 }
 
 bxierr_p bximap_set_cpumask(char * cpus) {
@@ -621,7 +617,7 @@ bxierr_p bximap_set_cpumask(char * cpus) {
     bxierr_p err = bximap_translate_cpumask(cpus, &vcpus);
     if (vcpus != NULL && 0 < bxivector_get_size(vcpus)) {
         char * cpus_str = bxistr_new("%zd", (intptr_t)bxivector_get_elem(vcpus, 0));
-        for (size_t i = 0; i < bxivector_get_size(vcpus); i++) {
+        for (size_t i = 1; i < bxivector_get_size(vcpus); i++) {
             char * next_cpus = bxistr_new("%s,%zd", cpus_str, (intptr_t)bxivector_get_elem(vcpus, i));
             BXIFREE(cpus_str);
             cpus_str = next_cpus;

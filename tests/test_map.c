@@ -33,7 +33,8 @@ bxierr_p  test_function(size_t start, size_t end, size_t thread, void *usr_data)
 bxierr_p  test_map_schedule(size_t start, size_t end, size_t thread, void *usr_data){
     UNUSED(start);
     UNUSED(end);
-    //printf("%zu should equal %d\n", (size_t)usr_data + thread, sched_getcpu());
+    DEBUG(TEST_LOGGER, "on thread %zu, first cpu %zu, %zu should equal %d\n",
+          thread, (size_t)usr_data,  (size_t)usr_data + thread, sched_getcpu());
     CU_ASSERT_EQUAL((size_t)usr_data + thread, (size_t)sched_getcpu());
     return BXIERR_OK;
 }
@@ -159,6 +160,7 @@ void test_scheduler(void) {
 }
 
 void test_map(void) {
+    DEBUG(TEST_LOGGER, "Starting test");
 
     CU_ASSERT_EQUAL(bximap_finalize(), BXIMAP_NOT_INITIALIZED);
     bximap_ctx_p null_tasks = NULL;
@@ -339,6 +341,7 @@ void test_map(void) {
     bximap_destroy(&task);
     BXIFREE(test);
     BXIFREE(null_tasks);
+    DEBUG(TEST_LOGGER, "End test");
 }
 
 void test_mapper_fork(void) {
