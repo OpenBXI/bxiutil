@@ -31,6 +31,10 @@
 // ********************************** Define  **************************************
 // *********************************************************************************
 
+
+#define BXIMAP_NEGATIVE_INTERGER 560
+#define BXIMAP_INTERVAL_ERROR 560
+
 // *********************************************************************************
 // ********************************** Types   **************************************
 // *********************************************************************************
@@ -154,5 +158,25 @@ bxierr_p bximap_execute(bximap_ctx_p context);
  * @return BXIERR_OK on success, anything else on error.
  */
 bxierr_p bximap_get_error(bximap_ctx_p context, size_t *n, bxierr_p **err_p);
+
+/**
+ * Bind the current thread on the provided cpu index.
+ *
+ * @param cpu
+ *
+ * @returns   BXIERR_OK when the mapping is possible, if the index is larger than the number of cpu an error is returned.
+ */
+bxierr_p bximap_on_cpu(size_t cpu);
+
+/**
+ * Translate the string passed into a vector of cpus.
+ * The string could be compound of a single cpu separated by comma, or range of cpu as for taskset command.
+ * Example 0,4-6 will use the processors 0,4,5,6.
+ *
+ * @param cpus
+ *
+ * @returns   BXIERR_OK if the string is well formed and the cpus are available
+ */
+bxierr_p bximap_set_cpumask(char * cpus);
 
 #endif /* BXILOOP_H_ */

@@ -11,6 +11,7 @@
  ###############################################################################
  */
 
+#include <stdio.h>
 bxierr_p  test_function(size_t start, size_t end, size_t thread, void *usr_data){
     int * test = (int*) usr_data;
 
@@ -28,6 +29,15 @@ bxierr_p  test_function(size_t start, size_t end, size_t thread, void *usr_data)
     }
     return BXIERR_OK;
 }
+
+bxierr_p  test_map_schedule(size_t start, size_t end, size_t thread, void *usr_data){
+    UNUSED(start);
+    UNUSED(end);
+    //printf("%zu should equal %d\n", (size_t)usr_data + thread, sched_getcpu());
+    CU_ASSERT_EQUAL((size_t)usr_data + thread, sched_getcpu());
+    return BXIERR_OK;
+}
+
 bxierr_define(TEST_ERR, 10, "test");
 bxierr_p  test_function2(size_t start, size_t end, size_t thread_id, void *usr_data){
     UNUSED(thread_id);
@@ -40,6 +50,113 @@ bxierr_p  test_function2(size_t start, size_t end, size_t thread_id, void *usr_d
     return TEST_ERR;
 }
 
+
+void test_scheduler(void) {
+    size_t max_nb_cpu = (size_t)sysconf(_SC_NPROCESSORS_ONLN);;
+
+    bxierr_p err = bximap_on_cpu(65356);
+    CU_ASSERT_TRUE(bxierr_isko(err));
+    bxierr_destroy(&err);
+
+    err = bximap_on_cpu(max_nb_cpu);
+    CU_ASSERT_TRUE(bxierr_isko(err));
+    bxierr_destroy(&err);
+
+    for (size_t i=0; i < max_nb_cpu; i++) {
+        bxierr_p err = bximap_on_cpu(i);
+        CU_ASSERT_TRUE(bxierr_isok(err));
+        CU_ASSERT_EQUAL(i, sched_getcpu());
+    }
+
+    err = bximap_set_cpumask(NULL);
+    CU_ASSERT_TRUE(bxierr_isok(err));
+    bxierr_destroy(&err);
+
+    err = bximap_set_cpumask("qsq");
+    CU_ASSERT_TRUE(bxierr_isko(err));
+    CU_ASSERT_EQUAL(err->code, BXIMISC_NODIGITS_ERR);
+    bxierr_destroy(&err);
+
+    err = bximap_set_cpumask("-1");
+    CU_ASSERT_TRUE(bxierr_isko(err));
+    CU_ASSERT_EQUAL(err->code, BXIMAP_NEGATIVE_INTERGER);
+    bxierr_destroy(&err);
+
+    err = bximap_set_cpumask("3-1");
+    CU_ASSERT_TRUE(bxierr_isko(err));
+    CU_ASSERT_EQUAL(err->code, BXIMAP_INTERVAL_ERROR);
+    bxierr_destroy(&err);
+
+    err = bximap_set_cpumask("0");
+    CU_ASSERT_TRUE(bxierr_isok(err));
+    size_t threads_nb = 1;
+
+    CU_ASSERT_EQUAL(0, sched_getcpu());
+    CU_ASSERT_EQUAL(bximap_init(&threads_nb), BXIERR_OK);
+
+    CU_ASSERT_EQUAL(bximap_finalize(), BXIERR_OK);
+
+    if (max_nb_cpu == 1) {
+        WARNING(TEST_LOGGER, "Only one core is available all the tests cannot be run");
+        return;
+    }
+
+    bxirng_p rnd = bxirng_new(bxirng_new_seed());
+    size_t min_cpu = bxirng_nextint(rnd, 0, (uint32_t)max_nb_cpu - 2);
+    size_t max_cpu = bxirng_nextint(rnd, (uint32_t)min_cpu + 1, (uint32_t)max_nb_cpu -1);
+    threads_nb = max_cpu - min_cpu + 1;
+    char * cpus = bxistr_new("%zu-%zu", min_cpu, max_cpu);
+    bxirng_destroy(&rnd);
+    err = bximap_set_cpumask(cpus);
+    CU_ASSERT_TRUE(bxierr_isok(err));
+    BXIFREE(cpus);
+
+    CU_ASSERT_EQUAL(min_cpu, sched_getcpu());
+    CU_ASSERT_EQUAL(bximap_init(&threads_nb), BXIERR_OK);
+
+    bximap_ctx_p task = NULL;
+    err = bximap_new(1, 10, 0, &test_map_schedule, (void*)min_cpu, &task);
+    CU_ASSERT_TRUE(bxierr_isok(err));
+    CU_ASSERT_EQUAL(bximap_execute(task), BXIERR_OK);
+
+
+    cpus = bxistr_new("%zu,%zu", min_cpu, max_cpu);
+    err = bximap_set_cpumask(cpus);
+    CU_ASSERT_TRUE(bxierr_isko(err));
+
+    CU_ASSERT_EQUAL(bximap_finalize(), BXIERR_OK);
+    err = bximap_set_cpumask(cpus);
+    CU_ASSERT_TRUE(bxierr_isok(err));
+    BXIFREE(cpus);
+    CU_ASSERT_EQUAL(bximap_init(&threads_nb), BXIERR_OK);
+
+    CU_ASSERT_EQUAL(min_cpu, sched_getcpu());
+
+    cpus = bxistr_new("%zu-%zu,%zu", min_cpu, max_cpu-1, max_cpu);
+    CU_ASSERT_EQUAL(bximap_finalize(), BXIERR_OK);
+    err = bximap_set_cpumask(cpus);
+    CU_ASSERT_TRUE(bxierr_isok(err));
+    BXIFREE(cpus);
+    CU_ASSERT_EQUAL(bximap_init(&threads_nb), BXIERR_OK);
+
+    CU_ASSERT_EQUAL(min_cpu, sched_getcpu());
+    CU_ASSERT_EQUAL(bximap_execute(task), BXIERR_OK);
+
+    cpus = bxistr_new("%zu-%zu,%zu", min_cpu, max_cpu, max_cpu);
+    CU_ASSERT_EQUAL(bximap_finalize(), BXIERR_OK);
+    err = bximap_set_cpumask(cpus);
+    CU_ASSERT_TRUE(bxierr_isok(err));
+    BXIFREE(cpus);
+    CU_ASSERT_EQUAL(bximap_init(&threads_nb), BXIERR_OK);
+
+    CU_ASSERT_EQUAL(min_cpu, sched_getcpu());
+    CU_ASSERT_EQUAL(bximap_execute(task), BXIERR_OK);
+
+    CU_ASSERT_EQUAL(bximap_finalize(), BXIERR_OK);
+    bximap_destroy(&task);
+
+
+}
 
 void test_map(void) {
 

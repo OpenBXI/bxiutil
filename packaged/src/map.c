@@ -12,18 +12,20 @@
 */
 //#define ZMQ
 #define FADD
+#define _GNU_SOURCE
+#include <sched.h>
 
 #include <stdlib.h> //getenv
 #include <unistd.h> //sysconf
 #include <pthread.h>
 #include <math.h>
+#include <bxi/base/log.h>
 
 
 #include <bxi/base/mem.h>
 #include <bxi/base/str.h>
 #include <bxi/base/err.h>
 #include <bxi/base/time.h>
-#include <bxi/base/log.h>
 
 #include <bxi/util/misc.h>
 
@@ -42,6 +44,7 @@
 #define NO_CONTEXT_MSG "Bximap got NULL context"
 #define NULL_PTR_MSG "Bximap got NULL context pointer"
 #define ARG_ERROR_MSG "Argument Error"
+
 
 typedef enum {
     MAPPER_UNSET,
@@ -92,6 +95,7 @@ static void _mapper_parent_after_fork(void);
 static void _mapper_once(void);
 bxierr_p _do_job(bximap_ctx_p task, size_t thread_id);
 void * _start_function(void* arg);
+bxierr_p _fill_vector_with_cpu(intptr_t first_cpu, intptr_t last_cpu, bxivector_p vcpu);
 
 // *********************************************************************************
 // ********************************** Global Variables *****************************
@@ -131,6 +135,8 @@ _intern_info shared_info = {
     .state = MAPPER_UNSET,
     .nb_threads = 0,
 };
+
+bxivector_p vcpus;
 
 
 bxierr_define(BXIMAP_INITIALIZE, 0, INITIALIZE_MSG);
@@ -526,11 +532,110 @@ bxierr_p bximap_finalize(){
         rc = zmq_ctx_destroy(shared_info.context);
     } while (rc == -1 && zmq_errno() == EINTR);
 #endif
+
+    if (vcpus != NULL) {
+        bxivector_destroy(&vcpus, NULL);
+    }
+
     double duration;
     bxitime_duration(CLOCK_MONOTONIC, stop_time, &duration);
     BXIERR_CHAIN(err, err2);
     INFO(MAPPER_LOGGER, "Map stop %f seconds", duration);
     return BXIERR_OK;
+}
+
+bxierr_p bximap_on_cpu(size_t cpu) {
+    cpu_set_t cpu_mask;
+
+    CPU_ZERO(&cpu_mask);
+    CPU_SET(cpu, &cpu_mask);
+    errno = 0;
+    if (sched_setaffinity(0, 1, &cpu_mask) != 0) {
+        return bxierr_errno("Process binding on the cpu failled (sched_setaffinity)");
+    }
+    return BXIERR_OK;
+}
+
+bxierr_p bximap_translate_cpumask(const char * cpus, bxivector_p * vcpus) {
+    BXIASSERT(MAPPER_LOGGER, vcpus != NULL);
+
+    *vcpus = bxivector_new(0, NULL);
+
+    char * next_int = (char *)cpus;
+    intptr_t previous_cpu = -1;
+    intptr_t cpu = -1;
+    while (*next_int != '\0') {
+        char * int_str = next_int;
+        errno = 0;
+        cpu = strtol(int_str, &next_int, 10);
+        if (0 != errno) {
+            bxivector_destroy(vcpus, NULL);
+            return bxierr_errno("Error while parsing number: '%s'", int_str);
+        }
+        if (next_int == int_str) {
+            bxivector_destroy(vcpus, NULL);
+            return bxierr_new(BXIMISC_NODIGITS_ERR,
+                              strdup(int_str),
+                              free,
+                              NULL,
+                              "No digit found in '%s'",
+                              int_str);
+        }
+
+        if ('-' == *next_int) {
+            next_int++;
+            previous_cpu = cpu;
+        } else {
+            if (cpu < 0) {
+                bxivector_destroy(vcpus, NULL);
+                return bxierr_new(BXIMAP_NEGATIVE_INTERGER, strdup(int_str),
+                                  free, NULL, "Negative cpu number found %s",
+                                  int_str);
+            }
+            if (',' == *next_int) next_int++;
+            bxierr_p err = _fill_vector_with_cpu(previous_cpu, cpu, *vcpus);
+            if (bxierr_isko(err)) {
+                bxivector_destroy(vcpus, NULL);
+                return err;
+            }
+            previous_cpu = -1;
+        }
+    }
+
+    bxierr_p err = _fill_vector_with_cpu(previous_cpu, cpu, *vcpus);
+    if (bxierr_isko(err)) {
+        bxivector_destroy(vcpus, NULL);
+    }
+    return err;
+}
+
+bxierr_p bximap_set_cpumask(char * cpus) {
+    if (shared_info.state == MAPPER_INITIALIZED) return BXIMAP_INITIALIZE;
+    if (cpus == NULL) {
+        if (vcpus != NULL) {
+            bxivector_destroy(&vcpus, NULL);
+        }
+        return BXIERR_OK;
+    }
+
+    bxierr_p err = bximap_translate_cpumask(cpus, &vcpus);
+    if (vcpus != NULL && 0 < bxivector_get_size(vcpus)) {
+        char * cpus_str = bxistr_new("%zd", (intptr_t)bxivector_get_elem(vcpus, 0));
+        for (size_t i = 0; i < bxivector_get_size(vcpus); i++) {
+            char * next_cpus = bxistr_new("%s,%zd", cpus_str, (intptr_t)bxivector_get_elem(vcpus, i));
+            BXIFREE(cpus_str);
+            cpus_str = next_cpus;
+        }
+        TRACE(MAPPER_LOGGER,"Convertion of %s into %zu element: [%s]", cpus,  bxivector_get_size(vcpus), cpus_str);
+        BXIFREE(cpus_str);
+
+        size_t cpu = (size_t)bxivector_get_elem(vcpus, 0);
+        TRACE(MAPPER_LOGGER,"Schedule on cpu=\"%zu\"", cpu);
+        bxierr_p next = bximap_on_cpu(cpu);
+        BXIERR_CHAIN(err, next);
+    }
+
+    return err;
 }
 
 // *********************************************************************************
@@ -574,6 +679,16 @@ void * _start_function(void* arg){
     double working_time = 0;
     size_t nb_iterations =0;
     TRACE(MAPPER_LOGGER, "thread:%zu start", thread_id);
+    if (vcpus != NULL) {
+        size_t nb_cpus = bxivector_get_size(vcpus);
+        size_t my_cpu = thread_id % nb_cpus;
+        size_t cpu = (size_t)bxivector_get_elem(vcpus, my_cpu);
+        TRACE(MAPPER_LOGGER,"Schedule on cpu=\"%zu\" thread_id=\"%zu\"", cpu, thread_id);
+        bxierr_p err = bximap_on_cpu(cpu);
+        if (bxierr_isko(err)) {
+            BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err, "Can't be mapped on cpu %zu", cpu);
+        }
+    }
 #ifdef ZMQ
     TRACE(MAPPER_LOGGER, "thread:%zu start zmq", thread_id);
     void *  zocket_sub_end     = bxizmq_zsocket_new_checked(shared_info.context,
@@ -720,4 +835,18 @@ void * _start_function(void* arg){
 #endif
     TRACE(MAPPER_LOGGER, "thread:%zu stop", thread_id);
     return err;
+}
+
+
+
+bxierr_p _fill_vector_with_cpu(intptr_t first_cpu, intptr_t last_cpu, bxivector_p vcpus) {
+    TRACE(MAPPER_LOGGER, "first_cpu=\"%zd\" last_cpu=\"%zd\"", first_cpu, last_cpu);
+    if (first_cpu > last_cpu) return bxierr_new(BXIMAP_INTERVAL_ERROR, NULL, NULL, NULL,
+                                              "Interval with a greater first index %zu than last index %zu",
+                                              first_cpu, last_cpu);
+    if (-1 == first_cpu) first_cpu = last_cpu;
+    for (intptr_t i = first_cpu; i <= last_cpu; i++) {
+        bxivector_push(vcpus, (void *) i);
+    }
+    return BXIERR_OK;
 }

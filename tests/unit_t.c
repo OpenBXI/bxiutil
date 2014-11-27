@@ -10,6 +10,7 @@
  # Please contact Bull S. A. S. for details about its license.
  ###############################################################################
  */
+#define _GNU_SOURCE
 
 #include <CUnit/Basic.h>
 #include <CUnit/Console.h>
@@ -128,6 +129,7 @@ int main(int argc, char * argv[]) {
         || (NULL == CU_add_test(pSuite, "test vector", test_vector))
 
         || (NULL == CU_add_test(pSuite, "test map", test_map))
+        || (NULL == CU_add_test(pSuite, "test map scheduler", test_scheduler))
         || (NULL == CU_add_test(pSuite, "test map fork", test_mapper_fork))
 
         || (NULL == CU_add_test(pSuite, "test rng", test_rng))
