@@ -34,7 +34,7 @@ bxierr_p  test_map_schedule(size_t start, size_t end, size_t thread, void *usr_d
     UNUSED(start);
     UNUSED(end);
     //printf("%zu should equal %d\n", (size_t)usr_data + thread, sched_getcpu());
-    CU_ASSERT_EQUAL((size_t)usr_data + thread, sched_getcpu());
+    CU_ASSERT_EQUAL((size_t)usr_data + thread, (size_t)sched_getcpu());
     return BXIERR_OK;
 }
 
@@ -65,7 +65,7 @@ void test_scheduler(void) {
     for (size_t i=0; i < max_nb_cpu; i++) {
         bxierr_p err = bximap_on_cpu(i);
         CU_ASSERT_TRUE(bxierr_isok(err));
-        CU_ASSERT_EQUAL(i, sched_getcpu());
+        CU_ASSERT_EQUAL(i, (size_t)sched_getcpu());
     }
 
     err = bximap_set_cpumask(NULL);
@@ -111,7 +111,7 @@ void test_scheduler(void) {
     CU_ASSERT_TRUE(bxierr_isok(err));
     BXIFREE(cpus);
 
-    CU_ASSERT_EQUAL(min_cpu, sched_getcpu());
+    CU_ASSERT_EQUAL(min_cpu, (size_t)sched_getcpu());
     CU_ASSERT_EQUAL(bximap_init(&threads_nb), BXIERR_OK);
 
     bximap_ctx_p task = NULL;
@@ -130,7 +130,7 @@ void test_scheduler(void) {
     BXIFREE(cpus);
     CU_ASSERT_EQUAL(bximap_init(&threads_nb), BXIERR_OK);
 
-    CU_ASSERT_EQUAL(min_cpu, sched_getcpu());
+    CU_ASSERT_EQUAL(min_cpu, (size_t)sched_getcpu());
 
     cpus = bxistr_new("%zu-%zu,%zu", min_cpu, max_cpu-1, max_cpu);
     CU_ASSERT_EQUAL(bximap_finalize(), BXIERR_OK);
@@ -139,7 +139,7 @@ void test_scheduler(void) {
     BXIFREE(cpus);
     CU_ASSERT_EQUAL(bximap_init(&threads_nb), BXIERR_OK);
 
-    CU_ASSERT_EQUAL(min_cpu, sched_getcpu());
+    CU_ASSERT_EQUAL(min_cpu, (size_t)sched_getcpu());
     CU_ASSERT_EQUAL(bximap_execute(task), BXIERR_OK);
 
     cpus = bxistr_new("%zu-%zu,%zu", min_cpu, max_cpu, max_cpu);
@@ -149,7 +149,7 @@ void test_scheduler(void) {
     BXIFREE(cpus);
     CU_ASSERT_EQUAL(bximap_init(&threads_nb), BXIERR_OK);
 
-    CU_ASSERT_EQUAL(min_cpu, sched_getcpu());
+    CU_ASSERT_EQUAL(min_cpu, (size_t)sched_getcpu());
     CU_ASSERT_EQUAL(bximap_execute(task), BXIERR_OK);
 
     CU_ASSERT_EQUAL(bximap_finalize(), BXIERR_OK);
