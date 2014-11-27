@@ -67,7 +67,7 @@ bxivector_p bxivector_new(size_t n, void * elems[n]);
  * elements, free the underlying data structure and nullify the vector pointer.
  *
  * @param self_p a pointer on a vector
- * @param a function called on each element of the vector for releasing resources
+ * @param free_element is a function called on each element of the vector for releasing resources
  */
 void bxivector_destroy(bxivector_p *self_p, void (*free_element)(void**));
 
@@ -83,6 +83,7 @@ size_t bxivector_get_size(bxivector_p self);
  * Return the n^th element of the array
  *
  * @param self a vector*
+ * @param n is the index of the returned element
  * @return the n^th element of the array
  */
 void * bxivector_get_elem(bxivector_p self, size_t n);

@@ -169,7 +169,7 @@ bxierr_p bximap_get_error(bximap_ctx_p context, size_t *n, bxierr_p **err_p);
 bxierr_p bximap_on_cpu(size_t cpu);
 
 /**
- * Translate the string passed into a vector of cpus.
+ * Set a cpu mask to be used by bximap threads. This mapping should be provided before calling bximap_init_threads().
  * The string could be compound of a single cpu separated by comma, or range of cpu as for taskset command.
  * Example 0,4-6 will use the processors 0,4,5,6.
  *

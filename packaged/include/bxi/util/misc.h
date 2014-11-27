@@ -191,6 +191,9 @@ char * bximisc_tuple_str(size_t n, const uint8_t * tuple, uint8_t endmark,
  *
  * @param start the starting pointer of the string to parse
  * @param end the end of the string (might not be '\0')
+ * @param prefix the prefix character (can be '\0')
+ * @param sep a separator character
+ * @param suffix a value representing an endmark (can be '\0')
  * @param[out] dim the number of element found
  * @param[out] result a pointer on the resulting data
  * @return BXIERR_OK on success, anything else on error
@@ -318,14 +321,14 @@ bxierr_p bximisc_file_map(const char * filename,
  *      - the returned string in *res will have to be freed (use BXIFREE())
  *      - the returned file descriptor will have to be closed() (use close())
  *
- * @param prefix the prefix of the file name to generate
+ * @param prefix of the generated file name
  * @param[out] res is a new allocated string representing the full name of
  *             the created file
  * @param[out] fd the file descriptor on the created file
  *
  * @return BXIERR_OK on success, anything else on error
  */
-bxierr_p bximisc_mkstemp(char * tmp_name, char ** res, int * fd);
+bxierr_p bximisc_mkstemp(char * prefix, char ** res, int * fd);
 
 /**
  * Create a directory as mkdtemp but take into account the environment variable TMPDIR
@@ -337,5 +340,5 @@ bxierr_p bximisc_mkstemp(char * tmp_name, char ** res, int * fd);
  *
  * @return BXIERR_OK on success, anything else on error
  */
-bxierr_p bximisc_mkdtemp(char * tmp_name, char ** res);
+bxierr_p bximisc_mkdtemp(char * prefix, char ** res);
 #endif /* BXIMISC_H_ */
