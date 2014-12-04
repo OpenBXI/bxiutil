@@ -2,7 +2,7 @@ if HAVE_DOXYGEN
 
 doxygen.warn:
 	$(DOXYGEN) Doxyfile
-	exit $$(wc -l $@)
+	exit $$(wc -l $@|sed 's% .*%%')
 
 
 doc:
