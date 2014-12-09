@@ -102,7 +102,7 @@ if test x"$enable_valgrind" != "xno"; then
         fi
 
         run_valgrind="yes"
-        VALGRIND="valgrind"
+        VALGRIND="libtool --mode=execute valgrind --quiet"
         AC_SUBST(VALGRIND)
 
 fi
