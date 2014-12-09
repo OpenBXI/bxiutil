@@ -52,7 +52,7 @@ char ** ARGV = NULL;
  * Opens the temporary file used by the tests.
  * Returns zero on success, non-zero otherwise.
  */
-int init_bxitp_suite(void) {
+int init_suite(void) {
     errno = 0;
     return 0;
 }
@@ -61,7 +61,7 @@ int init_bxitp_suite(void) {
  * Closes the temporary file used by the tests.
  * Returns zero on success, non-zero otherwise.
  */
-int clean_bxitp_suite(void) {
+int clean_suite(void) {
     return 0;
 }
 
@@ -115,7 +115,7 @@ int main(int argc, char * argv[]) {
     if (CUE_SUCCESS != CU_initialize_registry()) return CU_get_error();
 
     /* add a suite to the registry */
-    pSuite = CU_add_suite("BXI_TP_TestSuite", init_bxitp_suite, clean_bxitp_suite);
+    pSuite = CU_add_suite("BXI_TestSuite", init_suite, clean_suite);
     if (NULL == pSuite) {
         CU_cleanup_registry();
         return (CU_get_error());
