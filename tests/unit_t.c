@@ -193,7 +193,7 @@ int main(int argc, char * argv[]) {
     rc = rc > rc2 ? rc : rc2;
 
     CU_cleanup_registry();
-    err = bxilog_finalize();
+    err = bxilog_finalize(true);
     if (BXIERR_OK != err) {
         char * str = bxierr_str(err);
         fprintf(stderr, "WARNING: bxilog finalization returned: %s", str);
