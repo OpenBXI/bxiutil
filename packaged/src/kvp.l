@@ -33,7 +33,7 @@ SET_LOGGER(_LOGGER, KVP_LOG_NAME"_lexer");
 
 #define YY_USER_ACTION do {                         \
         yylloc->first_column = yylloc->last_column; \
-        yylloc->last_column += yyleng;              \
+        yylloc->last_column += (int)yyleng;              \
     } while (0);
 
 #define YY_FATAL_ERROR(msg) CRITICAL(_LOGGER, "%s", msg)

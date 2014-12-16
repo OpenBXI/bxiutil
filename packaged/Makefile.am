@@ -1,5 +1,8 @@
 ACLOCAL_AMFLAGS = -I m4
 
+AM_LFLAGS=-Cf\
+		  --skel=$(abs_srcdir)/src/bxi_kvp.skl
+
 
 lib_LTLIBRARIES=lib/libbxiutil.la
 
@@ -13,7 +16,8 @@ lib_libbxiutil_la_SOURCES=\
 		  src/map.c\
 		  src/misc.c\
 		  src/vector.c\
-		  src/tp.c
+		  src/tp.c\
+		  src/kvp.l
 
 lib_libbxiutil_la_LDFLAGS=\
 					 $(ZMQ_LIBS)\
