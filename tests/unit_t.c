@@ -56,6 +56,7 @@ char ** ARGV = NULL;
  */
 int init_suite(void) {
     errno = 0;
+    init_lexerSuite();
     return 0;
 }
 
@@ -64,6 +65,7 @@ int init_suite(void) {
  * Returns zero on success, non-zero otherwise.
  */
 int clean_suite(void) {
+    clean_lexerSuite();
     return 0;
 }
 
@@ -171,30 +173,15 @@ int main(int argc, char * argv[]) {
         || (NULL == CU_add_test(pSuite, "test pgft port_badnid", test_pgft_port_badnid))
         || (NULL == CU_add_test(pSuite, "test pgft port", test_pgft_port))
         || (NULL == CU_add_test(pSuite, "test eof", test_eof))
+        || (NULL == CU_add_test(pSuite, "EOF/L", lexSpecial))
+        || (NULL == CU_add_test(pSuite, "KEY", lexKey))
+        || (NULL == CU_add_test(pSuite, "NUM", lexDigit))
+        || (NULL == CU_add_test(pSuite, "STR", lexString))
+        || (NULL == CU_add_test(pSuite, "TUPLE", lexTuple))
 
         || false) {
         CU_cleanup_registry();
         return (CU_get_error());
-    }
-
-    /* add lexer test suite to the registry */
-    CU_pSuite lexerSuite = CU_add_suite("Lexer", init_lexerSuite, clean_lexerSuite);
-    if (NULL == lexerSuite) {
-        CU_cleanup_registry();
-        return CU_get_error();
-    }
-
-    /* add the tests to the lexer test suite */
-    if (
-            (NULL == CU_add_test(lexerSuite, "EOF/L", lexSpecial))        ||
-            (NULL == CU_add_test(lexerSuite, "KEY", lexKey))          ||
-            (NULL == CU_add_test(lexerSuite, "NUM", lexDigit))      ||
-            (NULL == CU_add_test(lexerSuite, "STR", lexString))     ||
-            (NULL == CU_add_test(lexerSuite, "TUPLE", lexTuple))    ||
-            false)
-    {
-        CU_cleanup_registry();
-        return CU_get_error();
     }
 
     /* Run all tests using the automated interface */

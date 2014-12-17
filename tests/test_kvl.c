@@ -35,9 +35,6 @@ union YYSTYPE
 };
 #include <bxi/util/kvl.h>
 
-/* Logging facility */
-SET_LOGGER(_LOGGER, KVP_LOG_NAME"_unittest");
-
 #ifndef VTEST
     #undef DEBUG
     #define DEBUG(...)
@@ -80,7 +77,7 @@ int clean_lexerSuite(void) {
 
 #define test_digit(buf, expected_value) do {        \
         CU_ASSERT(NUM == _lex_me(buf));             \
-        DEBUG(_LOGGER, "num %ld", *_yylval->num);   \
+        DEBUG(TEST_LOGGER, "num %ld", *_yylval->num);   \
         CU_ASSERT(expected_value == *_yylval->num); \
     } while (0)
 
@@ -122,7 +119,7 @@ enum yytokentype _lex_me(char *buf) {
     yyscan_t _scanner = kvl_init_from_fd(fakefile, "lex_unit_t");
 
     enum yytokentype token = yylex(_yylval, _yylloc, _scanner);
-    DEBUG(_LOGGER, "%s: %s", buf, tok2str(token));
+    DEBUG(TEST_LOGGER, "%s: %s", buf, tok2str(token));
 
     kvl_finalize(_scanner);
 
