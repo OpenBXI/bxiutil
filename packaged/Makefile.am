@@ -17,7 +17,7 @@ lib_libbxiutil_la_SOURCES=\
 		  src/misc.c\
 		  src/vector.c\
 		  src/tp.c\
-		  src/kvp.l
+		  src/kvl.l
 
 lib_libbxiutil_la_LDFLAGS=\
 					 $(ZMQ_LIBS)\

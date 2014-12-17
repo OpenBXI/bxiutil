@@ -18,10 +18,18 @@
             %option align
             %option full
 */
-#include "kvp.h"
-void push_str(YYSTYPE*, char*);
-void push_tuple(YYSTYPE*, bxivector_p);
-void push_num(YYSTYPE*, long*);
+#include <string.h> // strdup
+#include <libgen.h> // used 4 basename()
+
+#include <bxi/util/vector.h>
+union YYSTYPE
+{
+    /* Types used in the lexer: can't be modified */
+    long *num;
+    char *str;
+    bxivector_p tuple;
+};
+#include <bxi/util/kvl.h>
 
 /* BXI LOG */
 SET_LOGGER(_LOGGER, KVP_LOG_NAME"_lexer");
@@ -57,6 +65,7 @@ SET_LOGGER(_LOGGER, KVP_LOG_NAME"_lexer");
 
     /* Skip not used function generation */
 %option nounput noinput
+%option noyywrap
 
     /* Properly interact with Bison */
 %option bison-bridge bison-locations
@@ -109,7 +118,8 @@ digit       [-]?[[:digit:]]+
                     BEGIN(INITIAL);
                     fclose(e_buf_fp);
                     TRACE(_LOGGER, "found str<%s>", e_buf);
-                    push_str(yylval, e_buf);
+                    // push_str(yylval, e_buf);
+                    yylval->str = e_buf;
 
                     return STR;
                 }
@@ -128,7 +138,7 @@ digit       [-]?[[:digit:]]+
     /* Multilines str ain't allowed */
 \n              { YY_TRACK_NEWLINE; BEGIN(INITIAL); ERROR(_LOGGER, "String are single line only!"); return EOL; }
 
-<<EOF>>         { BEGIN(INITIAL); ERROR(_LOGGER, "Unfinished quote; %c missing?", e_enclosing); return yytext[0]; }
+<<EOF>>         { BEGIN(INITIAL); ERROR(_LOGGER, "Unfinished quote; %c missing?", e_enclosing); return (enum yytokentype)yytext[0]; }
 } // End of <INSTR>
 
     /* Tuple */
@@ -149,15 +159,16 @@ digit       [-]?[[:digit:]]+
 
 {cTuple}        {
                     BEGIN(INITIAL);
-                    push_tuple(yylval, e_tuple);
+                    //push_tuple(yylval, e_tuple);
+                    yylval->tuple = e_tuple;
                     if (yytext[0] != e_enclosing) {
                         ERROR(_LOGGER, "Tuple enclosing do not match, expecting %c", e_enclosing);
-                        return yytext[0];
+                        return (enum yytokentype)yytext[0];
                     }
                     return TUPLE;
                 }
 
-(.|EOF)         { BEGIN(INITIAL); ERROR(_LOGGER, "Tuple Err: <%s>", yytext); return yytext[0]; }
+(.|EOF)         { BEGIN(INITIAL); ERROR(_LOGGER, "Tuple Err: <%s>", yytext); return (enum yytokentype)yytext[0]; }
 (\n)            { YY_TRACK_NEWLINE; BEGIN(INITIAL); ERROR(_LOGGER, "Tuple Err: <%s>", yytext); return EOL; }
 } // End of <INBRACE>
 
@@ -166,19 +177,22 @@ digit       [-]?[[:digit:]]+
                     TRACE(_LOGGER, "digit: <%s>", yytext);
                     long *digit = bximem_calloc(sizeof(long));
                     bximisc_strtol(yytext, 10, digit); // FIXME: error handling!
-                    push_num(yylval, digit);
+                    //push_num(yylval, digit);
+                    yylval->num = digit;
                     return NUM;
                 }
 
 {prefix}            {
                     TRACE(_LOGGER, "prefix: <%s>", yytext);
-                    push_str(yylval, bxistr_new("%s", yytext));
+                    //push_str(yylval, bxistr_new("%s", yytext));
+                    yylval->str = bxistr_new("%s", yytext);
                     return PREFIX;
                 }
 
 {key}            {
                     TRACE(_LOGGER, "key: <%s>", yytext);
-                    push_str(yylval, bxistr_new("%s", yytext));
+                    //push_str(yylval, bxistr_new("%s", yytext));
+                    yylval->str = bxistr_new("%s", yytext);
                     return KEY;
                 }
 
@@ -190,7 +204,7 @@ digit       [-]?[[:digit:]]+
 :               { TRACE(_LOGGER, "<:>"); return ':'; }
 \.              { TRACE(_LOGGER, "<.>"); return '.'; }
 
-.               { ERROR(_LOGGER, "Unexpected <%c>", yytext[0]); return yytext[0]; }
+.               { ERROR(_LOGGER, "Unexpected <%c>", yytext[0]); return (enum yytokentype)yytext[0]; }
 
 %%
 
@@ -208,5 +222,46 @@ void *yyrealloc(void *ptr, size_t bytes, void *yyscanner) {
 void yyfree(void *ptr, void *yyscanner) {      
     UNUSED(yyscanner);
     BXIFREE(ptr);
+}
+
+yyscan_t kvl_init_from_fd(FILE *file_in, char *fname) {
+    /* Scanner initialization */
+    yyscan_t scanner = bximem_calloc(sizeof(yyscan_t));
+    yyextra_data_s* extra = bximem_calloc(sizeof(yyextra_data_s));
+    if (NULL == fname) {
+        extra->filename = strdup("from fd");
+    }
+    yylex_init_extra(extra, &scanner);
+    yyset_in(file_in, scanner);
+
+    return scanner;
+}
+
+yyscan_t kvl_init(char *fname) {
+    FILE* file_in = NULL;
+
+    /* Scanner initialization */
+    if (NULL == fname || '-' == fname[0]) {
+        fname = strdup("stdin");
+    } else {
+        errno = 0;
+        file_in = fopen(fname, "r");
+        if (NULL == file_in) {
+            BXILOG_REPORT(_LOGGER, BXILOG_ERROR,
+                bxierr_errno("Calling fopen(\"%s\", \"r\"): failed", fname),
+                "Can't initialize kvlexer!");
+            return NULL;
+        }
+    }
+
+    return kvl_init_from_fd(file_in, basename(fname));
+}
+
+void kvl_finalize(yyscan_t scanner) {
+    /* Clean-up */
+    yyextra_data_s *extra = yyget_extra(scanner);
+    BXIFREE(extra);
+    yylex_destroy(scanner);
+    //TODO: if (file_in) fclose(file_in);
 }
 

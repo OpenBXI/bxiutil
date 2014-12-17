@@ -10,7 +10,8 @@ unit_t_CFLAGS =\
 unit_t_LDFLAGS =\
 				@TST_LDFLAGS@\
 				$(ZMQ_LIBS)\
-				$(UUID_LIBS)
+				$(UUID_LIBS)\
+				-lbxiutil
 
 unit_t_LDADD = @TST_LIBS@
 

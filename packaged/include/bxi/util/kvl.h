@@ -1,3 +1,4 @@
+
 /* -*- coding: utf-8 -*-
  ###############################################################################
  # Author: Alain Cady <alain.cady@bull.net>
@@ -11,8 +12,8 @@
  # Please contact Bull S. A. S. for details about its license.
  ###############################################################################
  */
-#ifndef __kvp_lexer_h__
-#define __kvp_lexer_h__
+#ifndef __kvl_lexer_h__
+#define __kvl_lexer_h__
 
 #include <stdio.h>
 #include <limits.h>
@@ -79,13 +80,12 @@ typedef struct YYLTYPE
 enum yytokentype yylex(YYSTYPE *, YYLTYPE*, yyscan_t);
 #define YY_DECL enum yytokentype yylex \
                 (YYSTYPE *yylval_param, YYLTYPE *yylloc_param, yyscan_t yyscanner)
-yyextra_data_s* yyget_extra (yyscan_t scanner);
-void yyrestart(FILE *new_file, yyscan_t yyscanner);
-int yylex_init_extra(YY_EXTRA_TYPE, yyscan_t*);
-void yyset_in(FILE *in_str, yyscan_t scanner);
-int yylex_destroy(yyscan_t yyscanner);
+
+yyscan_t kvl_init(char *fname);
+yyscan_t kvl_init_from_fd(FILE *file_in, char *fname);
+void kvl_finalize(yyscan_t scanner);
 
 #define KVP_LOG_NAME "kvp"
 
-#endif // __kvp_lexer_h__
+#endif // __kvl_lexer_h__
 

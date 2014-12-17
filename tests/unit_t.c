@@ -48,6 +48,8 @@ char ** ARGV = NULL;
 #include "test_misc.c"
 #include "test_tp.c"
 
+#include "test_kvl.c"
+
 /* The suite initialization function.
  * Opens the temporary file used by the tests.
  * Returns zero on success, non-zero otherwise.
@@ -173,6 +175,26 @@ int main(int argc, char * argv[]) {
         || false) {
         CU_cleanup_registry();
         return (CU_get_error());
+    }
+
+    /* add lexer test suite to the registry */
+    CU_pSuite lexerSuite = CU_add_suite("Lexer", init_lexerSuite, clean_lexerSuite);
+    if (NULL == lexerSuite) {
+        CU_cleanup_registry();
+        return CU_get_error();
+    }
+
+    /* add the tests to the lexer test suite */
+    if (
+            (NULL == CU_add_test(lexerSuite, "EOF/L", lexSpecial))        ||
+            (NULL == CU_add_test(lexerSuite, "KEY", lexKey))          ||
+            (NULL == CU_add_test(lexerSuite, "NUM", lexDigit))      ||
+            (NULL == CU_add_test(lexerSuite, "STR", lexString))     ||
+            (NULL == CU_add_test(lexerSuite, "TUPLE", lexTuple))    ||
+            false)
+    {
+        CU_cleanup_registry();
+        return CU_get_error();
     }
 
     /* Run all tests using the automated interface */
