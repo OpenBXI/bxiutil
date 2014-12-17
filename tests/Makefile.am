@@ -10,10 +10,11 @@ unit_t_CFLAGS =\
 unit_t_LDFLAGS =\
 				@TST_LDFLAGS@\
 				$(ZMQ_LIBS)\
-				$(UUID_LIBS)\
-				-lbxiutil
+				$(UUID_LIBS)
 
-unit_t_LDADD = @TST_LIBS@
+unit_t_LDADD =\
+			  $(top_builddir)/packaged/lib/libbxiutil.la\
+			  @TST_LIBS@
 
 #TESTS_ENVIRONMENT=@VALGRIND@ @VALGRIND_ARGS@
 AUTOMAKE_OPTIONS = parallel-tests
