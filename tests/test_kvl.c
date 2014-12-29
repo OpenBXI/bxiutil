@@ -46,8 +46,10 @@ union YYSTYPE
 
 
 /* Yacc utils */
-YYSTYPE *_yylval;
-YYLTYPE *_yylloc;
+YYSTYPE _yylval;
+YYLTYPE _yylloc;
+FILE *fakefile;
+yyscan_t _scanner;
 
 /* Helper */
 #define bxivector_compare(a, b, type) do {                                                  \
@@ -61,43 +63,69 @@ YYLTYPE *_yylloc;
 /******************************** Lexer ***********************************************/
 /* Lexer test suite initialization function. */
 int init_lexerSuite(void) {
-    _yylval = bximem_calloc(sizeof(YYSTYPE));
-    _yylloc = bximem_calloc(sizeof(YYLTYPE));
+    // _yylval = bximem_calloc(sizeof(YYSTYPE));
+    // _yylloc = bximem_calloc(sizeof(YYLTYPE));
+    assert(0 == _yylval.num);
 
     return 0;
 }
 
 /* Lexer test suite cleanup function. */
 int clean_lexerSuite(void) {
-    BXIFREE(_yylloc);
-    BXIFREE(_yylval);
+    //BXIFREE(_yylloc);
+    //BXIFREE(_yylval);
+    memset(&_yylval, 0, sizeof(YYSTYPE));
+    memset(&_yylloc, 0, sizeof(YYLTYPE));
 
     return 0;
 }
 
-#define test_digit(buf, expected_value) do {        \
-        CU_ASSERT(NUM == _lex_me(buf));             \
-        DEBUG(TEST_LOGGER, "num %ld", *_yylval->num);   \
-        CU_ASSERT(expected_value == *_yylval->num); \
+#define test_digit(buf, expected_value) do {            \
+        CU_ASSERT(NUM == _lex_me(buf));                 \
+        DEBUG(TEST_LOGGER, "num %ld", *_yylval.num);   \
+        CU_ASSERT(expected_value == *_yylval.num);     \
+        BXIFREE(_yylval.num);                          \
+        _lex_clean();                                   \
     } while (0)
 
 #define _test_str(buf, expected_tok, expected_value) do {       \
         CU_ASSERT(expected_tok == _lex_me(buf));                \
-        CU_ASSERT_STRING_EQUAL(expected_value, _yylval->str);   \
+        CU_ASSERT_STRING_EQUAL(expected_value, _yylval.str);   \
+        _lex_clean();                                           \
+        if (NULL != &_yylval.str) BXIFREE(_yylval.str);        \
     } while (0)
 
-#define test_tuple(buf, expected_value) do {                    \
-        CU_ASSERT(TUPLE == _lex_me(buf));                       \
-        bxivector_compare(expected_value, _yylval->tuple, long);\
+/*
+ * BXIFREE(_yylval->str);                                  \
+ */
+
+#define test_tuple(buf, expected_value) do {                                    \
+        CU_ASSERT(TUPLE == _lex_me(buf));                                       \
+        bxivector_compare(expected_value, _yylval.tuple, long);                \
+        _lex_clean();                                                           \
     } while (0)
+/*
+ * bxivector_destroy(&_yylval->tuple, (void (*)(void **))bximem_destroy);  \
+ */
 
 #define test_prefix(buf, expected_value) _test_str(buf, PREFIX, expected_value)
 #define test_key(buf, expected_value) _test_str(buf, KEY, expected_value)
 #define test_string(buf, expected_value) _test_str(buf, STR, expected_value)
 
-#define test_eof(buf) CU_ASSERT(0 == _lex_me(buf))
-#define test_eol(buf) CU_ASSERT(EOL == _lex_me(buf))
-#define test_err(buf, expected_mistoken) CU_ASSERT(expected_mistoken == _lex_me(buf))
+#define test_eof(buf) do {              \
+        CU_ASSERT(0 == _lex_me(buf));   \
+        _lex_clean();                   \
+    } while (0)
+
+#define test_eol(buf) do {              \
+        CU_ASSERT(EOL == _lex_me(buf)); \
+        _lex_clean();                   \
+    } while (0)
+
+#define test_err(buf, expected_mistoken) do {           \
+        CU_ASSERT(expected_mistoken == _lex_me(buf));   \
+        _lex_clean();                                   \
+    } while(0)
 
 /* Simple token stringification */
 char *tok2str(enum yytokentype tok) {
@@ -113,19 +141,20 @@ char *tok2str(enum yytokentype tok) {
 }
 
 enum yytokentype _lex_me(char *buf) {
-    FILE *fakefile = fmemopen(buf, BXISTR_BYTES_NB(buf), "r");
+    fakefile = fmemopen(buf, BXISTR_BYTES_NB(buf), "r");
     assert(fakefile != NULL);
 
-    yyscan_t _scanner = kvl_init_from_fd(fakefile, "lex_unit_t");
+    _scanner = kvl_init_from_fd(fakefile, "lex_unit_t");
 
-    enum yytokentype token = yylex(_yylval, _yylloc, _scanner);
+    enum yytokentype token = yylex(&_yylval, &_yylloc, _scanner);
     DEBUG(TEST_LOGGER, "%s: %s", buf, tok2str(token));
-
-    kvl_finalize(_scanner);
-
-    fclose(fakefile);
-
+ 
     return token;
+}
+
+void _lex_clean() {
+    kvl_finalize(_scanner);
+    fclose(fakefile);
 }
 
 void lexSpecial(void) {
@@ -157,6 +186,8 @@ void lexPrefix(void) {
 }
 
 void lexDigit(void) {
+    char *tst_str = NULL;
+
     test_digit("0", 0);
     test_digit("-3", -3);
 
@@ -167,27 +198,37 @@ void lexDigit(void) {
     test_digit("42", 42);
 
     /* UCHAR_MAX = 255 */
-    test_digit(bxistr_new("%d", UCHAR_MAX), UCHAR_MAX);
-    test_digit(bxistr_new("%d", UCHAR_MAX+1), UCHAR_MAX+1);
+    test_digit(tst_str = bxistr_new("%d", UCHAR_MAX), UCHAR_MAX);
+    BXIFREE(tst_str);
+    test_digit(tst_str = bxistr_new("%d", UCHAR_MAX+1), UCHAR_MAX+1);
+    BXIFREE(tst_str);
 
     /* USHRT_MAX = 65535 */
-    test_digit(bxistr_new("%d", USHRT_MAX), USHRT_MAX);
-    test_digit(bxistr_new("%d", USHRT_MAX+1), USHRT_MAX+1);
+    test_digit(tst_str = bxistr_new("%d", USHRT_MAX), USHRT_MAX);
+    BXIFREE(tst_str);
+    test_digit(tst_str = bxistr_new("%d", USHRT_MAX+1), USHRT_MAX+1);
+    BXIFREE(tst_str);
 
     /* UINT_MAX = 4294967295U */
-    test_digit(bxistr_new("%u", UINT_MAX), UINT_MAX);
-    test_digit(bxistr_new("%lu", (long unsigned int)(UINT_MAX)+1U), (long unsigned int)(UINT_MAX)+1U);
+    test_digit(tst_str = bxistr_new("%u", UINT_MAX), UINT_MAX);
+    BXIFREE(tst_str);
+    test_digit(tst_str = bxistr_new("%lu", (long unsigned int)(UINT_MAX)+1U), (long unsigned int)(UINT_MAX)+1U);
+    BXIFREE(tst_str);
 
     /* LONG_MAX = 9223372036854775807L */
-    test_digit(bxistr_new("%ld", LONG_MAX), LONG_MAX);
+    test_digit(tst_str = bxistr_new("%ld", LONG_MAX), LONG_MAX);
+    BXIFREE(tst_str);
 
 
     // those one overflow...
-    test_digit(bxistr_new("%lu", (unsigned long)(LONG_MAX)+1UL), (unsigned long)((LONG_MAX)));
+    test_digit(tst_str = bxistr_new("%lu", (unsigned long)(LONG_MAX)+1UL), (unsigned long)((LONG_MAX)));
+    BXIFREE(tst_str);
     /* ULONG_MAX = 18446744073709551615UL */
-    test_digit(bxistr_new("%lu", ULONG_MAX), (long)LONG_MAX);
+    test_digit(tst_str = bxistr_new("%lu", ULONG_MAX), (long)LONG_MAX);
+    BXIFREE(tst_str);
     // FIXME: errno?
-    test_digit(bxistr_new("%llu", (unsigned long long)(ULONG_MAX)+1ULL), 0L);
+    test_digit(tst_str = bxistr_new("%llu", (unsigned long long)(ULONG_MAX)+1ULL), 0L);
+    BXIFREE(tst_str);
 }
 
 void lexString(void) {
@@ -216,6 +257,7 @@ void lexString(void) {
     test_err("'", '\0');
 }
 
+/*
 bxivector_p mk_ulong_tuple(size_t size, ...) {
     va_list ap;
     bxivector_p tuple = bxivector_new(0, NULL);
@@ -230,6 +272,7 @@ bxivector_p mk_ulong_tuple(size_t size, ...) {
 
     return tuple;
 }
+*/
 
 void lexTuple(void) {
     bxivector_p ttuple = bxivector_new(0, NULL);
@@ -258,8 +301,8 @@ void lexTuple(void) {
 
 
     /* single */
-    long quarante_deux = 42;
-    bxivector_push(ttuple, &quarante_deux);
+    long *quarante_deux = bximem_calloc(sizeof(long)); *quarante_deux = 42;
+    bxivector_push(ttuple, quarante_deux);
     test_tuple("(42)",      ttuple);
     test_tuple("{42}",      ttuple);
     test_tuple("(42 )",     ttuple);
@@ -270,8 +313,8 @@ void lexTuple(void) {
     test_tuple("( 42,   )", ttuple);
 
     /* double */
-    long dix_huit = -18;
-    bxivector_push(ttuple, &dix_huit);
+    long *dix_huit = bximem_calloc(sizeof(long)); *dix_huit = -18;
+    bxivector_push(ttuple, dix_huit);
     test_tuple("(42,-18)",       ttuple);
     test_tuple("(42, -18)",      ttuple);
     test_tuple("(42,-18 )",      ttuple);
@@ -279,9 +322,13 @@ void lexTuple(void) {
     test_tuple("( 42,-18, )",    ttuple);
 
     /* limits */
-    long zero = 0;
+    long *zero = bximem_calloc(sizeof(long)); *zero = 0;
     bxivector_p zerotuple = bxivector_new(0, NULL);
-    bxivector_push(zerotuple, &zero);
+    bxivector_push(zerotuple, zero);
     test_tuple("(0)",      zerotuple);
+
+    /* clean-up */
+    bxivector_destroy(&zerotuple, (void (*)(void **))bximem_destroy);
+    bxivector_destroy(&ttuple, (void (*)(void **))bximem_destroy);
 }
 

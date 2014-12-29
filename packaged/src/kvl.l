@@ -117,8 +117,8 @@ digit       [-]?[[:digit:]]+
 <INDOUBLEQUOTE>\" {
                     BEGIN(INITIAL);
                     fclose(e_buf_fp);
+                    e_buf_fp = NULL;
                     TRACE(_LOGGER, "found str<%s>", e_buf);
-                    // push_str(yylval, e_buf);
                     yylval->str = e_buf;
 
                     return STR;
@@ -159,7 +159,6 @@ digit       [-]?[[:digit:]]+
 
 {cTuple}        {
                     BEGIN(INITIAL);
-                    //push_tuple(yylval, e_tuple);
                     yylval->tuple = e_tuple;
                     if (yytext[0] != e_enclosing) {
                         ERROR(_LOGGER, "Tuple enclosing do not match, expecting %c", e_enclosing);
@@ -168,8 +167,19 @@ digit       [-]?[[:digit:]]+
                     return TUPLE;
                 }
 
-(.|EOF)         { BEGIN(INITIAL); ERROR(_LOGGER, "Tuple Err: <%s>", yytext); return (enum yytokentype)yytext[0]; }
-(\n)            { YY_TRACK_NEWLINE; BEGIN(INITIAL); ERROR(_LOGGER, "Tuple Err: <%s>", yytext); return EOL; }
+(.|EOF)         {
+                    BEGIN(INITIAL);
+                    ERROR(_LOGGER, "Tuple Err: <%s>", yytext);
+                    bxivector_destroy(&e_tuple, (void (*)(void **))bximem_destroy);
+                    return (enum yytokentype)yytext[0];
+                }
+(\n)            {
+                    YY_TRACK_NEWLINE;
+                    BEGIN(INITIAL);
+                    ERROR(_LOGGER, "Tuple Err: <%s>", yytext);
+                    bxivector_destroy(&e_tuple, (void (*)(void **))bximem_destroy);
+                    return EOL;
+                }
 } // End of <INBRACE>
 
     /* Int */
@@ -177,21 +187,18 @@ digit       [-]?[[:digit:]]+
                     TRACE(_LOGGER, "digit: <%s>", yytext);
                     long *digit = bximem_calloc(sizeof(long));
                     bximisc_strtol(yytext, 10, digit); // FIXME: error handling!
-                    //push_num(yylval, digit);
                     yylval->num = digit;
                     return NUM;
                 }
 
 {prefix}            {
                     TRACE(_LOGGER, "prefix: <%s>", yytext);
-                    //push_str(yylval, bxistr_new("%s", yytext));
                     yylval->str = bxistr_new("%s", yytext);
                     return PREFIX;
                 }
 
 {key}            {
                     TRACE(_LOGGER, "key: <%s>", yytext);
-                    //push_str(yylval, bxistr_new("%s", yytext));
                     yylval->str = bxistr_new("%s", yytext);
                     return KEY;
                 }
@@ -226,7 +233,7 @@ void yyfree(void *ptr, void *yyscanner) {
 
 yyscan_t kvl_init_from_fd(FILE *file_in, char *fname) {
     /* Scanner initialization */
-    yyscan_t scanner = bximem_calloc(sizeof(yyscan_t));
+    yyscan_t scanner;
     yyextra_data_s* extra = bximem_calloc(sizeof(yyextra_data_s));
     if (NULL == fname) {
         extra->filename = strdup("from fd");
@@ -237,6 +244,7 @@ yyscan_t kvl_init_from_fd(FILE *file_in, char *fname) {
     return scanner;
 }
 
+/**/
 yyscan_t kvl_init(char *fname) {
     FILE* file_in = NULL;
 
@@ -258,9 +266,23 @@ yyscan_t kvl_init(char *fname) {
 }
 
 void kvl_finalize(yyscan_t scanner) {
+    if (NULL == scanner) {
+        bxierr_p err = bxierr_new(18, NULL, NULL, NULL, "NULL scanner can't be freed!");
+        BXILOG_REPORT(_LOGGER, BXILOG_CRITICAL, err, "can't finalize properly");
+        return;
+    }
     /* Clean-up */
     yyextra_data_s *extra = yyget_extra(scanner);
+
+    if (NULL != extra->tuple) bxivector_destroy(&extra->tuple, (void (*)(void **))bximem_destroy);
+    if (NULL != extra->buf_fp) fclose(extra->buf_fp);
+    BXIFREE(extra->buf);
+    BXIFREE(extra->filename);
     BXIFREE(extra);
+
+    YYSTYPE *this_scanner_yylval = yyget_lval(scanner);
+    if (NULL != this_scanner_yylval->str) BXIFREE(this_scanner_yylval->str);
+
     yylex_destroy(scanner);
     //TODO: if (file_in) fclose(file_in);
 }

@@ -169,7 +169,7 @@ fi
 AM_CONDITIONAL([HAVE_DOXYGEN], [test x"$ENABLE_DOC" == "xyes"])
 if test x"$ENABLE_DOC" != "xyes"
 then
-    ENABLE_DOC = no
+    ENABLE_DOC=no
 fi
 
 AC_ARG_ENABLE([mode-maintaners], [AS_HELP_STRING([--enable-mode-maintaners])])
