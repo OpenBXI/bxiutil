@@ -152,7 +152,8 @@ digit       [-]?[[:digit:]]+
 <INBRACE>{
 {digit}[[:blank:]]*{comma}? {
                     long *digit = bximem_calloc(sizeof(long));
-                    bximisc_strtol(yytext, 10, digit); // FIXME: error handling!
+                    bxierr_p rc = bximisc_strtol(yytext, 10, digit); // FIXME: error handling!
+                    if (bxierr_isko(rc)) BXIFREE(rc);
                     LOWEST(_LOGGER, "upl<%lu>", *digit);
                     bxivector_push(e_tuple, digit);
                 }
@@ -186,7 +187,8 @@ digit       [-]?[[:digit:]]+
 {digit}         {
                     TRACE(_LOGGER, "digit: <%s>", yytext);
                     long *digit = bximem_calloc(sizeof(long));
-                    bximisc_strtol(yytext, 10, digit); // FIXME: error handling!
+                    bxierr_p rc = bximisc_strtol(yytext, 10, digit); // FIXME: error handling!
+                    if (bxierr_isko(rc)) BXIFREE(rc);
                     yylval->num = digit;
                     return NUM;
                 }
@@ -276,12 +278,12 @@ void kvl_finalize(yyscan_t scanner) {
 
     if (NULL != extra->tuple) bxivector_destroy(&extra->tuple, (void (*)(void **))bximem_destroy);
     if (NULL != extra->buf_fp) fclose(extra->buf_fp);
-    BXIFREE(extra->buf);
+    // if (NULL != extra->buf) BXIFREE(extra->buf);
     BXIFREE(extra->filename);
     BXIFREE(extra);
 
-    YYSTYPE *this_scanner_yylval = yyget_lval(scanner);
-    if (NULL != this_scanner_yylval->str) BXIFREE(this_scanner_yylval->str);
+    // YYSTYPE *this_scanner_yylval = yyget_lval(scanner);
+    // if (NULL != this_scanner_yylval->str) BXIFREE(this_scanner_yylval->str);
 
     yylex_destroy(scanner);
     //TODO: if (file_in) fclose(file_in);
