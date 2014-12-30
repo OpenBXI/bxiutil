@@ -17,6 +17,7 @@
         # speed optim?
             %option align
             %option full
+            %option never-interactive
 */
 #include <string.h> // strdup
 #include <libgen.h> // used 4 basename()
@@ -80,6 +81,7 @@ SET_LOGGER(_LOGGER, KVP_LOG_NAME"_lexer");
 %x          INDOUBLEQUOTE
 %x          INBRACE
 
+    /* Regular expressions */
 equal       (=|:=)
 quote       \"|'
 comma       \,|\.
@@ -233,8 +235,8 @@ void yyfree(void *ptr, void *yyscanner) {
     BXIFREE(ptr);
 }
 
+/* Scanner initialization from file descriptor */
 yyscan_t kvl_init_from_fd(FILE *file_in, char *fname) {
-    /* Scanner initialization */
     yyscan_t scanner;
     yyextra_data_s* extra = bximem_calloc(sizeof(yyextra_data_s));
     if (NULL == fname) {
@@ -246,7 +248,7 @@ yyscan_t kvl_init_from_fd(FILE *file_in, char *fname) {
     return scanner;
 }
 
-/**/
+/* Scanner initialization from file name */
 yyscan_t kvl_init(char *fname) {
     FILE* file_in = NULL;
 
@@ -267,6 +269,7 @@ yyscan_t kvl_init(char *fname) {
     return kvl_init_from_fd(file_in, basename(fname));
 }
 
+/* Scanner clean-up */
 void kvl_finalize(yyscan_t scanner) {
     if (NULL == scanner) {
         bxierr_p err = bxierr_new(18, NULL, NULL, NULL, "NULL scanner can't be freed!");
@@ -282,10 +285,7 @@ void kvl_finalize(yyscan_t scanner) {
     BXIFREE(extra->filename);
     BXIFREE(extra);
 
-    // YYSTYPE *this_scanner_yylval = yyget_lval(scanner);
-    // if (NULL != this_scanner_yylval->str) BXIFREE(this_scanner_yylval->str);
-
     yylex_destroy(scanner);
-    //TODO: if (file_in) fclose(file_in);
+    //TODO? if (file_in) fclose(file_in);
 }
 

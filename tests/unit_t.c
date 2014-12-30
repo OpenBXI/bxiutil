@@ -174,6 +174,7 @@ int main(int argc, char * argv[]) {
         || (NULL == CU_add_test(pSuite, "test pgft port", test_pgft_port))
         || (NULL == CU_add_test(pSuite, "test eof", test_eof))
         || (NULL == CU_add_test(pSuite, "EOF/L", lexSpecial))
+        || (NULL == CU_add_test(pSuite, "PREFIX", lexPrefix))
         || (NULL == CU_add_test(pSuite, "KEY", lexKey))
         || (NULL == CU_add_test(pSuite, "NUM", lexDigit))
         || (NULL == CU_add_test(pSuite, "STR", lexString))

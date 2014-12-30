@@ -91,14 +91,22 @@ int clean_lexerSuite(void) {
         _lex_clean();                                           \
     } while (0)
 
-#define test_tuple(buf, expected_value) do {                                    \
-        CU_ASSERT(TUPLE == _lex_me(buf));                                       \
-        bxivector_compare(expected_value, _yylval.tuple, long);                 \
-        _lex_clean();                                                           \
+#define test_tuple(buf, expected_value) do {                    \
+        CU_ASSERT(TUPLE == _lex_me(buf));                       \
+        bxivector_compare(expected_value, _yylval.tuple, long); \
+        _lex_clean();                                           \
     } while (0)
 
-#define test_prefix(buf, expected_value) _test_str(buf, PREFIX, expected_value)
-#define test_key(buf, expected_value) _test_str(buf, KEY, expected_value)
+#define test_prefix(buf, expected_value) do {   \
+        _test_str(buf, PREFIX, expected_value); \
+        BXIFREE(_yylval.str);                   \
+    } while (0)
+
+#define test_key(buf, expected_value) do {      \
+        _test_str(buf, KEY, expected_value);    \
+        BXIFREE(_yylval.str);                   \
+    } while (0)
+
 #define test_string(buf, expected_value) _test_str(buf, STR, expected_value)
 
 #define test_eof(buf) do {              \
@@ -168,7 +176,7 @@ void lexKey(void) {
 void lexPrefix(void) {
     /* case */
     test_prefix("KIRIKOU", "KIRIKOU");
-    test_prefix("Kirikou", "Kirikou");
+    test_prefix("Kirikou", "K");
 
     /* underscore */
     test_prefix("KI_IK_U", "KI");
