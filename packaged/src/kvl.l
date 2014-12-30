@@ -153,7 +153,7 @@ digit       [-]?[[:digit:]]+
 {digit}[[:blank:]]*{comma}? {
                     long *digit = bximem_calloc(sizeof(long));
                     bxierr_p rc = bximisc_strtol(yytext, 10, digit); // FIXME: error handling!
-                    if (bxierr_isko(rc)) BXIFREE(rc);
+                    if (bxierr_isko(rc)) bxierr_destroy(&rc);
                     LOWEST(_LOGGER, "upl<%lu>", *digit);
                     bxivector_push(e_tuple, digit);
                 }
@@ -188,7 +188,7 @@ digit       [-]?[[:digit:]]+
                     TRACE(_LOGGER, "digit: <%s>", yytext);
                     long *digit = bximem_calloc(sizeof(long));
                     bxierr_p rc = bximisc_strtol(yytext, 10, digit); // FIXME: error handling!
-                    if (bxierr_isko(rc)) BXIFREE(rc);
+                    if (bxierr_isko(rc)) bxierr_destroy(&rc);
                     yylval->num = digit;
                     return NUM;
                 }
