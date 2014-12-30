@@ -278,7 +278,7 @@ void kvl_finalize(yyscan_t scanner) {
 
     if (NULL != extra->tuple) bxivector_destroy(&extra->tuple, (void (*)(void **))bximem_destroy);
     if (NULL != extra->buf_fp) fclose(extra->buf_fp);
-    // if (NULL != extra->buf) BXIFREE(extra->buf);
+    if (NULL != extra->buf) BXIFREE(extra->buf);
     BXIFREE(extra->filename);
     BXIFREE(extra);
 

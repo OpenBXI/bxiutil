@@ -63,17 +63,14 @@ yyscan_t _scanner;
 /******************************** Lexer ***********************************************/
 /* Lexer test suite initialization function. */
 int init_lexerSuite(void) {
-    // _yylval = bximem_calloc(sizeof(YYSTYPE));
-    // _yylloc = bximem_calloc(sizeof(YYLTYPE));
     assert(0 == _yylval.num);
+    assert(0 == _yylloc.first_line);
 
     return 0;
 }
 
 /* Lexer test suite cleanup function. */
 int clean_lexerSuite(void) {
-    //BXIFREE(_yylloc);
-    //BXIFREE(_yylval);
     memset(&_yylval, 0, sizeof(YYSTYPE));
     memset(&_yylloc, 0, sizeof(YYLTYPE));
 
@@ -82,31 +79,23 @@ int clean_lexerSuite(void) {
 
 #define test_digit(buf, expected_value) do {            \
         CU_ASSERT(NUM == _lex_me(buf));                 \
-        DEBUG(TEST_LOGGER, "num %ld", *_yylval.num);   \
-        CU_ASSERT(expected_value == *_yylval.num);     \
-        BXIFREE(_yylval.num);                          \
+        DEBUG(TEST_LOGGER, "num %ld", *_yylval.num);    \
+        CU_ASSERT(expected_value == *_yylval.num);      \
+        BXIFREE(_yylval.num);                           \
         _lex_clean();                                   \
     } while (0)
 
 #define _test_str(buf, expected_tok, expected_value) do {       \
         CU_ASSERT(expected_tok == _lex_me(buf));                \
-        CU_ASSERT_STRING_EQUAL(expected_value, _yylval.str);   \
+        CU_ASSERT_STRING_EQUAL(expected_value, _yylval.str);    \
         _lex_clean();                                           \
     } while (0)
 
-/*
- * BXIFREE(_yylval->str);                                  \
-        if (NULL != _yylval.str) BXIFREE(_yylval.str);        \
- */
-
 #define test_tuple(buf, expected_value) do {                                    \
         CU_ASSERT(TUPLE == _lex_me(buf));                                       \
-        bxivector_compare(expected_value, _yylval.tuple, long);                \
+        bxivector_compare(expected_value, _yylval.tuple, long);                 \
         _lex_clean();                                                           \
     } while (0)
-/*
- * bxivector_destroy(&_yylval->tuple, (void (*)(void **))bximem_destroy);  \
- */
 
 #define test_prefix(buf, expected_value) _test_str(buf, PREFIX, expected_value)
 #define test_key(buf, expected_value) _test_str(buf, KEY, expected_value)
@@ -256,23 +245,6 @@ void lexString(void) {
     test_err("\"", '\0');
     test_err("'", '\0');
 }
-
-/*
-bxivector_p mk_ulong_tuple(size_t size, ...) {
-    va_list ap;
-    bxivector_p tuple = bxivector_new(0, NULL);
-
-    va_start(ap, size);
-    for(size_t i=0; i<size; ++i){
-        long digit = va_arg(ap, long);
-
-        bxivector_push(tuple, &digit);
-    }
-    va_end(ap);
-
-    return tuple;
-}
-*/
 
 void lexTuple(void) {
     bxivector_p ttuple = bxivector_new(0, NULL);
