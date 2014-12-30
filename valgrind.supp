@@ -17,6 +17,7 @@
    Memcheck:Leak
    fun:malloc
    fun:__fopen_internal
+   ...
    fun:CU_automated_run_tests
    fun:main
 }
