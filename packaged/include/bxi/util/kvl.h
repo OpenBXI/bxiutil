@@ -84,6 +84,7 @@ enum yytokentype yylex(YYSTYPE *, YYLTYPE*, yyscan_t);
 yyscan_t kvl_init(char *fname);
 yyscan_t kvl_init_from_fd(FILE *file_in, char *fname);
 void kvl_finalize(yyscan_t scanner);
+YY_EXTRA_TYPE yyget_extra(yyscan_t scanner);
 
 #define KVP_LOG_NAME "kvp"
 
