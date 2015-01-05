@@ -85,8 +85,8 @@ int clean_lexerSuite(void) {
 #define _test_str(buf, expected_tok, expected_value) do {       \
         CU_ASSERT(expected_tok == _lex_me(buf));                \
         CU_ASSERT_STRING_EQUAL(expected_value, _yylval.str);    \
-        _lex_clean();                                           \
         BXIFREE(_yylval.str);                   \
+        _lex_clean();                                           \
     } while (0)
 
 #define test_tuple(buf, expected_value) do {                    \

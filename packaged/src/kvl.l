@@ -168,18 +168,24 @@ digit       [-]?[[:digit:]]+
                     return TUPLE;
                 }
 
-(.|EOF)         {
+<<EOF>>         {
                     BEGIN(INITIAL);
-                    ERROR(_LOGGER, "Unfinished Tuple!");
+                    ERROR(_LOGGER, "EOF encountered while in Tuple");
                     bxivector_destroy(&e_tuple, (void (*)(void **))bximem_destroy);
                     return (enum yytokentype)yytext[0];
                 }
 (\n)            {
                     YY_TRACK_NEWLINE;
                     BEGIN(INITIAL);
-                    ERROR(_LOGGER, "Unfinished Tuple!");
+                    ERROR(_LOGGER, "New line encountered while in Tuple!");
                     bxivector_destroy(&e_tuple, (void (*)(void **))bximem_destroy);
                     return EOL;
+                }
+.               {
+                    BEGIN(INITIAL);
+                    ERROR(_LOGGER, "Got unexpected <%c>, while in Tuple!", yytext[0]);
+                    bxivector_destroy(&e_tuple, (void (*)(void **))bximem_destroy);
+                    return (enum yytokentype)yytext[0];
                 }
 } // End of <INBRACE>
 
