@@ -91,6 +91,7 @@ int clean_lexerSuite(void) {
 #define test_tuple(buf, expected_value) do {                    \
         CU_ASSERT(TUPLE == _lex_me(buf));                       \
         bxivector_compare(expected_value, _yylval.tuple, long); \
+        bxivector_destroy(&_yylval.tuple, (void (*)(void **))bximem_destroy);\
         _lex_clean();                                           \
     } while (0)
 

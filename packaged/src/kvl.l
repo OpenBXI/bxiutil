@@ -162,6 +162,7 @@ digit       [-]?[[:digit:]]+
                     yylval->tuple = e_tuple;
                     if (yytext[0] != e_enclosing) {
                         ERROR(_LOGGER, "Tuple enclosing do not match, expecting %c", e_enclosing);
+                        bxivector_destroy(&e_tuple, (void (*)(void **))bximem_destroy);
                         return (enum yytokentype)yytext[0];
                     }
                     return TUPLE;
@@ -169,14 +170,14 @@ digit       [-]?[[:digit:]]+
 
 (.|EOF)         {
                     BEGIN(INITIAL);
-                    ERROR(_LOGGER, "Tuple Err: <%s>", yytext);
+                    ERROR(_LOGGER, "Unfinished Tuple!");
                     bxivector_destroy(&e_tuple, (void (*)(void **))bximem_destroy);
                     return (enum yytokentype)yytext[0];
                 }
 (\n)            {
                     YY_TRACK_NEWLINE;
                     BEGIN(INITIAL);
-                    ERROR(_LOGGER, "Tuple Err: <%s>", yytext);
+                    ERROR(_LOGGER, "Unfinished Tuple!");
                     bxivector_destroy(&e_tuple, (void (*)(void **))bximem_destroy);
                     return EOL;
                 }
@@ -276,9 +277,11 @@ void kvl_finalize(yyscan_t scanner) {
     /* Clean-up */
     yyextra_data_s *extra = yyget_extra(scanner);
 
-    if (NULL != extra->tuple) bxivector_destroy(&extra->tuple, (void (*)(void **))bximem_destroy);
-    if (NULL != extra->buf_fp) fclose(extra->buf_fp);
-    if (NULL != extra->buf) BXIFREE(extra->buf);
+    // if (NULL != extra->tuple) bxivector_destroy(&extra->tuple, (void (*)(void **))bximem_destroy);
+    if (NULL != extra->buf_fp) {
+        fclose(extra->buf_fp);
+        if (NULL != extra->buf) BXIFREE(extra->buf);
+    }
     BXIFREE(extra->filename);
     BXIFREE(extra);
 
