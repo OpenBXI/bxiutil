@@ -1,9 +1,5 @@
 ACLOCAL_AMFLAGS = -I m4
 
-AM_LFLAGS=-Cf\
-		  --skel=$(abs_srcdir)/src/bxi_kvp.skl
-
-
 lib_LTLIBRARIES=lib/libbxiutil.la
 
 #path of the include dir for this library
@@ -17,7 +13,7 @@ lib_libbxiutil_la_SOURCES=\
 		  src/misc.c\
 		  src/vector.c\
 		  src/tp.c\
-		  src/kvl.l
+		  src/kvl.c
 
 lib_libbxiutil_la_LDFLAGS=\
 					 $(ZMQ_LIBS)\
@@ -35,5 +31,15 @@ lib_libbxiutil_la_LIBADD=$(LIB_LIBS)
 #########################  PYTHON  ######################
 
 SUBDIRS=lib include doc
+
+#########################################################
+
+#########################  FLEX  ######################
+
+AM_LFLAGS=-Cf\
+		  --skel=$(srcdir)/src/bxi_lex.skl
+
+.l.c:
+	$(LEX) $(AM_LFLAGS) $(LFLAGS) -o $@ $<
 
 #########################################################
