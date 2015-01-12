@@ -1,6 +1,6 @@
-#line 2 "src/kvl.c"
+#line 2 "../../packaged/src/kvl.c"
 
-#line 4 "src/kvl.c"
+#line 4 "../../packaged/src/kvl.c"
 
 #define  YY_INT_ALIGNED short int
 
@@ -1252,6 +1252,7 @@ SET_LOGGER(_LOGGER, KVP_LOG_NAME"_lexer");
 #define e_buf_len (yyextra->buf_len)
 #define e_enclosing (yyextra->enclosing)
 #define e_tuple (yyextra->tuple)
+#define e_kwlookup (yyextra->kw_lookup)
 /* Paranoïd mode */
 /* Enforce default options */
 /* Use a "pure" scanner: without any global var */
@@ -1264,7 +1265,7 @@ SET_LOGGER(_LOGGER, KVP_LOG_NAME"_lexer");
 
 
 /* Regular expressions */
-#line 1268 "src/kvl.c"
+#line 1269 "../../packaged/src/kvl.c"
 
 #define INITIAL 0
 #define INSIMPLEQUOTE 1
@@ -1510,11 +1511,11 @@ YY_DECL
 	register int yy_act;
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
 
-#line 94 "../../packaged/src/kvl.l"
+#line 95 "../../packaged/src/kvl.l"
 
 
     /* Skipped must go fist! */
-#line 1518 "src/kvl.c"
+#line 1519 "../../packaged/src/kvl.c"
 
     yylval = yylval_param;
 
@@ -1576,19 +1577,19 @@ do_action:	/* This label is used only to access EOF actions. */
 	{ /* beginning of action switch */
 case 1:
 YY_RULE_SETUP
-#line 97 "../../packaged/src/kvl.l"
+#line 98 "../../packaged/src/kvl.l"
 /* skip space */;
 	YY_BREAK
 /* Comment */
 case 2:
 YY_RULE_SETUP
-#line 100 "../../packaged/src/kvl.l"
+#line 101 "../../packaged/src/kvl.l"
 { /* Consume comment */ }
 	YY_BREAK
 /* Str */
 case 3:
 YY_RULE_SETUP
-#line 103 "../../packaged/src/kvl.l"
+#line 104 "../../packaged/src/kvl.l"
 {
                     LOWEST(_LOGGER, "STR start <%c>", yytext[0]);
                     e_enclosing = yytext[0];
@@ -1602,10 +1603,10 @@ YY_RULE_SETUP
                 }
 	YY_BREAK
 case 4:
-#line 116 "../../packaged/src/kvl.l"
+#line 117 "../../packaged/src/kvl.l"
 case 5:
 YY_RULE_SETUP
-#line 116 "../../packaged/src/kvl.l"
+#line 117 "../../packaged/src/kvl.l"
 {
                     BEGIN(INITIAL);
                     fclose(e_buf_fp);
@@ -1618,7 +1619,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 126 "../../packaged/src/kvl.l"
+#line 127 "../../packaged/src/kvl.l"
 {
                     LOWEST(_LOGGER, "substr<%s>", yytext);
                     fwrite(yytext, sizeof(char), yyleng, e_buf_fp);
@@ -1626,7 +1627,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 131 "../../packaged/src/kvl.l"
+#line 132 "../../packaged/src/kvl.l"
 {
                     LOWEST(_LOGGER, "substr<%s>", yytext);
                     fwrite(yytext, sizeof(char), yyleng, e_buf_fp);
@@ -1637,7 +1638,7 @@ YY_RULE_SETUP
 case 8:
 /* rule 8 can match eol */
 YY_RULE_SETUP
-#line 138 "../../packaged/src/kvl.l"
+#line 139 "../../packaged/src/kvl.l"
 {
                     YY_TRACK_NEWLINE;
                     BEGIN(INITIAL);
@@ -1649,7 +1650,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case YY_STATE_EOF(INSIMPLEQUOTE):
 case YY_STATE_EOF(INDOUBLEQUOTE):
-#line 147 "../../packaged/src/kvl.l"
+#line 148 "../../packaged/src/kvl.l"
 {
                     BEGIN(INITIAL);
                     ERROR(_LOGGER, "Unfinished quote; %c missing?", e_enclosing);
@@ -1662,7 +1663,7 @@ case YY_STATE_EOF(INDOUBLEQUOTE):
 /* Tuple */
 case 9:
 YY_RULE_SETUP
-#line 157 "../../packaged/src/kvl.l"
+#line 158 "../../packaged/src/kvl.l"
 {
                     BEGIN(INBRACE);
                     LOWEST(_LOGGER, "TUPLE start <%c>", yytext[0]);
@@ -1673,7 +1674,7 @@ YY_RULE_SETUP
 
 case 10:
 YY_RULE_SETUP
-#line 165 "../../packaged/src/kvl.l"
+#line 166 "../../packaged/src/kvl.l"
 {
                     long *digit = bximem_calloc(sizeof(long));
                     bxierr_p rc = bximisc_strtol(yytext, 10, digit); // FIXME: error handling!
@@ -1684,7 +1685,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 173 "../../packaged/src/kvl.l"
+#line 174 "../../packaged/src/kvl.l"
 {
                     BEGIN(INITIAL);
                     yylval->tuple = e_tuple;
@@ -1698,7 +1699,7 @@ YY_RULE_SETUP
 	YY_BREAK
 /* in Tuple error */
 case YY_STATE_EOF(INBRACE):
-#line 184 "../../packaged/src/kvl.l"
+#line 185 "../../packaged/src/kvl.l"
 {
                     BEGIN(INITIAL);
                     ERROR(_LOGGER, "EOF encountered while in Tuple");
@@ -1709,7 +1710,7 @@ case YY_STATE_EOF(INBRACE):
 case 12:
 /* rule 12 can match eol */
 YY_RULE_SETUP
-#line 190 "../../packaged/src/kvl.l"
+#line 191 "../../packaged/src/kvl.l"
 {
                     YY_TRACK_NEWLINE;
                     BEGIN(INITIAL);
@@ -1720,7 +1721,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 197 "../../packaged/src/kvl.l"
+#line 198 "../../packaged/src/kvl.l"
 {
                     BEGIN(INITIAL);
                     ERROR(_LOGGER, "Got unexpected <%c>, while in Tuple!", yytext[0]);
@@ -1732,7 +1733,7 @@ YY_RULE_SETUP
 /* Int */
 case 14:
 YY_RULE_SETUP
-#line 206 "../../packaged/src/kvl.l"
+#line 207 "../../packaged/src/kvl.l"
 {
                     TRACE(_LOGGER, "digit: <%s>", yytext);
                     long *digit = bximem_calloc(sizeof(long));
@@ -1744,55 +1745,61 @@ YY_RULE_SETUP
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 215 "../../packaged/src/kvl.l"
+#line 217 "../../packaged/src/kvl.l"
 {
                     TRACE(_LOGGER, "prefix: <%s>", yytext);
+                    enum yytokentype kw = e_kwlookup(yytext);
+                    if (kw) return kw;
+
                     yylval->str = bxistr_new("%s", yytext);
                     return PREFIX;
                 }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 221 "../../packaged/src/kvl.l"
+#line 226 "../../packaged/src/kvl.l"
 {
                     TRACE(_LOGGER, "key: <%s>", yytext);
+                    enum yytokentype kw = e_kwlookup(yytext);
+                    if (kw) return kw;
+
                     yylval->str = bxistr_new("%s", yytext);
                     return KEY;
                 }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 227 "../../packaged/src/kvl.l"
+#line 235 "../../packaged/src/kvl.l"
 { TRACE(_LOGGER, "EQ"); return '='; }
 	YY_BREAK
 /* Separators */
 case 18:
 /* rule 18 can match eol */
 YY_RULE_SETUP
-#line 230 "../../packaged/src/kvl.l"
+#line 238 "../../packaged/src/kvl.l"
 { YY_TRACK_NEWLINE; TRACE(_LOGGER, "EOL"); return EOL; }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 232 "../../packaged/src/kvl.l"
+#line 240 "../../packaged/src/kvl.l"
 { TRACE(_LOGGER, "<:>"); return ':'; }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 233 "../../packaged/src/kvl.l"
+#line 241 "../../packaged/src/kvl.l"
 { TRACE(_LOGGER, "<.>"); return '.'; }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 235 "../../packaged/src/kvl.l"
+#line 243 "../../packaged/src/kvl.l"
 { ERROR(_LOGGER, "Unexpected <%c>", yytext[0]); return (enum yytokentype)yytext[0]; }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 237 "../../packaged/src/kvl.l"
+#line 245 "../../packaged/src/kvl.l"
 YY_FATAL_ERROR( "flex scanner jammed" );
 	YY_BREAK
-#line 1796 "src/kvl.c"
+#line 1803 "../../packaged/src/kvl.c"
 			case YY_STATE_EOF(INITIAL):
 				yyterminate();
 
@@ -2888,7 +2895,7 @@ static int yy_flex_strlen (yyconst char * s , yyscan_t yyscanner)
 
 #define YYTABLES_NAME "yytables"
 
-#line 237 "../../packaged/src/kvl.l"
+#line 245 "../../packaged/src/kvl.l"
 
 
 
@@ -2908,10 +2915,18 @@ void yyfree(void *ptr,void *yyscanner) {
     BXIFREE(ptr);
 }
 
+/* Always returns 0 lookup failback function */
+enum yytokentype nokw(char *token_buffer) {
+    UNUSED(token_buffer);
+    return 0;
+}
+
 /* Scanner initialization from file descriptor */
-yyscan_t kvl_init_from_fd(FILE *file_in, char *fname) {
+yyscan_t kvl_init_from_fd(FILE *file_in, char *fname, enum yytokentype (*kw_lookup_fnt)(char*)) {
     yyscan_t scanner;
     yyextra_data_s* extra = bximem_calloc(sizeof(yyextra_data_s));
+    if (NULL == kw_lookup_fnt) kw_lookup_fnt = nokw;
+    extra->kw_lookup = kw_lookup_fnt;
     if (NULL == fname) {
         extra->filename = strdup("from fd");
     }
@@ -2922,7 +2937,7 @@ yyscan_t kvl_init_from_fd(FILE *file_in, char *fname) {
 }
 
 /* Scanner initialization from file name */
-yyscan_t kvl_init(char *fname) {
+yyscan_t kvl_init(char *fname, enum yytokentype (*kw_lookup_fnt)(char*)) {
     FILE* file_in = NULL;
 
     /* Scanner initialization */
@@ -2939,7 +2954,7 @@ yyscan_t kvl_init(char *fname) {
         }
     }
 
-    return kvl_init_from_fd(file_in, basename(fname));
+    return kvl_init_from_fd(file_in, basename(fname), kw_lookup_fnt);
 }
 
 /* Scanner clean-up */
@@ -2957,5 +2972,4 @@ void kvl_finalize(yyscan_t scanner) {
 
     yylex_destroy(scanner);
 }
-
 

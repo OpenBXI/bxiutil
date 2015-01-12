@@ -134,7 +134,7 @@ enum yytokentype _lex_me(char *buf) {
     fakefile = fmemopen(buf, BXISTR_BYTES_NB(buf), "r");
     assert(fakefile != NULL);
 
-    _scanner = kvl_init_from_fd(fakefile, "lex_unit_t");
+    _scanner = kvl_init_from_fd(fakefile, "lex_unit_t", NULL);
 
     enum yytokentype token = yylex(&_yylval, &_yylloc, _scanner);
     DEBUG(TEST_LOGGER, "%s: %s", buf, tok2str(token));

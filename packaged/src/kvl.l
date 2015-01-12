@@ -49,6 +49,7 @@ SET_LOGGER(_LOGGER, KVP_LOG_NAME"_lexer");
 #define e_buf_len (yyextra->buf_len)
 #define e_enclosing (yyextra->enclosing)
 #define e_tuple (yyextra->tuple)
+#define e_kwlookup (yyextra->kw_lookup)
 %}
 
     /* Paranoïd mode */
@@ -212,14 +213,21 @@ digit       [-]?[[:digit:]]+
                     return NUM;
                 }
 
-{prefix}            {
+
+{prefix}        {
                     TRACE(_LOGGER, "prefix: <%s>", yytext);
+                    enum yytokentype kw = e_kwlookup(yytext);
+                    if (kw) return kw;
+
                     yylval->str = bxistr_new("%s", yytext);
                     return PREFIX;
                 }
 
-{key}            {
+{key}           {
                     TRACE(_LOGGER, "key: <%s>", yytext);
+                    enum yytokentype kw = e_kwlookup(yytext);
+                    if (kw) return kw;
+
                     yylval->str = bxistr_new("%s", yytext);
                     return KEY;
                 }
@@ -252,10 +260,18 @@ void yyfree(void *ptr, void *yyscanner) {
     BXIFREE(ptr);
 }
 
+/* Always returns 0 lookup failback function */
+enum yytokentype nokw(char *token_buffer) {
+    UNUSED(token_buffer);
+    return 0;
+}
+
 /* Scanner initialization from file descriptor */
-yyscan_t kvl_init_from_fd(FILE *file_in, char *fname) {
+yyscan_t kvl_init_from_fd(FILE *file_in, char *fname, enum yytokentype (*kw_lookup_fnt)(char*)) {
     yyscan_t scanner;
     yyextra_data_s* extra = bximem_calloc(sizeof(yyextra_data_s));
+    if (NULL == kw_lookup_fnt) kw_lookup_fnt = nokw;
+    extra->kw_lookup = kw_lookup_fnt;
     if (NULL == fname) {
         extra->filename = strdup("from fd");
     }
@@ -266,7 +282,7 @@ yyscan_t kvl_init_from_fd(FILE *file_in, char *fname) {
 }
 
 /* Scanner initialization from file name */
-yyscan_t kvl_init(char *fname) {
+yyscan_t kvl_init(char *fname, enum yytokentype (*kw_lookup_fnt)(char*)) {
     FILE* file_in = NULL;
 
     /* Scanner initialization */
@@ -283,7 +299,7 @@ yyscan_t kvl_init(char *fname) {
         }
     }
 
-    return kvl_init_from_fd(file_in, basename(fname));
+    return kvl_init_from_fd(file_in, basename(fname), kw_lookup_fnt);
 }
 
 /* Scanner clean-up */
@@ -301,4 +317,3 @@ void kvl_finalize(yyscan_t scanner) {
 
     yylex_destroy(scanner);
 }
-

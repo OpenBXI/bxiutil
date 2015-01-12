@@ -31,13 +31,14 @@
     
 #ifndef YY_TYPEDEF_YY_EXTRA_T
     #define YY_TYPEDEF_YY_EXTRA_T
-        typedef struct yyextra_data {
+        typedef struct yyextra_data_t_s {
             char *filename;
             char *buf;
             FILE *buf_fp;
             size_t buf_len;
             char enclosing;
             bxivector_p tuple;
+            enum yytokentype (*kw_lookup)(char *token_buffer);
         } yyextra_data_s;
     #endif
 
@@ -81,8 +82,8 @@ enum yytokentype yylex(YYSTYPE *, YYLTYPE*, yyscan_t);
 #define YY_DECL enum yytokentype yylex \
                 (YYSTYPE *yylval_param, YYLTYPE *yylloc_param, yyscan_t yyscanner)
 
-yyscan_t kvl_init(char *fname);
-yyscan_t kvl_init_from_fd(FILE *file_in, char *fname);
+yyscan_t kvl_init(char *fname, enum yytokentype (*kw_lookup_fnt)(char*));
+yyscan_t kvl_init_from_fd(FILE *file_in, char *fname, enum yytokentype (*kw_lookup_fnt)(char*));
 void kvl_finalize(yyscan_t scanner);
 YY_EXTRA_TYPE yyget_extra(yyscan_t scanner);
 
