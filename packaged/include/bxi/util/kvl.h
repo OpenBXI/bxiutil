@@ -87,7 +87,7 @@ yyscan_t kvl_init_from_fd(FILE *file_in, char *fname, enum yytokentype (*kw_look
 void kvl_finalize(yyscan_t scanner);
 YY_EXTRA_TYPE yyget_extra(yyscan_t scanner);
 
-#define KVP_LOG_NAME "kvp"
+#define KVL_LOG_NAME "kvl"
 
 #endif // __kvl_lexer_h__
 
