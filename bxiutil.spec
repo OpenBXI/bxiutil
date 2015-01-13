@@ -71,7 +71,6 @@ Requires: zeromq3
 Requires: czmq
 
 Requires: bxibase >= 2.0.0
-Requires: bxibackbone >= 2.0.0
 
 #TODO: Give a description (seen by rpm -qi) (No more than 80 characters)
 %description
