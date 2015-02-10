@@ -55,8 +55,8 @@
 #ifndef BXITP_H_
 #define BXITP_H_
 
-#include <stdint.h>
 #ifndef BXICFFI
+#include <stdint.h>
 #include <stdio.h>
 #endif
 

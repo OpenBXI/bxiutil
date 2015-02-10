@@ -14,7 +14,7 @@
 #ifndef BXIMAP_H_
 #define BXIMAP_H_
 
-#ifdef BXICFFI
+#ifndef BXICFFI
 #include <stddef.h>
 #include <bxi/base/err.h>
 #endif

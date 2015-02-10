@@ -14,7 +14,7 @@
 #ifndef BXIMISC_H_
 #define BXIMISC_H_
 
-#ifdef BXICFFI
+#ifndef BXICFFI
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdint.h>

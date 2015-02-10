@@ -15,7 +15,7 @@
 #define BXIVECTOR_H_
 
 
-#ifdef BXICFFI
+#ifndef BXICFFI
 #include "bxi/base/log.h"
 #endif
 
