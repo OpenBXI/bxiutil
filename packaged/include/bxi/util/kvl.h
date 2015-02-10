@@ -15,8 +15,10 @@
 #ifndef __kvl_lexer_h__
 #define __kvl_lexer_h__
 
+#ifdef BXICFFI
 #include <stdio.h>
 #include <limits.h>
+#endif
 
 #include <bxi/base/str.h>
 #include <bxi/base/log.h>

@@ -14,6 +14,7 @@
 #ifndef BXIMISC_H_
 #define BXIMISC_H_
 
+#ifdef BXICFFI
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -31,6 +32,7 @@
 #include "bxi/base/err.h"
 #include "bxi/base/time.h"
 #include "bxi/base/log.h"
+#endif
 
 
 /**
