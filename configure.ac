@@ -206,6 +206,11 @@ AC_CHECK_FUNCS([gethostname memset mkdir pow strdup strtol])
 
 AM_PATH_PYTHON
 
+PC_INIT([2.7], [2.99])
+PC_PYTHON_CHECK_MODULE_REAL([python-daemon], daemon, [], [AC_MSG_ERROR(Module not found)])
+#PC_PYTHON_CHECK_MODULE([cffi], [], [AC_MSG_ERROR(Module not found)])
+
+
 
 #TODO add the pc.in file
 AC_CONFIG_FILES([Makefile packaged/Makefile packaged/lib/Makefile packaged/include/Makefile packaged/doc/Makefile tests/Makefile])
