@@ -14,7 +14,6 @@
 #ifndef BXIVECTOR_H_
 #define BXIVECTOR_H_
 
-
 #ifndef BXICFFI
 #include "bxi/base/log.h"
 #endif
@@ -62,7 +61,7 @@ typedef struct bxivector_s_t *bxivector_p;
  * @return a new vector initialized with the given array of elements
  *
  */
-bxivector_p bxivector_new(size_t n, void * elems[n]);
+bxivector_p bxivector_new(size_t n, void ** elems);
 
 /**
  * Destroy the given vector that is apply the provided function on all remaining
