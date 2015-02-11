@@ -110,7 +110,7 @@ uint32_t bxirng_nextint(bxirng_p self, uint32_t start, uint32_t end);
  * @param k the number of bytes
  * @param bytes the array to fill
  */
-void bxirng_bytes(bxirng_p self, size_t k, uint8_t bytes[k]);
+void bxirng_bytes(bxirng_p self, size_t k, uint8_t *bytes);
 
 
 /**
@@ -126,7 +126,7 @@ void bxirng_bytes(bxirng_p self, size_t k, uint8_t bytes[k]);
  * @param p the number of random value to select
  * @param result the array of value to fill
  */
-void bxirng_select(bxirng_p self, uint8_t n, uint8_t p, uint8_t result[p]);
+void bxirng_select(bxirng_p self, uint8_t n, uint8_t p, uint8_t *result);
 
 
 /**
