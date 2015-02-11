@@ -34,7 +34,6 @@
 #include "bxi/base/log.h"
 #endif
 
-
 /**
  * @file    misc.h
  * @brief   Miscellaneous but useful functions.
@@ -66,6 +65,14 @@
 // ********************************** Defines **************************************
 // *********************************************************************************
 
+#ifndef BXICFFI
+/**
+ * Use to check at compile time an assertion.
+ *
+ * @param[in] a compile-time boolean expression
+ */
+#define CASSERT(expn) typedef char __C_ASSERT__[(expn)?1:-1]
+#endif
 
 
 // Taken from c-faq.com: http://c-faq.com/misc/bitsets.html
