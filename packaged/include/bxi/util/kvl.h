@@ -4,7 +4,7 @@
  # Author: Alain Cady <alain.cady@bull.net>
  # Created on: Nov 17, 2014
  # Contributors:
- #              
+ #
  ###############################################################################
  # Copyright (C) 2014  Bull S. A. S.  -  All rights reserved
  # Bull, Rue Jean Jaures, B.P.68, 78340, Les Clayes-sous-Bois
@@ -18,10 +18,10 @@
 #ifndef BXICFFI
 #include <stdio.h>
 #include <limits.h>
-#endif
-
 #include <bxi/base/str.h>
 #include <bxi/base/log.h>
+#endif
+
 #include <bxi/util/misc.h>
 #include <bxi/util/vector.h>
 
@@ -30,7 +30,7 @@
     #define YY_TYPEDEF_YY_SCANNER_T
         typedef void* yyscan_t;
     #endif
-    
+
 #ifndef YY_TYPEDEF_YY_EXTRA_T
     #define YY_TYPEDEF_YY_EXTRA_T
         typedef struct yyextra_data_t_s {
