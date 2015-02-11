@@ -15,15 +15,28 @@ from pkgutil import extend_path
 __path__ = extend_path(__path__, __name__)
 
 from cffi import FFI
-from bxi.util.cffi_h import C_DEF as LOG_DEF
+import bxi.base as bxibase
+from bxi.util.cffi_h import C_DEF
+from cffi.api import CDefError
 
-__ffi__ = FFI()
-__ffi__.cdef(LOG_DEF)
-__api__ = __ffi__.dlopen('libbxiutil.so')
+__FFI__ = FFI()
+
+# Including the BB Client C specification
+bxibase.include_if_required(__FFI__)
+__FFI__.cdef(C_DEF)
+__CAPI__ = __FFI__.dlopen('libbxiutil.so')
+
+
+def include_if_required(other_ffi):
+    try:
+        other_ffi.getctype("bxirng_p")
+    except CDefError as ffie:
+        other_ffi.cdef(C_DEF)
+
 
 def get_ffi():
-    return __ffi__
+    return __FFI__
 
 def get_api():
-    return __api__
+    return __CAPI__
 
