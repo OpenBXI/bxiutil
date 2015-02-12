@@ -28,6 +28,7 @@ __CAPI__ = __FFI__.dlopen('libbxiutil.so')
 
 
 def include_if_required(other_ffi):
+    bxibase.include_if_required(other_ffi)
     try:
         other_ffi.getctype("bxirng_p")
     except CDefError as ffie:
