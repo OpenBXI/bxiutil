@@ -502,6 +502,7 @@ bxierr_p bximisc_file_map(const char * filename,
         init_file_addr = mmap(NULL, size, MMAP_PROT,
                               MAP_PRIVATE | MAP_ANONYMOUS, file, 0);
     } else {
+        BXIASSERT(BXIMISC_LOGGER, NULL != filename);
         if (load){
             errno = 0;
             file = open(filename, O_RDONLY ,  S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);

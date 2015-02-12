@@ -131,13 +131,8 @@ PKG_CHECK_MODULES([ZMQ], [libzmq >= 3.0.0], [],
                   [
                    AC_CHECK_LIB([zmq], [zmq_msg_init], [], [AC_MSG_ERROR([Could not find zmq library])])
                   ])
-PKG_CHECK_MODULES([CZMQ], [libczmq >= 1.0.0], [],
-                  [AC_CHECK_LIB([czmq], [zsocket_new], [], [AC_MSG_ERROR([Could not find czmq library])])])
-
                   #AC_SUBST([ZMQ_CFLAGS])
                   #AC_SUBST([ZMQ_LDFLAGS])
-                  #AC_SUBST([CZMQ_CFLAGS])
-                  #AC_SUBST([CZMQ_LDFLAGS])
                   #AC_SUBST([UUID_CFLAGS])
                   #AC_SUBST([UUID_LDFLAGS])
 

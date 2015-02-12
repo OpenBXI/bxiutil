@@ -68,7 +68,6 @@ Provides: %{name}
 #Conflicts:
 #TODO: What do you require
 Requires: zeromq3
-Requires: czmq
 Requires: python-daemon >= 1.6
 
 Requires: bxibase >= 2.0.0

@@ -14,30 +14,21 @@
 from pkgutil import extend_path
 __path__ = extend_path(__path__, __name__)
 
-from cffi import FFI
+import bxi.ffi as bxiffi
 import bxi.base as bxibase
 from bxi.util.cffi_h import C_DEF
 from cffi.api import CDefError
 
-__FFI__ = FFI()
+bxiffi.add_cdef_for_type("bxirng_p", C_DEF)
 
-# Including the BB Client C specification
-bxibase.include_if_required(__FFI__)
-__FFI__.cdef(C_DEF)
-__CAPI__ = __FFI__.dlopen('libbxiutil.so')
+__CAPI__ = bxiffi.get_ffi().dlopen('libbxiutil.so')
 
 
-def include_if_required(other_ffi):
-    bxibase.include_if_required(other_ffi)
-    try:
-        other_ffi.getctype("bxirng_p")
-    except CDefError as ffie:
-        other_ffi.cdef(C_DEF)
+def get_capi():
+    """
+    Return the CFFI wrapped C library.
 
-
-def get_ffi():
-    return __FFI__
-
-def get_api():
+    @return the CFFI wrapped C library.
+    """
     return __CAPI__
 
