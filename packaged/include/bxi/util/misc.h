@@ -71,7 +71,7 @@
  *
  * @param[in] a compile-time boolean expression
  */
-#define CASSERT(expn) typedef char __C_ASSERT__##__FILE__[(expn)?1:-1]
+#define CASSERT(type, expn) typedef char __C_ASSERT__ ## type[(expn)?1:-1]
 #endif
 
 // Taken from c-faq.com: http://c-faq.com/misc/bitsets.html
