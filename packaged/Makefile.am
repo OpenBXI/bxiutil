@@ -1,6 +1,7 @@
-ACLOCAL_AMFLAGS = -I m4
-
 lib_LTLIBRARIES=lib/libbxiutil.la
+
+ACLOCAL_AMFLAGS=-I m4
+
 
 #path of the include dir for this library
 bxi_includedir=$(includedir)/bxi
