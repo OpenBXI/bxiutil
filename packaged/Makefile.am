@@ -13,7 +13,6 @@ lib_libbxiutil_la_SOURCES=\
 		  src/map.c\
 		  src/misc.c\
 		  src/vector.c\
-		  src/tp.c\
 		  src/kvl.c
 
 lib_libbxiutil_la_LDFLAGS=\

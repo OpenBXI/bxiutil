@@ -31,7 +31,6 @@
 // This is required to actually test the implementation
 
 #include "misc.c"
-#include "tp.c"
 #include "map.c"
 #include "vector.c"
 #include "rng.c"
@@ -46,7 +45,6 @@ char ** ARGV = NULL;
 #include "test_vector.c"
 #include "test_map.c"
 #include "test_misc.c"
-#include "test_tp.c"
 
 #include "test_kvl.c"
 
@@ -138,47 +136,9 @@ int main(int argc, char * argv[]) {
 
         || (NULL == CU_add_test(pSuite, "test rng", test_rng))
 
-        || (NULL == CU_add_test(pSuite, "test bad context", test_bad_context))
-        || (NULL == CU_add_test(pSuite, "test bad file", test_bad_file))
         || (NULL == CU_add_test(pSuite, "test misc_tuple2str", test_misc_tuple2str))
         || (NULL == CU_add_test(pSuite, "test min/max", test_min_max))
         || (NULL == CU_add_test(pSuite, "test mktemp", test_mktemp))
-
-        || (NULL == CU_add_test(pSuite, "test comment", test_comment))
-        || (NULL == CU_add_test(pSuite, "test unknown topo", test_unknown_token))
-        || (NULL == CU_add_test(pSuite, "test bad pgft topo", test_badpgft_topo))
-        || (NULL == CU_add_test(pSuite, "test bad pgft topo_zero", test_badpgft_topo_zero))
-        || (NULL == CU_add_test(pSuite, "test bad pgft syntax", test_badpgft_syntax))
-        || (NULL == CU_add_test(pSuite, "test pgft header multi dimension",
-                                test_pgft_header_multidim))
-        || (NULL == CU_add_test(pSuite, "test pgft header multi dimension_space",
-                                test_pgft_header_multidim_space))
-        || (NULL == CU_add_test(pSuite, "test pgft header single dimension",
-                                test_pgft_header_singledim))
-        || (NULL == CU_add_test(pSuite, "test pgft header nodim", test_pgft_header_nodim))
-        || (NULL == CU_add_test(pSuite, "test pgft bad_asic", test_pgft_bad_asic))
-        || (NULL == CU_add_test(pSuite, "test pgft asic_badradix",
-                                test_pgft_asic_badradix))
-        || (NULL == CU_add_test(pSuite, "test pgft asic_badid", test_pgft_asic_badid))
-        || (NULL == CU_add_test(pSuite, "test pgft asic_badaddr", test_pgft_asic_badaddr))
-        || (NULL == CU_add_test(pSuite, "test pgft asic", test_pgft_asic))
-        || (NULL == CU_add_test(pSuite, "test pgft bad_port", test_pgft_bad_port))
-        || (NULL == CU_add_test(pSuite, "test pgft port_badrank", test_pgft_port_badrank))
-        || (NULL == CU_add_test(pSuite, "test pgft port_negrank", test_pgft_port_negrank))
-        || (NULL == CU_add_test(pSuite, "test pgft port_badoeid", test_pgft_port_badoeid))
-        || (NULL == CU_add_test(pSuite, "test pgft port_badoerank",
-                                test_pgft_port_badoerank))
-        || (NULL == CU_add_test(pSuite, "test pgft port_badbw", test_pgft_port_badbw))
-        || (NULL == CU_add_test(pSuite, "test pgft port_badlat", test_pgft_port_badlat))
-        || (NULL == CU_add_test(pSuite, "test pgft port_badnid", test_pgft_port_badnid))
-        || (NULL == CU_add_test(pSuite, "test pgft port", test_pgft_port))
-        || (NULL == CU_add_test(pSuite, "test eof", test_eof))
-        || (NULL == CU_add_test(pSuite, "EOF/L", lexSpecial))
-        || (NULL == CU_add_test(pSuite, "PREFIX", lexPrefix))
-        || (NULL == CU_add_test(pSuite, "KEY", lexKey))
-        || (NULL == CU_add_test(pSuite, "NUM", lexDigit))
-        || (NULL == CU_add_test(pSuite, "STR", lexString))
-        || (NULL == CU_add_test(pSuite, "TUPLE", lexTuple))
 
         || false) {
         CU_cleanup_registry();
