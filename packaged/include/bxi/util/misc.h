@@ -69,7 +69,8 @@
 /**
  * Use to check at compile time an assertion.
  *
- * @param[in] a compile-time boolean expression
+ * @param[in] type the name of the generated typedef
+ * @param[in] expn a compile-time boolean expression
  */
 #define CASSERT(type, expn) typedef char __C_ASSERT__ ## type[(expn)?1:-1]
 #endif
