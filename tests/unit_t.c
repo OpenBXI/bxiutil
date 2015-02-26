@@ -43,6 +43,7 @@ char ** ARGV = NULL;
 
 #include "test_rng.c"
 #include "test_vector.c"
+#include "test_stretch.c"
 #include "test_map.c"
 #include "test_misc.c"
 
@@ -129,6 +130,7 @@ int main(int argc, char * argv[]) {
         || (NULL == CU_add_test(pSuite, "test bitarray", test_bitarray))
 
         || (NULL == CU_add_test(pSuite, "test vector", test_vector))
+        || (NULL == CU_add_test(pSuite, "test stretch", test_stretch))
 
         || (NULL == CU_add_test(pSuite, "test map", test_map))
         || (NULL == CU_add_test(pSuite, "test map scheduler", test_scheduler))

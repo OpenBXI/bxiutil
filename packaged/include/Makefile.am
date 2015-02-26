@@ -3,6 +3,7 @@ cffi_files=\
 		   bxi/util/misc.h\
 		   bxi/util/rng.h\
 		   bxi/util/map.h\
+		   bxi/util/stretch.h\
 		   bxi/util/vector.h
 		   
 
