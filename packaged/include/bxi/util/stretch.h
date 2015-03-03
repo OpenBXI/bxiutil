@@ -50,16 +50,18 @@ typedef struct bxistretch_s_t *bxistretch_p;
  * If the chunk_size is 0, a default size is selected.
  *
  * @param chunk_size the overhead of allocated element
- * @param element_size sie of the element to store
+ * @param element_size size of the element to store
  * @param element_nb number of element at the initialization
  *
  * @returns   pointer on the newly allocated stretchable array
  */
-bxistretch_p bxistretch_new(uint16_t chunk_size, uint32_t  element_size, uint32_t element_nb);
+bxistretch_p bxistretch_new(uint16_t chunk_size,
+                            uint32_t element_size,
+                            uint32_t element_nb);
 
 /**
  * Destroy a stretchable array.
- * 
+ *
  *
  * @param stretch_p pointer on the object to be destroy
  */
@@ -76,7 +78,8 @@ void bxistretch_destroy(bxistretch_p *stretch_p);
 void * bxistretch_get(bxistretch_p self, uint32_t index);
 
 /**
- * Allocate the memory space for all the element with an index lower and equal to the provided one.
+ * Allocate the memory space for all the element with an index lower
+ * and equal to the provided one.
  *
  * @param self array on which the element has to be store
  * @param index of the element wanted inside the memory
