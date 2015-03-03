@@ -16,6 +16,7 @@
 
 
 #ifndef BXICFFI
+#ifndef BXICFFI
 #include <stdint.h>
 #include <stdlib.h>
 #endif

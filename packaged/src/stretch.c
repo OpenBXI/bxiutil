@@ -74,7 +74,7 @@ void bxistretch_destroy(bxistretch_p *self_p) {
 void * bxistretch_get(bxistretch_p self, uint32_t index) {
     uint32_t chunk_requested = ((index + self->chunk_size) / self->chunk_size) - 1;
     uint32_t position = index - chunk_requested * self->chunk_size;
-    if (self->element_nb < index) return NULL;
+    if (self->element_nb <= index) return NULL;
     return (void*)(uintptr_t)(self->biarray[chunk_requested] + position * self->element_size);
 }
 
