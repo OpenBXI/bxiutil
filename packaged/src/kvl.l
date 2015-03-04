@@ -239,6 +239,7 @@ digit       [-]?[[:digit:]]+
 
 :               { TRACE(_LOGGER, "<:>"); return ':'; }
 \.              { TRACE(_LOGGER, "<.>"); return '.'; }
+<<EOF>>         { TRACE(_LOGGER, "EOF"); return END_OF_FILE; }
 
 .               { ERROR(_LOGGER, "Unexpected <%c>", yytext[0]); return (enum yytokentype)yytext[0]; }
 

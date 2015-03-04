@@ -54,7 +54,8 @@
      NUM = 260,
      STR = 261,
      TUPLE = 262,
-     EOL = 263
+     EOL = 263,
+     END_OF_FILE = 264
    };
 #endif
 
