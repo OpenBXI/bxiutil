@@ -72,8 +72,8 @@ SET_LOGGER(BXIMISC_LOGGER, "bxiutil.misc");
 // ********************************** Implementation   *****************************
 // *********************************************************************************
 
-char * bximisc_get_filename(FILE * const stream) {
-    assert(stream != NULL);
+bxierr_p bximisc_get_filename(FILE * const stream, char ** filename) {
+    BXIASSERT(BXIMISC_LOGGER, NULL != stream && NULL != filename);
     /* Read out the link to our file descriptor. */
     char path[BUF_SIZE];
     const size_t n = BUF_SIZE * sizeof(*path);
@@ -81,21 +81,15 @@ char * bximisc_get_filename(FILE * const stream) {
     assert(result != NULL);
     errno = 0;
     const int fd = fileno(stream);
-    if (-1 == fd) {
-        BXIEXIT(EX_IOERR,
-                bxierr_errno("Bad stream: %x", stream),
-                BXIMISC_LOGGER, BXILOG_CRITICAL);
-    }
+    if (-1 == fd) return bxierr_errno("Bad stream: %x", stream);
     sprintf(path, "/proc/self/fd/%d", fd);
     memset(result, 0, n);
     errno = 0;
     const ssize_t rc = readlink(path, result, n - 1);
-    if (rc == -1) {
-        BXIEXIT(EX_IOERR,
-                bxierr_errno("Can't read: %s", path),
-                BXIMISC_LOGGER, BXILOG_CRITICAL);
-    }
-    return (result);
+    if (rc == -1) return bxierr_errno("Can't read: %s", path);
+    *filename = result;
+
+    return BXIERR_OK;
 }
 
 char * bximisc_readlink(const char * const linkname) {
@@ -517,10 +511,10 @@ bxierr_p bximisc_file_map(const char * filename,
                               MAP_PRIVATE | MAP_ANONYMOUS, file, 0);
     } else {
         BXIASSERT(BXIMISC_LOGGER, NULL != filename);
-        if (load){
+        if (load) {
             errno = 0;
-            file = open(filename, O_RDONLY ,  S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
-            if (file == -1){
+            file = open(filename, O_RDONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+            if (file == -1) {
                 bxierr_p bxierr = bxierr_errno("Can't open %s", filename);
                 ERROR(BXIMISC_LOGGER, "%s", bxierr_str(bxierr));
                 return bxierr;

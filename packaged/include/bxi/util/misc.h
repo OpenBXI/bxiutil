@@ -145,10 +145,11 @@ typedef struct {
 /**
  * Returns the filename of the given stream
  *
- * @param stream the stream to get the filename of
- * @return the name of the related file
+ * @param[in] stream the stream to get the filename of
+ * @param[out] a pointer on the filename
+ * @return BXIERR_OK on success, any other value on error
  */
-char * bximisc_get_filename(FILE * stream);
+bxierr_p bximisc_get_filename(FILE * stream, char ** filename);
 
 /**
  * Return the name of the file the given link_name is pointing to.
