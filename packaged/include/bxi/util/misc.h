@@ -146,7 +146,7 @@ typedef struct {
  * Returns the filename of the given stream
  *
  * @param[in] stream the stream to get the filename of
- * @param[out] a pointer on the filename
+ * @param[out] filename a pointer on the filename
  * @return BXIERR_OK on success, any other value on error
  */
 bxierr_p bximisc_get_filename(FILE * stream, char ** filename);
