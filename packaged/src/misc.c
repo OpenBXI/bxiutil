@@ -487,6 +487,20 @@ void bximisc_stats(size_t n, uint32_t *data, bximisc_stats_s * stats_p) {
 
 
 
+bxierr_p bximisc_file_size(const char *filename, size_t * size) {
+    BXIASSERT(BXIMISC_LOGGER, size != NULL);
+    struct stat st;
+    errno = 0;
+
+    if (stat(filename, &st) == 0) {
+        *size = (size_t)st.st_size;
+        return BXIERR_OK;
+    }
+
+    bxierr_p err = bxierr_errno("An error occured while getting stat of file %s.", filename);
+    return err;
+}
+
 bxierr_p bximisc_file_map(const char * filename,
                           size_t size,
                           bool load,
@@ -538,10 +552,18 @@ bxierr_p bximisc_file_map(const char * filename,
             int * file_p = bximem_calloc(sizeof(*file_p));
             *file_p = file;
             bxierr = bxierr_new(BXIMISC_FILE_CLOSE_ERROR, file_p, free, bxierr, "An error occured while closing %s.", filename);
+            if(init_file_addr != NULL && -1 == munmap(init_file_addr, size)){
+                bxierr_p err = bxierr_errno("An error occured while unmapping %s.", filename);
+                char * err_str = bxierr_str(bxierr);
+                ERROR(BXIMISC_LOGGER, "%s", err_str);
+                BXIFREE(err_str);
+                BXIERR_CHAIN(bxierr, err);
+            }
             return bxierr;
         }
     }
-    if (MAP_FAILED == init_file_addr) {
+
+    if (MAP_FAILED == init_file_addr || NULL == init_file_addr) {
         bxierr_p bxierr = bxierr_errno("An error occured while mapping %s.", filename);
         ERROR(BXIMISC_LOGGER, "%s", bxierr_str(bxierr));
         return bxierr;

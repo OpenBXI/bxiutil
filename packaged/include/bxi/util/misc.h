@@ -65,15 +65,6 @@
 // ********************************** Defines **************************************
 // *********************************************************************************
 
-#ifndef BXICFFI
-/**
- * Use to check at compile time an assertion.
- *
- * @param[in] type the name of the generated typedef
- * @param[in] expn a compile-time boolean expression
- */
-#define CASSERT(type, expn) typedef char __C_ASSERT__ ## type[(expn)?1:-1]
-#endif
 
 // Taken from c-faq.com: http://c-faq.com/misc/bitsets.html
 #define BITMASK(b) (1 << ((b) % CHAR_BIT))
@@ -350,4 +341,14 @@ bxierr_p bximisc_mkstemp(char * prefix, char ** res, int * fd);
  * @return BXIERR_OK on success, anything else on error
  */
 bxierr_p bximisc_mkdtemp(char * prefix, char ** res);
+
+/**
+ * Get the size of a file from its name.
+ *
+ * @param filename name of the file
+ * @param size pointer on the result
+ *
+ * @returns BXIERR_OK on success, anything else on error
+ */
+bxierr_p bximisc_file_size(const char *filename, size_t * size) ;
 #endif /* BXIMISC_H_ */
