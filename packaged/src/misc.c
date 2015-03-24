@@ -33,6 +33,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <libgen.h>
 
 
 #ifdef __linux__
@@ -495,6 +496,66 @@ bxierr_p bximisc_file_size(const char *filename, size_t * size) {
     return err;
 }
 
+bxierr_p bximisc_mkdirs(const char* const foldername) {
+    BXIASSERT(BXIMISC_LOGGER, NULL != foldername);
+    struct stat buf;
+    errno = 0;
+    long rc = stat(foldername, &buf);
+    if (rc == -1) {
+        if (errno != ENOENT) { // All other errors are critical
+          bxierr_p bxierr = bxierr_errno("Calling stat() failed on %s", foldername);
+          ERROR(BXIMISC_LOGGER, "%s", bxierr_str(bxierr));
+          return bxierr;
+        }
+
+        // foldername does not exist
+    }
+    if (rc == 0) {
+        if (!S_ISDIR(buf.st_mode)) {
+          bxierr_p bxierr = bxierr_errno("Can't create '%s': name already exists and "
+                                          "is not a directory. Aborting.",
+                  foldername);
+          ERROR(BXIMISC_LOGGER, "%s", bxierr_str(bxierr));
+          return bxierr;
+
+        } else {
+            return BXIERR_OK;
+        }
+    }
+
+    char * subdir = strdup(foldername);
+    char * dir = dirname(subdir);
+    if(strcmp(dir, "/") != 0 && strcmp(dir, ".") != 0){
+        bxierr_p err = bximisc_mkdirs(dir);
+        if (err != BXIERR_OK) {
+          return err;
+        }
+    }
+    BXIFREE(subdir);
+    TRACE(BXIMISC_LOGGER, "Creating %s", foldername);
+    errno = 0;
+    rc = mkdir(foldername, S_IRWXU | S_IRGRP | S_IROTH);
+    if (rc == -1) {
+        if (errno == EEXIST) {
+            TRACE(BXIMISC_LOGGER, "Path %s already exists, checking that it is a directory.",
+                  foldername);
+            errno = 0;
+            rc = stat(foldername, &buf);
+            if (rc == -1) {
+                bxierr_p bxierr = bxierr_errno("Calling stat() failed %s", foldername);
+                ERROR(BXIMISC_LOGGER, "%s", bxierr_str(bxierr));
+                return bxierr;
+            }
+        } else {
+          bxierr_p bxierr = bxierr_errno("Can't create %s", foldername);
+          ERROR(BXIMISC_LOGGER, "%s", bxierr_str(bxierr));
+          return bxierr;
+
+        }
+    }
+    return BXIERR_OK;
+}
+
 bxierr_p bximisc_file_map(const char * filename,
                           size_t size,
                           bool load,
@@ -643,4 +704,5 @@ bxierr_p _create_writable_file(const char * filename, size_t size, int *fd) {
     }
     return BXIERR_OK;
 }
+
 
