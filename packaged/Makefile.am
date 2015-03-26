@@ -9,6 +9,7 @@ bxi_includedir=$(includedir)/bxi
 
 lib_libbxiutil_la_SOURCES=\
 		  $(include_HEADERS)\
+		  src/version.c\
 		  src/rng.c\
 		  src/map.c\
 		  src/misc.c\

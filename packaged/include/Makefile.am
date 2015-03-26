@@ -1,5 +1,6 @@
 
 cffi_files=\
+		   bxi/util/version.h\
 		   bxi/util/misc.h\
 		   bxi/util/rng.h\
 		   bxi/util/map.h\

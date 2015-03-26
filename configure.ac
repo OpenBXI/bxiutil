@@ -208,7 +208,7 @@ PC_PYTHON_CHECK_MODULE_REAL([python-daemon], daemon, [], [AC_MSG_ERROR(Module no
 
 
 #TODO add the pc.in file
-AC_CONFIG_FILES([Makefile packaged/Makefile packaged/lib/Makefile packaged/include/Makefile packaged/doc/Makefile tests/Makefile])
+AC_CONFIG_FILES([Makefile packaged/Makefile packaged/lib/Makefile packaged/include/Makefile packaged/doc/Makefile tests/Makefile packaged/src/version.c packaged/include/bxi/util/version.h])
 AC_OUTPUT
 
 echo "summary   :"
