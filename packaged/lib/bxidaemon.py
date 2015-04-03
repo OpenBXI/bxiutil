@@ -211,13 +211,6 @@ def create_daemon_parser(*args, **kwargs):
                       dest='bxidir',
                       help="Folder containing both the topology description and its values")
 
-    gbxi.add_argument('--regid-url',
-                      action='store',
-                      type=str,
-                      metavar='URL',
-                      dest='regid_url',
-                      help="Full url to connect to the RegId daemon")
-
     gbxi.add_argument('--bb-url',
                       action='store',
                       type=str,
