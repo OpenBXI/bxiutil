@@ -322,10 +322,36 @@ void test_mktemp() {
 
     tmp = "tmp-XXXXXX";
     err = bximisc_mkdtemp(tmp, &res);
+    CU_ASSERT_TRUE(bxierr_isok(err));
     CU_ASSERT_NOT_EQUAL_FATAL(res, NULL);
     CU_ASSERT_TRUE(strncmp(res, tmpdir, strlen(tmpdir)) == 0);
+
+    char * addr;
+    char * file = bxistr_new("%s/test", res);
+    DEBUG(TEST_LOGGER, "Map on file %s", file);
+    err = bximisc_file_map(file, 10, true, true, PROT_READ | PROT_WRITE, &addr);
+    CU_ASSERT_TRUE(bxierr_isko(err));
+    bxierr_destroy(&err);
+    err = bximisc_file_map(file, 10, false, true, PROT_READ | PROT_WRITE, &addr);
+    CU_ASSERT_TRUE(bxierr_isok(err));
+    strcpy(addr, "OkWorking");
+    munmap(addr, 10);
+    err = bximisc_file_map(file, 10, true, true, PROT_READ | PROT_WRITE, &addr);
+    CU_ASSERT_TRUE(bxierr_isok(err));
+    CU_ASSERT_TRUE(strcmp(addr, "OkWorking") == 0);
+    strcpy(addr, "OkWork   ");
+    munmap(addr, 10);
+    err = bximisc_file_map(file, 10, false, true, PROT_READ | PROT_WRITE, &addr);
+    CU_ASSERT_TRUE(bxierr_isko(err));
+    bxierr_destroy(&err);
+    err = bximisc_file_map(file, 10, true, true, PROT_READ | PROT_WRITE, &addr);
+    CU_ASSERT_TRUE(bxierr_isok(err));
+    CU_ASSERT_FALSE(strcmp(addr, "OkWork   ") == 0);
+
+
     unlinkat(0, res, AT_REMOVEDIR);
     BXIFREE(res);
+    BXIFREE(file);
 }
 
 void test_min_max() {

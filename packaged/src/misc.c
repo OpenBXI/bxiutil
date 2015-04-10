@@ -577,7 +577,9 @@ bxierr_p bximisc_file_map(const char * filename,
             file = open(filename, O_RDONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
             if (file == -1) {
                 bxierr_p bxierr = bxierr_errno("Can't open %s", filename);
-                ERROR(BXIMISC_LOGGER, "%s", bxierr_str(bxierr));
+                char * bxierrstr = bxierr_str(bxierr);
+                ERROR(BXIMISC_LOGGER, "%s", bxierrstr);
+                BXIFREE(bxierrstr);
                 return bxierr;
             }
             errno = 0;
@@ -588,8 +590,9 @@ bxierr_p bximisc_file_map(const char * filename,
             // TODO: If we do not want thread cancellation point, we might use the following line
             // and have some extra boost on performance. We might use an #ifdef NOCANCELLATION ...
             //    FILE * const file = fopen(filename, "wc");
-            if (BXIERR_OK != rc) {
+            if (bxierr_isko(rc)) {
                 bxierr_p bxierr = bxierr_errno("Problem for mapping file %s", filename);
+                BXIERR_CHAIN(rc, bxierr);
                 char * err_str = bxierr_str(bxierr);
                 ERROR(BXIMISC_LOGGER, "%s", err_str);
                 BXIFREE(err_str);
@@ -687,7 +690,7 @@ bxierr_p bximisc_mkstemp(char * tmp_name, char ** res, int *fd) {
 bxierr_p _create_writable_file(const char * filename, size_t size, int *fd) {
     BXIASSERT(BXIMISC_LOGGER, fd != NULL);
     errno = 0;
-    *fd = open(filename, O_CREAT|O_RDWR|O_TRUNC,  S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+    *fd = open(filename, O_CREAT|O_RDWR|O_EXCL,  S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
     if (*fd == -1){
         return bxierr_errno("Can't open %s", filename);
     }
