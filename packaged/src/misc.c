@@ -575,56 +575,34 @@ bxierr_p bximisc_file_map(const char * filename,
         if (load) {
             errno = 0;
             file = open(filename, O_RDONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
-            if (file == -1) {
-                bxierr_p bxierr = bxierr_errno("Can't open %s", filename);
-                char * bxierrstr = bxierr_str(bxierr);
-                ERROR(BXIMISC_LOGGER, "%s", bxierrstr);
-                BXIFREE(bxierrstr);
-                return bxierr;
-            }
+            if (file == -1) return bxierr_errno("Can't open %s", filename);
             errno = 0;
             init_file_addr = mmap(NULL, size, MMAP_PROT,
                                   MAP_PRIVATE, file, 0);
         } else {
-            bxierr_p rc = _create_writable_file(filename, size, &file);
-            // TODO: If we do not want thread cancellation point, we might use the following line
-            // and have some extra boost on performance. We might use an #ifdef NOCANCELLATION ...
-            //    FILE * const file = fopen(filename, "wc");
-            if (bxierr_isko(rc)) {
-                bxierr_p bxierr = bxierr_errno("Problem for mapping file %s", filename);
-                BXIERR_CHAIN(rc, bxierr);
-                char * err_str = bxierr_str(bxierr);
-                ERROR(BXIMISC_LOGGER, "%s", err_str);
-                BXIFREE(err_str);
-                return bxierr;
-            }
+            bxierr_p err = _create_writable_file(filename, size, &file);
+            if (bxierr_isko(err)) return err;
             errno = 0;
             init_file_addr = mmap(NULL, size, MMAP_PROT,
                                   MAP_SHARED, file, 0);
         }
         if (-1 == close(file)) {
             bxierr_p bxierr = bxierr_errno("An error occured while closing %s.", filename);
-            char * err_str = bxierr_str(bxierr);
-            ERROR(BXIMISC_LOGGER, "%s", err_str);
-            BXIFREE(err_str);
             int * file_p = bximem_calloc(sizeof(*file_p));
             *file_p = file;
-            bxierr = bxierr_new(BXIMISC_FILE_CLOSE_ERROR, file_p, free, bxierr, "An error occured while closing %s.", filename);
-            if(init_file_addr != NULL && -1 == munmap(init_file_addr, size)){
-                bxierr_p err = bxierr_errno("An error occured while unmapping %s.", filename);
-                char * err_str = bxierr_str(bxierr);
-                ERROR(BXIMISC_LOGGER, "%s", err_str);
-                BXIFREE(err_str);
-                BXIERR_CHAIN(bxierr, err);
+            bxierr = bxierr_new(BXIMISC_FILE_CLOSE_ERROR, file_p, free, bxierr,
+                                "An error occured while closing %s.", filename);
+            if(init_file_addr != NULL && -1 == munmap(init_file_addr, size)) {
+                bxierr_p err2 = bxierr_errno("An error occured while unmapping %s.",
+                                             filename);
+                BXIERR_CHAIN(bxierr, err2);
             }
             return bxierr;
         }
     }
 
     if (MAP_FAILED == init_file_addr || NULL == init_file_addr) {
-        bxierr_p bxierr = bxierr_errno("An error occured while mapping %s.", filename);
-        ERROR(BXIMISC_LOGGER, "%s", bxierr_str(bxierr));
-        return bxierr;
+        return bxierr_errno("An error occured while mapping %s.", filename);
     }
 
     *addr = init_file_addr;

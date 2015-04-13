@@ -289,7 +289,7 @@ bxierr_p bximap_execute(bximap_ctx_p context){
     bxierr_p err2 = bxitime_duration(CLOCK_MONOTONIC, running_time, &tmp);
     BXIERR_CHAIN(err, err2);
     running_duration += tmp;
-    if (task_err != BXIERR_OK) {
+    if (bxierr_isko(task_err)) {
         size_t next_error = __sync_fetch_and_add(&shared_info.global_task->next_error, 1);
         TRACE(MAPPER_LOGGER, "thread:%d next_error %zu", 0, next_error);
         shared_info.global_task->tasks_error[next_error] = task_err;
@@ -305,7 +305,7 @@ bxierr_p bximap_execute(bximap_ctx_p context){
         err2 = bxitime_duration(CLOCK_MONOTONIC, running_time, &tmp);
         BXIERR_CHAIN(err, err2);
         running_duration += tmp;
-        if (task_err != BXIERR_OK) {
+        if (bxierr_isko(task_err)) {
             size_t next_error = __sync_fetch_and_add(&shared_info.global_task->next_error, 1);
             TRACE(MAPPER_LOGGER, "thread:%d next_error %zu", 0, next_error);
             shared_info.global_task->tasks_error[next_error] = task_err;
@@ -345,7 +345,7 @@ bxierr_p bximap_execute(bximap_ctx_p context){
         void * task_err = BXIERR_OK;
         err2 = bxizmq_rcv_data(&task_err, 0, shared_info.zocket_result, 0, false);
         BXIERR_CHAIN(err, err2);
-        if (task_err != BXIERR_OK) {
+        if (bxierr_isko(task_err)) {
             size_t next_error = shared_info.next_error++;
             shared_info.global_task->tasks_error[next_error] = task_err;
         }
@@ -778,7 +778,7 @@ void * _start_function(void* arg){
             BXIERR_CHAIN(err, err2);
             working_time += duration;
             nb_iterations += (current_task->end - current_task->start);
-            if (task_err != BXIERR_OK) {
+            if (bxierr_isko(task_err)) {
                 size_t next_error = __sync_fetch_and_add(&shared_info.global_task->next_error, 1);
                 TRACE(MAPPER_LOGGER, "thread:%zu next_error %zu", thread_id, next_error);
                 shared_info.global_task->tasks_error[next_error] = task_err;
@@ -800,7 +800,7 @@ void * _start_function(void* arg){
             working_time += tmp;
             nb_iterations += (current_task->end - current_task->start);
 #ifndef ZMQ
-            if (task_err != BXIERR_OK) {
+            if (bxierr_isko(task_err)) {
                 size_t next_error = __sync_fetch_and_add(&shared_info.global_task->next_error, 1);
                 shared_info.global_task->tasks_error[next_error] = task_err;
             }
