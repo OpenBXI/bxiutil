@@ -17,7 +17,7 @@ AC_CONFIG_MACRO_DIR([.autotools_cache/m4])
 AC_PROG_CC_C99
 AM_PROG_CC_C_O
 AC_PROG_LIBTOOL
-AX_PROG_FLEX([], [AC_MSG_ERROR([flex is required!])])
+AX_PROG_FLEX([], [AC_MSG_ERROR([flex is required])])
 AX_CHECK_FLEX([2.5.37], [], [AC_MSG_ERROR([flex version mismatch])])
 
 AC_CHECK_PROGS([DOXYGEN], [doxygen])
