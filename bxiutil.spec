@@ -71,6 +71,7 @@ Requires: zeromq3
 Requires: python-daemon >= 1.6
 
 Requires: bxibase >= 2.0.0
+BuildRequires: flex == 2.5.37
 
 #TODO: Give a description (seen by rpm -qi) (No more than 80 characters)
 %description
