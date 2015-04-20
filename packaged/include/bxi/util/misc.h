@@ -361,4 +361,13 @@ bxierr_p bximisc_file_size(const char *filename, size_t * size) ;
  * @returns   BXIERR_OK if the folder is created anything else on error.
  */
 bxierr_p bximisc_mkdirs(const char* const foldername) ;
+
+/**
+ * Create the foldername only if the subdirectory already exists.
+ *
+ * @param foldername path of the required folder
+ *
+ * @returns   BXIERR_OK if the folder is created anything else on error.
+ */
+bxierr_p bximisc_mkdir(const char* const foldername) ;
 #endif /* BXIMISC_H_ */

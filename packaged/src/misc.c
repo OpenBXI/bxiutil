@@ -496,6 +496,33 @@ bxierr_p bximisc_file_size(const char *filename, size_t * size) {
     return err;
 }
 
+bxierr_p bximisc_mkdir(const char* const foldername) {
+    BXIASSERT(BXIMISC_LOGGER, NULL != foldername);
+    TRACE(BXIMISC_LOGGER, "Creating %s", foldername);
+    struct stat buf;
+    errno = 0;
+    int rc = mkdir(foldername, S_IRWXU | S_IRGRP | S_IROTH);
+    if (rc == -1) {
+        if (errno == EEXIST) {
+            TRACE(BXIMISC_LOGGER, "Path %s already exists, checking that it is a directory.",
+                  foldername);
+            errno = 0;
+            rc = stat(foldername, &buf);
+            if (rc == -1) {
+                bxierr_p bxierr = bxierr_errno("Calling stat() failed %s", foldername);
+                ERROR(BXIMISC_LOGGER, "%s", bxierr_str(bxierr));
+                return bxierr;
+            }
+        } else {
+          bxierr_p bxierr = bxierr_errno("Can't create %s", foldername);
+          ERROR(BXIMISC_LOGGER, "%s", bxierr_str(bxierr));
+          return bxierr;
+
+        }
+    }
+    return BXIERR_OK;
+}
+
 bxierr_p bximisc_mkdirs(const char* const foldername) {
     BXIASSERT(BXIMISC_LOGGER, NULL != foldername);
     struct stat buf;
@@ -532,28 +559,7 @@ bxierr_p bximisc_mkdirs(const char* const foldername) {
         }
     }
     BXIFREE(subdir);
-    TRACE(BXIMISC_LOGGER, "Creating %s", foldername);
-    errno = 0;
-    rc = mkdir(foldername, S_IRWXU | S_IRGRP | S_IROTH);
-    if (rc == -1) {
-        if (errno == EEXIST) {
-            TRACE(BXIMISC_LOGGER, "Path %s already exists, checking that it is a directory.",
-                  foldername);
-            errno = 0;
-            rc = stat(foldername, &buf);
-            if (rc == -1) {
-                bxierr_p bxierr = bxierr_errno("Calling stat() failed %s", foldername);
-                ERROR(BXIMISC_LOGGER, "%s", bxierr_str(bxierr));
-                return bxierr;
-            }
-        } else {
-          bxierr_p bxierr = bxierr_errno("Can't create %s", foldername);
-          ERROR(BXIMISC_LOGGER, "%s", bxierr_str(bxierr));
-          return bxierr;
-
-        }
-    }
-    return BXIERR_OK;
+    return bximisc_mkdir(foldername);
 }
 
 bxierr_p bximisc_file_map(const char * filename,

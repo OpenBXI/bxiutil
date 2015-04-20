@@ -628,7 +628,9 @@ bxierr_p bximap_set_cpumask(char * cpus) {
         size_t cpu = (size_t)bxivector_get_elem(vcpus, 0);
         TRACE(MAPPER_LOGGER,"Schedule on cpu=\"%zu\"", cpu);
         bxierr_p next = bximap_on_cpu(cpu);
-        BXIERR_CHAIN(err, next);
+        if (bxierr_isko(err)) {
+            BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, next, "Can't be mapped on cpu %zu", cpu);
+        }
     }
 
     return err;
