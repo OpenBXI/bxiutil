@@ -13,7 +13,8 @@ BXI_CHECK_C_COMPILER
 AC_PROG_LIBTOOL
 
 
-
+AX_PROG_FLEX([], [AC_MSG_ERROR([flex is required])])
+AX_CHECK_FLEX([2.5.37])
 
 
 AC_CHECK_LIB([m], [floor], [],
