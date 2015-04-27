@@ -211,9 +211,13 @@ bxierr_p bximap_execute(bximap_ctx_p context){
         }
     }
     shared_info.nb_tasks = ((context->end - context->start) / granularity);
-    if (shared_info.global_task->tasks_error != NULL) BXIFREE(shared_info.global_task->tasks_error);
+    if (shared_info.global_task->tasks_error != NULL) {
+        BXIFREE(shared_info.global_task->tasks_error);
+    }
+
     TRACE(MAPPER_LOGGER, "tasks_error allocate %zu error", shared_info.nb_tasks);
-    shared_info.global_task->tasks_error = bximem_calloc(shared_info.nb_tasks*sizeof(*shared_info.global_task->tasks_error));
+    shared_info.global_task->tasks_error = bximem_calloc(shared_info.nb_tasks *
+                                                         sizeof(*shared_info.global_task->tasks_error));
     shared_info.global_task->next_error = 0;
 
     size_t remaining_work = (context->end - context->start) % granularity;
@@ -241,7 +245,6 @@ bxierr_p bximap_execute(bximap_ctx_p context){
         }
         remaining_work -= additionnal_work;
 
-        TRACE(MAPPER_LOGGER, "Additionnal work: %zu on task: %zu", additionnal_work, i);
 
         shared_info.tasks[i].granularity = granularity + additionnal_work;
 
@@ -254,17 +257,21 @@ bxierr_p bximap_execute(bximap_ctx_p context){
         }
 
         shared_info.tasks[i].id = i;
-        TRACE(MAPPER_LOGGER, "i %zu start %zu end %zu granularity %zu",i, shared_info.tasks[i].start, shared_info.tasks[i].end,granularity);
+        TRACE(MAPPER_LOGGER, "Task %zu start %zu end %zu granularity %zu"
+              " granularity requested %zu",
+              i, shared_info.tasks[i].start, shared_info.tasks[i].end,
+              shared_info.tasks[i].granularity,
+              granularity);
         cur_start += shared_info.tasks[i].granularity;
     }
 
-    TRACE(MAPPER_LOGGER, "last task end: %zu global task end: %zu task granularity %zu nb tasks: %zu",
+    TRACE(MAPPER_LOGGER, "last task end: %zu global task end: %zu"
+          " task granularity %zu nb tasks: %zu",
           shared_info.tasks[shared_info.nb_tasks - 1].end,
           shared_info.global_task->end,
           shared_info.tasks[shared_info.nb_tasks - 1].granularity,
           shared_info.nb_tasks);
 
-    //BXIASSERT(MAPPER_LOGGER, shared_info.tasks[shared_info.nb_tasks - 1].end == shared_info.global_task->end);
 
 #ifndef ZMQ
     shared_info.next_task  = shared_info.nb_threads;
@@ -498,8 +505,6 @@ bxierr_p bximap_finalize(){
 #else
     TRACE(MAPPER_LOGGER, "Master sends last task");
     for(size_t i = 0; i < shared_info.nb_threads; i++){
-        //        bxizmq_snd_data_zc(&last_task,  sizeof(last_task),
-        //                           shared_info.zocket_tasks, 0, 10, 10000, NULL, NULL);
         err2 = bxizmq_snd_data_zc(&last_task,  sizeof(last_task),
                                   shared_info.zocket_pub, 0, 10, 10000, NULL, NULL);
         BXIERR_CHAIN(err, err2);
@@ -618,11 +623,13 @@ bxierr_p bximap_set_cpumask(char * cpus) {
     if (vcpus != NULL && 0 < bxivector_get_size(vcpus)) {
         char * cpus_str = bxistr_new("%zd", (intptr_t)bxivector_get_elem(vcpus, 0));
         for (size_t i = 1; i < bxivector_get_size(vcpus); i++) {
-            char * next_cpus = bxistr_new("%s,%zd", cpus_str, (intptr_t)bxivector_get_elem(vcpus, i));
+            char * next_cpus = bxistr_new("%s,%zd", cpus_str,
+                                          (intptr_t)bxivector_get_elem(vcpus, i));
             BXIFREE(cpus_str);
             cpus_str = next_cpus;
         }
-        TRACE(MAPPER_LOGGER,"Convertion of %s into %zu element: [%s]", cpus,  bxivector_get_size(vcpus), cpus_str);
+        TRACE(MAPPER_LOGGER,"Convertion of %s into %zu element: [%s]", cpus,
+              bxivector_get_size(vcpus), cpus_str);
         BXIFREE(cpus_str);
 
         size_t cpu = (size_t)bxivector_get_elem(vcpus, 0);
@@ -838,10 +845,13 @@ void * _start_function(void* arg){
 
 
 bxierr_p _fill_vector_with_cpu(intptr_t first_cpu, intptr_t last_cpu, bxivector_p vcpus) {
-    TRACE(MAPPER_LOGGER, "first_cpu=\"%zd\" last_cpu=\"%zd\"", first_cpu, last_cpu);
-    if (first_cpu > last_cpu) return bxierr_new(BXIMAP_INTERVAL_ERROR, NULL, NULL, NULL,
-                                              "Interval with a greater first index %zu than last index %zu",
-                                              first_cpu, last_cpu);
+    TRACE(MAPPER_LOGGER, "first_cpu=\"%zd\" last_cpu=\"%zd\"",
+          first_cpu, last_cpu);
+    if (first_cpu > last_cpu) {
+        return bxierr_new(BXIMAP_INTERVAL_ERROR, NULL, NULL, NULL,
+                          "Interval with a greater first index %zu than last index %zu",
+                          first_cpu, last_cpu);
+    }
     if (-1 == first_cpu) first_cpu = last_cpu;
     for (intptr_t i = first_cpu; i <= last_cpu; i++) {
         bxivector_push(vcpus, (void *) i);
