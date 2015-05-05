@@ -97,7 +97,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 #%posttrans new
 %build
 #autoreconf -i
-%configure --disable-debug
+%configure --disable-debug --with-python-execprefix=lib --with-python-prefix=lib
 %{__make}
 
 %install
