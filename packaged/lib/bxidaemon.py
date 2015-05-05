@@ -73,9 +73,9 @@ class BXIDaemon(object):
             if os.path.exists(self.pid_file):
                 try:
                     os.remove(self.pid_file)
-                    _LOGGER.debug('Successfully removed PID file')
+                    _LOGGER.debug('Successfully removed PID file: %s', self.pid_file)
                 except OSError as err:
-                    _LOGGER.error('Error while trying to remove PID file: %s', err)
+                    _LOGGER.error('Error while trying to remove PID file "%s": %s', self.pid_file, err)
 
     def _reconfigure(self):
         """Reset the configuration following the command line options"""
@@ -133,20 +133,19 @@ class BXIDaemon(object):
         # A daemon is already running
         if os.path.exists(self.pid_file):
             if not self.config['force_start']:
-                _LOGGER.error('PID file already existing')
-                print('The PID file already exists! It seems that another daemon is'
-                      ' currently running.')
+                _LOGGER.error('PID file "%s" already existing', self.pid_file)
+                print('The PID file "%s" already exists! It seems that another daemon is currently running.' % self.pid_file)
                 self._clean(fpidpb=True)
                 sys.exit(4)
 
         # That a new daemon, so writing its PID in the correct file
         try:
-            _LOGGER.debug("Creating PID file")
+            _LOGGER.debug("Creating PID file '%s'", self.pid_file)
             with open(self.pid_file, 'w') as f:
                 f.write('%d\n' % os.getpid())
         except IOError as err:
-            _LOGGER.error('Problem while writing the PID in the file: %s', err)
-            print('Problem while writing the PID in the file: %s' % err)
+            _LOGGER.error('Problem while writing the PID in file "%s": %s', self.pid_file, err)
+            print('Problem while writing the PID in file "%s": %s' % (self.pid_file, err))
             self._clean()
             sys.exit(5)
 
