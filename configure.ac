@@ -4,6 +4,7 @@ AC_CONFIG_AUX_DIR([.autotools_cache])
 m4_include([.autotools_cache/m4/common.m4])
 
 define([BXIMODULE], bxiutil)
+
 AC_PACKAGE([BXIMODULE])
 AC_INIT(BXIMODULE, [BXIMODULE_VERSION(BXIMODULE)])
 REPLACE_BRIEF(BXIMODULE)
@@ -47,11 +48,8 @@ AC_FUNC_ERROR_AT_LINE
 AC_FUNC_STRERROR_R
 AC_CHECK_FUNCS([gethostname memset mkdir pow strdup strtol])
 
-AM_PATH_PYTHON
+INIT_BXIPYTHON
 
-PC_INIT([2.7], [2.99])
-PC_PYTHON_CHECK_SITE_DIR
-PC_PYTHON_CHECK_EXEC_DIR
 PC_PYTHON_CHECK_MODULE_REAL([python-daemon], daemon, [], [AC_MSG_ERROR(Module not found)])
 #PC_PYTHON_CHECK_MODULE([cffi], [], [AC_MSG_ERROR(Module not found)])
 
