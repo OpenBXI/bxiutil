@@ -118,11 +118,13 @@ class BXIDaemon(object):
                     self.config.parse()
             except IOError as err:
                 _LOGGER.error('Configuration file error: %s', err)
-                print('Configuration file error: %s' % err)
+                sys.stderr.write('Configuration file error: %s' % err)
+                logging.cleanup()
                 sys.exit(1)
             except ParsingError as err:
                 _LOGGER.error('Configuration file parsing error: %s', err)
-                print('Configuration file parsing error: %s' % err)
+                sys.stderr.write('Configuration file parsing error: %s' % err)
+                logging.cleanup()
                 sys.exit(2)
         else:
             _LOGGER.warning("No configuration file specified")
@@ -134,8 +136,10 @@ class BXIDaemon(object):
         if os.path.exists(self.pid_file):
             if not self.config['force_start']:
                 _LOGGER.error('PID file "%s" already existing', self.pid_file)
-                print('The PID file "%s" already exists! It seems that another daemon is currently running.' % self.pid_file)
+                sys.stderr.write('The PID file "%s" already exists! It seems that another'
+                                 ' daemon is currently running.' % self.pid_file)
                 self._clean(fpidpb=True)
+                logging.cleanup()
                 sys.exit(4)
 
         # That a new daemon, so writing its PID in the correct file
@@ -145,8 +149,10 @@ class BXIDaemon(object):
                 f.write('%d\n' % os.getpid())
         except IOError as err:
             _LOGGER.error('Problem while writing the PID in file "%s": %s', self.pid_file, err)
-            print('Problem while writing the PID in file "%s": %s' % (self.pid_file, err))
+            sys.stderr.write('Problem while writing the PID in file "%s": %s\n' %
+                             (self.pid_file, err))
             self._clean()
+            logging.cleanup()
             sys.exit(5)
 
     def start(self):
@@ -284,7 +290,8 @@ class BXIDaemonZMQ(BXIDaemon):
                 self.zctrl.bind(self.config['ctrl_zocket_url'])
             except zmq.ZMQError as err:
                 _LOGGER.critical('Problem while creating the Control Zocket: %s', err)
-                print('Problem while creating the Control Zocket: %s' % err)
+                sys.stderr.write('Problem while creating the Control Zocket: %s' % err)
+                logging.cleanup()
                 sys.exit(3)
 
 
