@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 """
@@ -10,14 +9,18 @@
 @namespace bxi.base Python BXI Base module
 
 """
+
+
 # Try to find other BXI packages in other folders
 from pkgutil import extend_path
 __path__ = extend_path(__path__, __name__)
+
 
 import bxi.ffi as bxiffi
 import bxi.base as bxibase
 from bxi.util.cffi_h import C_DEF
 from cffi.api import CDefError
+
 
 bxiffi.add_cdef_for_type("bxirng_p", C_DEF)
 
@@ -31,4 +34,3 @@ def get_capi():
     @return the CFFI wrapped C library.
     """
     return __CAPI__
-
