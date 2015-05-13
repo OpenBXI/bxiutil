@@ -13,13 +13,10 @@
 
 
 import signal
-try:
-    import bxi.base.log as logging
-except ImportError:
-    import logging
+import bxi.base.log as bxilog
 
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = bxilog.getLogger(__name__)
 
 
 SIGNALS = ['None',

@@ -9,7 +9,11 @@
 # Please contact Bull S. A. S. for details about its license.
 ################################################################################
 
+
 """-= The BXI Daemon library =-"""
+
+
+import bxi.base.log as bxilog
 
 from configutils.configuration_parser import MultiLevelConfigParser
 from configutils.configuration_parser import ConfigMultiLevel
@@ -18,13 +22,12 @@ from logged_posless import ArgumentParser
 
 import zmq
 
-import bxi.base.log as logging
 import ast
 import sys
 import os
 
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = bxilog.getLogger(__name__)
 
 
 # -#-----------------------------------------------------------------------------------#-#
@@ -119,12 +122,12 @@ class BXIDaemon(object):
             except IOError as err:
                 _LOGGER.error('Configuration file error: %s', err)
                 sys.stderr.write('Configuration file error: %s' % err)
-                logging.cleanup()
+                bxilog.cleanup()
                 sys.exit(1)
             except ParsingError as err:
                 _LOGGER.error('Configuration file parsing error: %s', err)
                 sys.stderr.write('Configuration file parsing error: %s' % err)
-                logging.cleanup()
+                bxilog.cleanup()
                 sys.exit(2)
         else:
             _LOGGER.warning("No configuration file specified")
@@ -139,7 +142,7 @@ class BXIDaemon(object):
                 sys.stderr.write('The PID file "%s" already exists! It seems that another'
                                  ' daemon is currently running.' % self.pid_file)
                 self._clean(fpidpb=True)
-                logging.cleanup()
+                bxilog.cleanup()
                 sys.exit(4)
 
         # That a new daemon, so writing its PID in the correct file
@@ -152,7 +155,7 @@ class BXIDaemon(object):
             sys.stderr.write('Problem while writing the PID in file "%s": %s\n' %
                              (self.pid_file, err))
             self._clean()
-            logging.cleanup()
+            bxilog.cleanup()
             sys.exit(5)
 
     def start(self):
@@ -291,7 +294,7 @@ class BXIDaemonZMQ(BXIDaemon):
             except zmq.ZMQError as err:
                 _LOGGER.critical('Problem while creating the Control Zocket: %s', err)
                 sys.stderr.write('Problem while creating the Control Zocket: %s' % err)
-                logging.cleanup()
+                bxilog.cleanup()
                 sys.exit(3)
 
 
