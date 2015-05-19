@@ -367,3 +367,49 @@ void test_min_max() {
     CU_ASSERT_EQUAL(BXIMISC_MIN(a3,b3), a3);
     CU_ASSERT_EQUAL(BXIMISC_MAX(a3,b3), b3);
 }
+
+void test_getfilename() {
+    char * result;
+    bxierr_p err = bximisc_get_filename(stdout, &result);
+    CU_ASSERT_TRUE(bxierr_isok(err));
+    OUT(TEST_LOGGER, "Filename for stdout: %s", result);
+
+    err = bximisc_get_filename(stderr, &result);
+    CU_ASSERT_TRUE(bxierr_isok(err));
+    OUT(TEST_LOGGER, "Filename for stderr: %s", result);
+
+    err = bximisc_get_filename(stdin, &result);
+    CU_ASSERT_TRUE(bxierr_isok(err));
+    OUT(TEST_LOGGER, "Filename for stdin: %s", result);
+
+    FILE * stream = fopen(__FILE__, "r");
+    err = bximisc_get_filename(stream, &result);
+    CU_ASSERT_TRUE(bxierr_isok(err));
+    OUT(TEST_LOGGER, "Filename for %s: %s", __FILE__, result);
+    CU_ASSERT_STRING_EQUAL(__FILE__, result);
+
+    char * dup = strdup(result);
+    char * filename = basename(dup);
+    char * newpath = bxistr_new("/tmp/%s", filename);
+    int rc = symlink(__FILE__, newpath);
+    if (0 != rc) BXILOG_REPORT(TEST_LOGGER, BXILOG_ERROR,
+                               bxierr_errno("Calling symlink(%s, %s) failed",
+                                            __FILE__, newpath),
+                               "Non fatal error.");
+
+    stream = fopen(newpath, "r");
+    err = bximisc_get_filename(stream, &result);
+    CU_ASSERT_TRUE(bxierr_isok(err));
+    OUT(TEST_LOGGER, "Filename for %s: %s", newpath, result);
+    CU_ASSERT_STRING_EQUAL(__FILE__, result);
+
+    rc = unlink(newpath);
+    if (0 != rc) BXILOG_REPORT(TEST_LOGGER, BXILOG_ERROR,
+                               bxierr_errno("Calling unlink(%s) failed",
+                                             newpath),
+                               "Non fatal error.");
+
+    BXIFREE(dup);
+    BXIFREE(newpath);
+
+}

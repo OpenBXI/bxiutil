@@ -50,7 +50,6 @@
 // ********************************** Defines **************************************
 // *********************************************************************************
 
-#define BUF_SIZE 1024
 #define VECTOR_INIT_SIZE 32
 
 
@@ -75,20 +74,12 @@ SET_LOGGER(BXIMISC_LOGGER, "bxiutil.misc");
 
 bxierr_p bximisc_get_filename(FILE * const stream, char ** filename) {
     BXIASSERT(BXIMISC_LOGGER, NULL != stream && NULL != filename);
-    /* Read out the link to our file descriptor. */
-    char path[BUF_SIZE];
-    const size_t n = BUF_SIZE * sizeof(*path);
-    char * const result = malloc(n);
-    assert(result != NULL);
     errno = 0;
     const int fd = fileno(stream);
     if (-1 == fd) return bxierr_errno("Bad stream: %x", stream);
-    sprintf(path, "/proc/self/fd/%d", fd);
-    memset(result, 0, n);
-    errno = 0;
-    const ssize_t rc = readlink(path, result, n - 1);
-    if (rc == -1) return bxierr_errno("Can't read: %s", path);
-    *filename = result;
+    char * path = bxistr_new("/proc/self/fd/%d", fd);
+
+    *filename = bximisc_readlink(path);
 
     return BXIERR_OK;
 }

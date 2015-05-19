@@ -141,6 +141,7 @@ int main(int argc, char * argv[]) {
         || (NULL == CU_add_test(pSuite, "test misc_tuple2str", test_misc_tuple2str))
         || (NULL == CU_add_test(pSuite, "test min/max", test_min_max))
         || (NULL == CU_add_test(pSuite, "test mktemp", test_mktemp))
+        || (NULL == CU_add_test(pSuite, "test getfilename", test_getfilename))
 
         || false) {
         CU_cleanup_registry();
