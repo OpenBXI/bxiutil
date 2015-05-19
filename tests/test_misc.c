@@ -373,22 +373,27 @@ void test_getfilename() {
     bxierr_p err = bximisc_get_filename(stdout, &result);
     CU_ASSERT_TRUE(bxierr_isok(err));
     OUT(TEST_LOGGER, "Filename for stdout: %s", result);
+    BXIFREE(result);
 
     err = bximisc_get_filename(stderr, &result);
     CU_ASSERT_TRUE(bxierr_isok(err));
     OUT(TEST_LOGGER, "Filename for stderr: %s", result);
+    BXIFREE(result);
 
     err = bximisc_get_filename(stdin, &result);
     CU_ASSERT_TRUE(bxierr_isok(err));
     OUT(TEST_LOGGER, "Filename for stdin: %s", result);
+    BXIFREE(result);
 
     FILE * stream = fopen(__FILE__, "r");
     err = bximisc_get_filename(stream, &result);
     CU_ASSERT_TRUE(bxierr_isok(err));
     OUT(TEST_LOGGER, "Filename for %s: %s", __FILE__, result);
     CU_ASSERT_STRING_EQUAL(__FILE__, result);
+    fclose(stream);
+    BXIFREE(result);
 
-    char * dup = strdup(result);
+    char * dup = strdup(__FILE__);
     char * filename = basename(dup);
     char * newpath = bxistr_new("/tmp/%s", filename);
     int rc = symlink(__FILE__, newpath);
@@ -398,10 +403,18 @@ void test_getfilename() {
                                "Non fatal error.");
 
     stream = fopen(newpath, "r");
+    if (NULL == stream) {
+        BXILOG_REPORT(TEST_LOGGER, BXILOG_ERROR,
+                      bxierr_errno("Calling symlink(%s, %s) failed",
+                                   __FILE__, newpath),
+                      "Non fatal error.");
+    }
     err = bximisc_get_filename(stream, &result);
     CU_ASSERT_TRUE(bxierr_isok(err));
     OUT(TEST_LOGGER, "Filename for %s: %s", newpath, result);
     CU_ASSERT_STRING_EQUAL(__FILE__, result);
+    BXIFREE(result);
+    fclose(stream);
 
     rc = unlink(newpath);
     if (0 != rc) BXILOG_REPORT(TEST_LOGGER, BXILOG_ERROR,

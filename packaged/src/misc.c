@@ -81,6 +81,7 @@ bxierr_p bximisc_get_filename(FILE * const stream, char ** filename) {
 
     *filename = bximisc_readlink(path);
 
+    BXIFREE(path);
     return BXIERR_OK;
 }
 
