@@ -386,7 +386,7 @@ void test_getfilename() {
     BXIFREE(result);
 
     // Create a unique file
-    char * tmp = "tmp-XXXXXX";
+    char * tmp = "bximisc.test_getfilename";
     char * oldpath;
     int fd = 0;
     err = bximisc_mkstemp(tmp, &oldpath, &fd);

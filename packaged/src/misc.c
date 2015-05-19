@@ -93,23 +93,26 @@ char * bximisc_readlink(const char * const linkname) {
                 bxierr_errno("Calling lstat(%s) failed", linkname),
                 BXIMISC_LOGGER, BXILOG_CRITICAL);
     }
-    char *targetname = bximem_calloc((size_t) (sb.st_size + 1));
-    errno = 0;
-    ssize_t r = readlink(linkname, targetname, (size_t) sb.st_size + 1);
-    if (r < 0) {
-        BXIFREE(targetname);
-        if (errno != EINVAL) {
-            return NULL;
+    size_t n = (size_t) (sb.st_size + 1);
+    char *targetname = NULL;
+    while (true) {
+        targetname = bximem_realloc(targetname, n);
+        errno = 0;
+        ssize_t r = readlink(linkname, targetname, (size_t) sb.st_size + 1);
+        if (r < 0) {
+            BXIFREE(targetname);
+            if (errno != EINVAL) {
+                return NULL;
+            }
+            // EINVAL means the linkname is actually not a link: return the original name
+            return strdup(linkname);
         }
-        // EINVAL means the linkname is actually not a link: return the original name
-        return strdup(linkname);
-    }
-    if (r > sb.st_size) {
-        BXIFREE(targetname);
-        BXIEXIT(EX_IOERR,
-                bxierr_gen("Symlink '%s' increased in size between lstat() and readlink()",
-                           linkname),
-                BXIMISC_LOGGER, BXILOG_CRITICAL);
+        if ((size_t) r <= n) {
+            targetname[r] = '\0';
+            break;
+        }
+        FINE(BXIMISC_LOGGER, "Wrong size in lstat() of '%s'", linkname);
+        n *= 2;
     }
     return targetname;
 }
