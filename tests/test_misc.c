@@ -385,29 +385,24 @@ void test_getfilename() {
     OUT(TEST_LOGGER, "Filename for stdin: %s", result);
     BXIFREE(result);
 
-    FILE * stream = fopen(__FILE__, "r");
-    err = bximisc_get_filename(stream, &result);
-    CU_ASSERT_TRUE(bxierr_isok(err));
-    OUT(TEST_LOGGER, "Filename for %s: %s", __FILE__, result);
-    CU_ASSERT_STRING_EQUAL(__FILE__, result);
-    fclose(stream);
-
     // Create a unique file
     char * tmp = "tmp-XXXXXX";
-    char * newpath;
+    char * oldpath;
     int fd = 0;
-    err = bximisc_mkstemp(tmp, &newpath, &fd);
+    err = bximisc_mkstemp(tmp, &oldpath, &fd);
     CU_ASSERT_EQUAL(err, BXIERR_OK);
     close(fd);
 
-    // Delete it before creating the symlink
-    int rc = unlink(newpath);
-    if (0 != rc) BXILOG_REPORT(TEST_LOGGER, BXILOG_ERROR,
-                               bxierr_errno("Calling unlink(%s) failed",
-                                            newpath),
-                               "Non fatal error.");
+    FILE * stream = fopen(oldpath, "r");
+    err = bximisc_get_filename(stream, &result);
+    CU_ASSERT_TRUE(bxierr_isok(err));
+    OUT(TEST_LOGGER, "Filename for %s: %s", oldpath, result);
+    CU_ASSERT_STRING_EQUAL(oldpath, result);
+    fclose(stream);
 
-    rc = symlink(result, newpath);
+    // Create a symlink
+    char * newpath = bxistr_new("%s.link", oldpath);
+    int rc = symlink(result, newpath);
     if (0 != rc) BXILOG_REPORT(TEST_LOGGER, BXILOG_ERROR,
                                bxierr_errno("Calling symlink(%s, %s) failed",
                                             result, newpath),
@@ -434,7 +429,13 @@ void test_getfilename() {
                                bxierr_errno("Calling unlink(%s) failed",
                                              newpath),
                                "Non fatal error.");
+    rc = unlink(oldpath);
+    if (0 != rc) BXILOG_REPORT(TEST_LOGGER, BXILOG_ERROR,
+                               bxierr_errno("Calling unlink(%s) failed",
+                                            oldpath),
+                               "Non fatal error.");
 
     BXIFREE(newpath);
+    BXIFREE(oldpath);
 
 }
