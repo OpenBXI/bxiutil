@@ -393,10 +393,22 @@ void test_getfilename() {
     fclose(stream);
     BXIFREE(result);
 
-    char * dup = strdup(__FILE__);
-    char * filename = basename(dup);
-    char * newpath = bxistr_new("/tmp/%s", filename);
-    int rc = symlink(__FILE__, newpath);
+    // Create a unique file
+    char * tmp = "tmp-XXXXXX";
+    char * newpath;
+    int fd = 0;
+    err = bximisc_mkstemp(tmp, &newpath, &fd);
+    CU_ASSERT_EQUAL(err, BXIERR_OK);
+    close(fd);
+
+    // Delete it before creating the symlink
+    int rc = unlink(newpath);
+    if (0 != rc) BXILOG_REPORT(TEST_LOGGER, BXILOG_ERROR,
+                               bxierr_errno("Calling unlink(%s) failed",
+                                            newpath),
+                               "Non fatal error.");
+
+    rc = symlink(__FILE__, newpath);
     if (0 != rc) BXILOG_REPORT(TEST_LOGGER, BXILOG_ERROR,
                                bxierr_errno("Calling symlink(%s, %s) failed",
                                             __FILE__, newpath),
@@ -422,7 +434,6 @@ void test_getfilename() {
                                              newpath),
                                "Non fatal error.");
 
-    BXIFREE(dup);
     BXIFREE(newpath);
 
 }
