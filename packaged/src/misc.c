@@ -98,7 +98,7 @@ char * bximisc_readlink(const char * const linkname) {
     while (true) {
         targetname = bximem_realloc(targetname, n);
         errno = 0;
-        ssize_t r = readlink(linkname, targetname, (size_t) sb.st_size + 1);
+        ssize_t r = readlink(linkname, targetname, n);
         if (r < 0) {
             BXIFREE(targetname);
             if (errno != EINVAL) {
@@ -107,7 +107,7 @@ char * bximisc_readlink(const char * const linkname) {
             // EINVAL means the linkname is actually not a link: return the original name
             return strdup(linkname);
         }
-        if ((size_t) r <= n) {
+        if ((size_t) r < n) {
             targetname[r] = '\0';
             break;
         }
