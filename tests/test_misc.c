@@ -391,7 +391,6 @@ void test_getfilename() {
     OUT(TEST_LOGGER, "Filename for %s: %s", __FILE__, result);
     CU_ASSERT_STRING_EQUAL(__FILE__, result);
     fclose(stream);
-    BXIFREE(result);
 
     // Create a unique file
     char * tmp = "tmp-XXXXXX";
@@ -408,12 +407,12 @@ void test_getfilename() {
                                             newpath),
                                "Non fatal error.");
 
-    rc = symlink(__FILE__, newpath);
+    rc = symlink(result, newpath);
     if (0 != rc) BXILOG_REPORT(TEST_LOGGER, BXILOG_ERROR,
                                bxierr_errno("Calling symlink(%s, %s) failed",
-                                            __FILE__, newpath),
+                                            result, newpath),
                                "Non fatal error.");
-
+    BXIFREE(result);
     stream = fopen(newpath, "r");
     if (NULL == stream) {
         BXILOG_REPORT(TEST_LOGGER, BXILOG_ERROR,
