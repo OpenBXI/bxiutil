@@ -412,19 +412,21 @@ void test_getfilename() {
                                bxierr_errno("Calling symlink(%s, %s) failed",
                                             result, newpath),
                                "Non fatal error.");
-    BXIFREE(result);
+
     stream = fopen(newpath, "r");
     if (NULL == stream) {
         BXILOG_REPORT(TEST_LOGGER, BXILOG_ERROR,
-                      bxierr_errno("Calling symlink(%s, %s) failed",
-                                   __FILE__, newpath),
+                      bxierr_errno("Calling fopen(%s, r) failed",
+                                   newpath),
                       "Non fatal error.");
     }
-    err = bximisc_get_filename(stream, &result);
+    char * result2;
+    err = bximisc_get_filename(stream, &result2);
     CU_ASSERT_TRUE(bxierr_isok(err));
-    OUT(TEST_LOGGER, "Filename for %s: %s", newpath, result);
-    CU_ASSERT_STRING_EQUAL(__FILE__, result);
+    OUT(TEST_LOGGER, "Filename for %s: %s", newpath, result2);
+    CU_ASSERT_STRING_EQUAL(result, result2);
     BXIFREE(result);
+    BXIFREE(result2);
     fclose(stream);
 
     rc = unlink(newpath);
