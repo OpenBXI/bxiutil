@@ -15,8 +15,11 @@ AC_PROG_LIBTOOL
 
 
 AX_PROG_FLEX([], [AC_MSG_ERROR([flex is required])])
-AX_CHECK_FLEX([2.5.37])
+CHECK_FLEX([2.5.37],[flex="true"],[flex="false"
+            AC_MSG_WARN([flex version is not the required on 2.5.37.Continue with default template and removing Werror.])
+])
 
+AM_CONDITIONAL([BXIFLEX_UNCOMPATIBLE],[test x"$flex" = xfalse])
 
 AC_CHECK_LIB([m], [floor], [],
              [AC_MSG_ERROR([Could not find math library])])
@@ -50,7 +53,7 @@ AC_CHECK_FUNCS([gethostname memset mkdir pow strdup strtol])
 
 INIT_BXIPYTHON
 
-PC_PYTHON_CHECK_MODULE_REAL([python-daemon], daemon, [], [AC_MSG_ERROR(Module not found)])
+#PC_PYTHON_CHECK_MODULE_REAL([python-daemon], daemon, [], [AC_MSG_ERROR(Module not found)])
 #PC_PYTHON_CHECK_MODULE([cffi], [], [AC_MSG_ERROR(Module not found)])
 
 

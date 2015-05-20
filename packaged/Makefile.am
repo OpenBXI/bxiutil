@@ -38,8 +38,12 @@ SUBDIRS=include lib doc
 
 #########################  FLEX  ######################
 
+if BXIFLEX_UNCOMPATIBLE
+src_kvl_c_CFLAGS="-Wno-error"
+else
 AM_LFLAGS=-Cf\
 		  --skel=$(srcdir)/src/bxi_lex.skl
+endif
 
 .l.c:
 	$(LEX) $(AM_LFLAGS) $(LFLAGS) -o $@ $<
