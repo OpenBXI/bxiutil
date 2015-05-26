@@ -102,7 +102,6 @@ digit       [-]?[[:digit:]]+
 
     /* Str */
 {quote}         {
-                    LOWEST(_LOGGER, "STR start <%c>", yytext[0]);
                     e_enclosing = yytext[0];
                     if (e_enclosing == '"') {
                         BEGIN(INDOUBLEQUOTE);
@@ -118,19 +117,16 @@ digit       [-]?[[:digit:]]+
                     BEGIN(INITIAL);
                     fclose(e_buf_fp);
                     e_buf_fp = NULL;
-                    TRACE(_LOGGER, "found str<%s>", e_buf);
                     yylval->str = e_buf;
 
                     return STR;
                 }
 
 <INSIMPLEQUOTE>[^'\n]+  {
-                    LOWEST(_LOGGER, "substr<%s>", yytext);
                     fwrite(yytext, sizeof(char), yyleng, e_buf_fp);
                 }
 
 <INDOUBLEQUOTE>[^\"\n]+ {
-                    LOWEST(_LOGGER, "substr<%s>", yytext);
                     fwrite(yytext, sizeof(char), yyleng, e_buf_fp);
                 }
 
@@ -157,7 +153,6 @@ digit       [-]?[[:digit:]]+
     /* Tuple */
 {oTuple}        {
                     BEGIN(INBRACE);
-                    LOWEST(_LOGGER, "TUPLE start <%c>", yytext[0]);
                     e_enclosing = ('[' == yytext[0]) ? ']' : ( '(' == yytext[0] ? ')' : '}') ;
                     e_tuple = bxivector_new(0, NULL);
                 }
@@ -167,7 +162,6 @@ digit       [-]?[[:digit:]]+
                     long *digit = bximem_calloc(sizeof(long));
                     bxierr_p rc = bximisc_strtol(yytext, 10, digit); // FIXME: error handling!
                     if (bxierr_isko(rc)) bxierr_destroy(&rc);
-                    LOWEST(_LOGGER, "upl<%lu>", *digit);
                     bxivector_push(e_tuple, digit);
                 }
 
@@ -205,7 +199,6 @@ digit       [-]?[[:digit:]]+
 
     /* Int */
 {digit}         {
-                    TRACE(_LOGGER, "digit: <%s>", yytext);
                     long *digit = bximem_calloc(sizeof(long));
                     bxierr_p rc = bximisc_strtol(yytext, 10, digit); // FIXME: error handling!
                     if (bxierr_isko(rc)) bxierr_destroy(&rc);
@@ -215,7 +208,6 @@ digit       [-]?[[:digit:]]+
 
 
 {prefix}        {
-                    TRACE(_LOGGER, "prefix: <%s>", yytext);
                     enum yytokentype kw = e_kwlookup(yytext);
                     if (kw) return kw;
 
@@ -224,7 +216,6 @@ digit       [-]?[[:digit:]]+
                 }
 
 {key}           {
-                    TRACE(_LOGGER, "key: <%s>", yytext);
                     enum yytokentype kw = e_kwlookup(yytext);
                     if (kw) return kw;
 
@@ -232,14 +223,14 @@ digit       [-]?[[:digit:]]+
                     return KEY;
                 }
 
-{equal}         { TRACE(_LOGGER, "EQ"); return '='; }
+{equal}         { return '='; }
 
     /* Separators */
-\n              { YY_TRACK_NEWLINE; TRACE(_LOGGER, "EOL"); return EOL; }
+\n              { YY_TRACK_NEWLINE; return EOL; }
 
-:               { TRACE(_LOGGER, "<:>"); return ':'; }
-\.              { TRACE(_LOGGER, "<.>"); return '.'; }
-<<EOF>>         { TRACE(_LOGGER, "EOF"); return END_OF_FILE; }
+:               { return ':'; }
+\.              { return '.'; }
+<<EOF>>         { return END_OF_FILE; }
 
 .               { ERROR(_LOGGER, "Unexpected <%c>", yytext[0]); return (enum yytokentype)yytext[0]; }
 
