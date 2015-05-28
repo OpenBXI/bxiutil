@@ -394,6 +394,7 @@ void test_getfilename() {
     close(fd);
 
     FILE * stream = fopen(oldpath, "r");
+    CU_ASSERT_PTR_NOT_NULL_FATAL(stream);
     err = bximisc_get_filename(stream, &result);
     CU_ASSERT_TRUE(bxierr_isok(err));
     OUT(TEST_LOGGER, "Filename for %s: %s", oldpath, result);
@@ -410,10 +411,10 @@ void test_getfilename() {
 
     stream = fopen(newpath, "r");
     if (NULL == stream) {
-        BXILOG_REPORT(TEST_LOGGER, BXILOG_ERROR,
-                      bxierr_errno("Calling fopen(%s, r) failed",
-                                   newpath),
-                      "Non fatal error.");
+        BXIEXIT(EXIT_FAILURE,
+                bxierr_errno("Calling fopen(%s, r) failed",
+                             newpath),
+                TEST_LOGGER, BXILOG_ERROR);
     }
     char * result2;
     err = bximisc_get_filename(stream, &result2);
