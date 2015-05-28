@@ -68,9 +68,8 @@ Provides: %{name}
 #Conflicts:
 #TODO: What do you require
 Requires: zeromq3
-Requires: python-daemon >= 1.6
 
-Requires: bxibase >= 2.0.0
+Requires: bxibase >= 3.2.0
 BuildRequires: flex == 2.5.37
 
 #TODO: Give a description (seen by rpm -qi) (No more than 80 characters)
