@@ -2,6 +2,11 @@
 ##
 #
 
+$(builddir)/bxi/__init__.py:
+	touch  $@
+
+$(builddir)/bxi/util/__init__.py: $(builddir)/bxi/__init__.py
+	touch  $@
 
 
 
@@ -12,14 +17,21 @@ nobase_python_PYTHON=\
                   bxi/util/cffi_h.py
 
 
+#File present inside build and source folder should be install with a special rule
 bxiutildir=$(pythondir)/bxi/util
 bxiutil_PYTHON=\
 		   $(srcdir)/bxi/util/__init__.py 
 
 # For generation
-all-local: $(nobase_python_PYTHON)
+all-local: $(nobase_python_PYTHON) $(builddir)/bxi/util/__init__.py
 
+clean-local:
+	if test $(srcdir) != $(builddir);\
+		then\
+		rm -f $(builddir)/bxi/util/__init__.py $(builddir)/bxi/__init__.py;\
+	fi
 
 #
 ##
 #
+CLEANFILES=bxi/util/cffi_h.py

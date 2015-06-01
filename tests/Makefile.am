@@ -32,3 +32,18 @@ force:${top_srcdir}/valgrind.supp
 
 unit_t_SOURCES=\
 			   unit_t.c
+
+EXTRA_DIST=\
+		   test_kvl.c\
+		   test_map.c\
+		   test_misc.c\
+		   test_rng.c\
+		   test_stretch.c\
+		   test_vector.c
+
+DISTCLEANFILES=\
+			   valgrind.supp\
+			   ${PACKAGE_NAME}.bxilog\
+			   unit_t.bxilog\
+			   report/${PACKAGE_NAME}-Results.xml\
+			   report/${PACKAGE_NAME}-Listing.xml

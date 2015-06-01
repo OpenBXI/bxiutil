@@ -54,7 +54,7 @@ AC_CHECK_FUNCS([gethostname memset mkdir pow strdup strtol])
 INIT_BXIPYTHON
 
 #PC_PYTHON_CHECK_MODULE_REAL([python-daemon], daemon, [], [AC_MSG_ERROR(Module not found)])
-#PC_PYTHON_CHECK_MODULE([cffi], [], [AC_MSG_ERROR(Module not found)])
+PC_PYTHON_CHECK_MODULE([cffi], [], [AC_MSG_ERROR(Module not found)])
 
 
 
