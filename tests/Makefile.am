@@ -5,7 +5,7 @@ unit_t_CFLAGS =\
 			   -I$(top_srcdir)/packaged/src\
 			   $(ZMQ_CFLAGS)\
 			   $(UUID_CFLAGS)\
-			   @TST_CFLAGS@
+			   @TST_CPPFLAGS@
 
 unit_t_LDFLAGS =\
 				@TST_LDFLAGS@\
