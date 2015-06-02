@@ -2,10 +2,10 @@
 ##
 #
 
-$(builddir)/bxi/__init__.py:
+$(abs_builddir)/bxi/__init__.py:
 	touch  $@
 
-$(builddir)/bxi/util/__init__.py: $(builddir)/bxi/__init__.py
+$(abs_builddir)/bxi/util/__init__.py: $(abs_builddir)/bxi/__init__.py
 	touch  $@
 
 
@@ -23,7 +23,7 @@ bxiutil_PYTHON=\
 		   $(srcdir)/bxi/util/__init__.py 
 
 # For generation
-all-local: $(nobase_python_PYTHON) $(builddir)/bxi/util/__init__.py
+all-local: $(nobase_python_PYTHON) $(abs_builddir)/bxi/util/__init__.py
 
 clean-local:
 	if test $(srcdir) != $(builddir);\
