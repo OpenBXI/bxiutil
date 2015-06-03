@@ -20,6 +20,12 @@
 #include <stdlib.h>
 #endif
 
+/**
+ * @file    stretch.h
+ * @brief   Extensible array of data structures.
+ *
+ * TODO: document.
+ */
 
 // *********************************************************************************
 // ********************************** Defines **************************************

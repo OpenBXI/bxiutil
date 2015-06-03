@@ -25,6 +25,14 @@
 #include <bxi/util/misc.h>
 #include <bxi/util/vector.h>
 
+/**
+ * @file    kvl.h
+ * @brief   Kev/Value lexer.
+ *
+ * TODO: document.
+ */
+
+
 /* Bison/Flex binding */
 #ifndef YY_TYPEDEF_YY_SCANNER_T
     #define YY_TYPEDEF_YY_SCANNER_T

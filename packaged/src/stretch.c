@@ -47,7 +47,10 @@ SET_LOGGER(STRETCH_C_LOGGER, "bxiutil.stretch");
 // ********************************** Implementation           *********************
 // *********************************************************************************
 
-bxistretch_p bxistretch_new(uint16_t chunk_size, uint32_t  element_size, uint32_t element_nb) {
+bxistretch_p bxistretch_new(uint16_t chunk_size,
+                            uint32_t  element_size,
+                            uint32_t element_nb) {
+
     bxistretch_p self = bximem_calloc(sizeof(*self));
     self->array_size = BXISTRETCH_ARRAY_SIZE;
     self->element_nb = 0;
