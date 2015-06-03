@@ -1,7 +1,12 @@
-BXI Util Library                         {#index}
-=================
+BXI Util                                   {#index}
+=====================
 
-## Overview
+[TOC]
+
+BXI Util Library for C Language                    {#BXIUtil4C}
+================================
+
+## Overview ##                                           {#Overview_c}
 
 The BXI Util Library provides various standalone utility used by BXI products.
 It provides the following plain C modules:

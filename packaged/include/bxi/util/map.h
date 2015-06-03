@@ -93,7 +93,8 @@ extern const bxierr_p BXIMAP_ARG_ERROR;
  *
  * This function should be called before bximap_task
  *
- * @param nb_threads a pointer on the number of threads to use (can be NULL)
+ * @param[inout] nb_threads a pointer on the number of
+ *               threads to use (can be NULL)
  * @return BXIERR_OK on error, anything else on error
  *
  */
@@ -117,12 +118,12 @@ bxierr_p bximap_finalize();
  *          one task is added with the remaining work.
  *  if gain is equal to 0 the optimal size is used
  *
- * @param start the first iteration to start the computation with
- * @param end the last iteration to end the computation with
- * @param granularity the number of iteration each thread must do
- * @param func the function to use by each thread
- * @param usr_data the data to pass to the function
- * @param ctx_p a pointer on the created context
+ * @param[in] start the first iteration to start the computation with
+ * @param[in] end the last iteration to end the computation with
+ * @param[in] granularity the number of iteration each thread must do
+ * @param[in] func the function to use by each thread
+ * @param[in] usr_data the data to pass to the function
+ * @param[out] ctx_p a pointer on the created context
  *
  * @return BXIERR_OK on success, anything else on error
  */
@@ -136,7 +137,9 @@ bxierr_p bximap_new(size_t start,
 /**
  * Release the given bximap context.
  *
- * @param ctx_p a pointer on the bximap context to destroy
+ * @param[inout] ctx_p a pointer on the bximap context to destroy
+ *
+ * @return BXIERR_OK on success, anything else on error
  */
 bxierr_p bximap_destroy(bximap_ctx_p *ctx_p);
 
@@ -146,16 +149,18 @@ bxierr_p bximap_destroy(bximap_ctx_p *ctx_p);
  *
  *  WARNING bximap_init_threads should be called before
  *
- *  @param context the bximap context to use
+ *  @param[in] context the bximap context to use
+ *
+ *  @return BXIERR_OK on success, anything else on error
  */
 bxierr_p bximap_execute(bximap_ctx_p context);
 
 /**
  * Return the error and the number of error
  *
- * @param context the bximap context to use
- * @param n a pointer on the number of errors
- * @param err_p a pointer on an array of errors.
+ * @param[in] context the bximap context to use
+ * @param[out] n a pointer on the number of errors
+ * @param[out] err_p a pointer on an array of errors.
  *
  * @return BXIERR_OK on success, anything else on error.
  */
@@ -164,18 +169,21 @@ bxierr_p bximap_get_error(bximap_ctx_p context, size_t *n, bxierr_p **err_p);
 /**
  * Bind the current thread on the provided cpu index.
  *
- * @param cpu
+ * @param[in] cpu
  *
- * @returns   BXIERR_OK when the mapping is possible, if the index is larger than the number of cpu an error is returned.
+ * @returns BXIERR_OK when the mapping is possible,
+ *          if the index is larger than the number of cpu an error is returned.
  */
 bxierr_p bximap_on_cpu(size_t cpu);
 
 /**
- * Set a cpu mask to be used by bximap threads. This mapping should be provided before calling bximap_init_threads().
- * The string could be compound of a single cpu separated by comma, or range of cpu as for taskset command.
+ * Set a cpu mask to be used by bximap threads. This mapping should be
+ * provided before calling bximap_init_threads().
+ * The string could be compound of a single cpu separated by comma, or range
+ * of cpu as for taskset command.
  * Example 0,4-6 will use the processors 0,4,5,6.
  *
- * @param cpus
+ * @param[in] cpus
  *
  * @returns   BXIERR_OK if the string is well formed and the cpus are available
  */
