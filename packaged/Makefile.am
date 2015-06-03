@@ -51,7 +51,7 @@ SUBDIRS=include lib doc
 #########################  FLEX  ######################
 
 if BXIFLEX_UNCOMPATIBLE
-lib_libbxiutil_kvl_la_CFLAGS=-Wno-error
+lib_libbxiutil_kvl_la_CFLAGS+=-Wno-error
 else
 AM_LFLAGS=-Cf\
 		  --skel=$(srcdir)/src/bxi_lex.skl
