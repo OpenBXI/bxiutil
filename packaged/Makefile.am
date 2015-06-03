@@ -26,13 +26,14 @@ lib_libbxiutil_kvl_la_SOURCES=\
 		  src/kvl.c
 
 lib_libbxiutil_common_la_LDFLAGS=\
-					 $(ZMQ_LIBS)\
-					 $(UUID_LIBS)
+					 $(ZMQ_LIBS)
+
+lib_libbxiutil_kvl_la_CFLAGS=\
+					 -I$(top_srcdir)/packaged/include
 
 lib_libbxiutil_common_la_CFLAGS=\
 					 -I$(top_srcdir)/packaged/include\
 					 $(ZMQ_CFLAGS)\
-					 $(UUID_CFLAGS)\
 					 $(LIB_CFLAGS)
 
 lib_libbxiutil_la_LIBADD=\
