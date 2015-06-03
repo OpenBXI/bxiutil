@@ -130,7 +130,10 @@ bxierr_p bximap_finalize();
 bxierr_p bximap_new(size_t start,
                     size_t end,
                     size_t granularity,
-                    bxierr_p (*func)(size_t start, size_t end, size_t thread, void *usr_data),
+                    bxierr_p (*func)(size_t start,
+                                     size_t end,
+                                     size_t thread,
+                                     void *usr_data),
                     void * usr_data,
                     bximap_ctx_p * ctx_p);
 
