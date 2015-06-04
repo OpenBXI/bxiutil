@@ -26,9 +26,75 @@
 
 /**
  * @file    kvl.h
- * @brief   a Key/Value lexer.
+ * @brief   A flex generated Key/Value lexer
  *
- * TODO: document.
+ * ### Overview
+ *
+ * This module provides a Key/Value tokenizer able to deals with:
+ *
+ * - Single line comment: anything from # or // to end of line
+ * - Prefix: at least two upper case chars
+ * - Key: at least two lower case chars, (only first can't be an underscore)
+ * - Equal symbol: `=` or `:=`
+ * - Distinct colon  and dot separator
+ * - Value:
+ *
+ *   - Single line quoted strings (single or double),
+ *   - Number (long),
+ *   - Tuple: (), {} or [] enclosed, comma separated longs
+ *
+ * ### Limitations:
+ *
+ * Identifiers (Prefix & key) are ASCII only!
+ *
+ * ### Notes:
+ *
+ * Full running example (compile with `-lbxiutil -lbxibase`):
+ * ~~~
+ * #include <bxi/util/kvl.h>
+ * 
+ * union YYSTYPE
+ * {
+ *     // Key/value lexer base types
+ *     #include <bxi/util/kvl_types.h>
+ * 
+ *     // One can add Parser specific types
+ *     // ...
+ * };
+ * 
+ * char *tok2str(enum yytokentype tok) {
+ *     switch(tok) {
+ *         case 0 ... 255: return (char*)&tok;
+ *         case PREFIX:  return "PREFIX";
+ *         case KEY:  return "KEY";
+ *         case NUM: return "NUM";
+ *         case STR: return "STR";
+ *         case TUPLE: return "TUPLE";
+ *         case EOL: return "EOL";
+ *         case END_OF_FILE: return "EOF";
+ *         default: return "/!\\UNKNOWN/*\\";
+ *     }
+ * }
+ * 
+ * int main(int argc, char **argv) {
+ *     YYSTYPE _yylval;
+ *     YYLTYPE _yylloc;
+ * 
+ *     // Scanner initialization
+ *     yyscan_t _scanner = kvl_init_from_fd(NULL, "-", NULL);
+ * 
+ *     enum yytokentype token;
+ *     do {
+ *         token = yylex(&_yylval, &_yylloc, _scanner);
+ *         printf("%s ", tok2str(token));
+ *     } while (token && token != END_OF_FILE) ;
+ * 
+ *     // Clean-up
+ *     kvl_finalize(_scanner);
+ * 
+ *     return 0;
+ * }
+ * ~~~
  */
 
 
