@@ -166,9 +166,6 @@ class BXIDaemon(object):
 
     def start(self):
         """Start the business code in a dedicated thread
-
-        @param
-
         @return
         """
         self._start()
