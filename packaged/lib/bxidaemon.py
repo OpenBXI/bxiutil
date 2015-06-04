@@ -46,7 +46,13 @@ class BXIDaemon(object):
     """BXI Daemon class, directly from the Hell"""
 
     def __init__(self, args):
-        """Initialization"""
+        """Initialization
+                Wraps the given C logger.
+
+        @param[in] args the daemon arguments.
+
+        @return
+        """
         _LOGGER.debug("Initializing daemon")
         self.args = args
         self.config = None
@@ -159,7 +165,11 @@ class BXIDaemon(object):
             sys.exit(5)
 
     def start(self):
-        """Start the business code in a dedicated thread"""
+        """Start the business code in a dedicated thread
+
+        @param
+        @return
+        """
         self._start()
         self._clean()
         sys.exit(self.exit)
@@ -266,7 +276,13 @@ class BXIDaemonZMQ(BXIDaemon):
     """BXI Daemon class, directly from the Hell with a ZMQ interface"""
 
     def __init__(self, args):
-        """Initialization"""
+        """Initialization
+
+
+        @param[in] args the daemon arguments.
+
+        @return
+        """
         super(BXIDaemonZMQ, self).__init__(args)
 
         # Opening the control zocket
