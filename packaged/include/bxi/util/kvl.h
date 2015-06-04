@@ -62,17 +62,18 @@
  *     // ...
  * };
  * 
+ * // Helper to stringify token types
  * char *tok2str(enum yytokentype tok) {
  *     switch(tok) {
- *         case 0 ... 255: return (char*)&tok;
- *         case PREFIX:  return "PREFIX";
- *         case KEY:  return "KEY";
- *         case NUM: return "NUM";
- *         case STR: return "STR";
- *         case TUPLE: return "TUPLE";
- *         case EOL: return "EOL";
+ *         case 0 ... 255:   return (char*)&tok;
+ *         case PREFIX:      return "PREFIX";
+ *         case KEY:         return "KEY";
+ *         case NUM:         return "NUM";
+ *         case STR:         return "STR";
+ *         case TUPLE:       return "TUPLE";
+ *         case EOL:         return "EOL";
  *         case END_OF_FILE: return "EOF";
- *         default: return "/!\\UNKNOWN/*\\";
+ *         default:          return "/!\\UNKNOWN/!\\";
  *     }
  * }
  * 
