@@ -30,11 +30,11 @@
  *
  * ### Overview
  *
- * This module provides a Key/Value tokenizer able to deals with:
+ * This module provides a Key/Value tokenizer able to deal with:
  *
  * - Single line comment: anything from # or // to end of line
  * - Prefix: at least two upper case chars
- * - Key: at least two lower case chars, (only first can't be an underscore)
+ * - Key: at least two lower case chars
  * - Equal symbol: `=` or `:=`
  * - Distinct colon  and dot separator
  * - Value:
@@ -45,7 +45,7 @@
  *
  * ### Limitations:
  *
- * Identifiers (Prefix & key) are ASCII only!
+ * Identifiers (Prefix & Key) are ASCII only!
  *
  * ### Notes:
  *
