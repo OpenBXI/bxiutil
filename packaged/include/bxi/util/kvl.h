@@ -26,22 +26,20 @@
 
 /**
  * @file    kvl.h
- * @brief   A flex generated Key/Value lexer
+ * @brief   A flex generated Key/Value oriented lexer
  *
  * ### Overview
  *
- * This module provides a Key/Value tokenizer able to deal with:
+ * This module provides a tokenizer able to deal with:
  *
  * - Single line comment: anything from # or // to end of line
  * - Prefix: at least two upper case chars
  * - Key: at least two lower case chars
  * - Equal symbol: `=` or `:=`
  * - Distinct colon  and dot separator
- * - Value:
- *
- *   - Single line quoted strings (single or double),
- *   - Number (long),
- *   - Tuple: (), {} or [] enclosed, comma separated longs
+ * - Single line quoted strings (single or double),
+ * - Number (long),
+ * - Tuple: (), {} or [] enclosed, comma separated longs
  *
  * ### Limitations:
  *
@@ -102,15 +100,18 @@
 /* Bison/Flex binding */
 #ifndef YY_TYPEDEF_YY_SCANNER_T
     #define YY_TYPEDEF_YY_SCANNER_T
+        /**
+         * Type holding a scanner context
+         */
         typedef void* yyscan_t;
     #endif
 
 #ifndef YY_TYPEDEF_YY_EXTRA_T
     #define YY_TYPEDEF_YY_EXTRA_T
         /**
-         * Custom structure to store extra information such as filename of the current fd.
+         * Custom structure holding extra information such as filename of the current fd.
          *
-         * It also holds helpers such as pointers to internal buffer / functions used while lexing.
+         * It also keep track of internals buffers / helper functions used while lexing.
          */
         typedef struct yyextra_data_t_s {
             char *filename;
@@ -125,8 +126,10 @@
 
 #ifndef YYTOKENTYPE
 #define YYTOKENTYPE
-   /* Put the tokens into the symbol table, so that GDB and other debuggers
-      know about them.  */
+   /**
+    * Tokens symbols table, so that GDB and other debuggers
+    * know about them.
+    */
    enum yytokentype {
      PREFIX = 258,
      KEY = 259,
@@ -149,7 +152,7 @@ typedef union YYSTYPE YYSTYPE;
 /**
  * Structure to keep track of tokens' textual locations.
  *
- * yylex fills it while tokenizing, to be used by the parser, e.g. on error reporting.
+ * yylex fills it while tokenizing, to be used by the parser, e.g. on error reporting in an upper parser. 
  */
 typedef struct YYLTYPE
 {
@@ -179,43 +182,46 @@ enum yytokentype yylex(YYSTYPE *yylval_param, YYLTYPE *yylloc_param, yyscan_t yy
                 (YYSTYPE *yylval_param, YYLTYPE *yylloc_param, yyscan_t yyscanner)
 
 /**
- * Scanner initialization from file name
+ * Scanner initialization from file path
  *
  * @param[in] fname file path of the file to tokenize
  * @param[in] kw_lookup_fnt fuction to define your own token id
  *
- * @return a scanner object to pass to yylex function
+ * @return a scanner context to pass to yylex function
  */
 yyscan_t kvl_init(char *fname, enum yytokentype (*kw_lookup_fnt)(char*));
 
 /**
- * Scanner initialization from file descriptor
+ * Scanner initialization from file descriptor.
  *
  * @param[in] file_in file descriptor to tokenize
  * @param[in] fname optional filename, used for error message generation
  * @param[in] kw_lookup_fnt fuction to define your own token id
  *
- * @return a scanner object to pass to yylex function
+ * @return a scanner context to pass to yylex function
  */
 yyscan_t kvl_init_from_fd(FILE *file_in, char *fname, enum yytokentype (*kw_lookup_fnt)(char*));
 
 /**
- * Scanner proper clean-up
+ * Properly clean-up a scanner context
  *
- * @param[in] scanner The scanner to clean-up
+ * @param[in] scanner The scanner context to be freed.
  */
 void kvl_finalize(yyscan_t scanner);
 
 /**
  * Return the extra structure associated with the given scanner.
  *
- * @param[in] scanner The considered scanner
+ * @param[in] scanner The considered scanner context
  *
  * @return The structure containing scanner specific extra data
  * @see yyextra_data_t_s
  */
 YY_EXTRA_TYPE yyget_extra(yyscan_t scanner);
 
+/**
+ * BXI logger prefix used to designate logger(s) from this module
+ */
 #define KVL_LOG_NAME "kvl"
 
 #endif // __kvl_lexer_h__
