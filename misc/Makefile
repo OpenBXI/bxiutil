@@ -1,7 +1,7 @@
 TARGET=kvl_sample
 
 CC?=clang
-#CFLAGS=--std=gnu99
+CFLAGS=--std=gnu99
 LDFLAGS=-lbxiutil -lbxibase
 
 all: $(TARGET)
