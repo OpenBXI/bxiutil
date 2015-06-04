@@ -349,6 +349,7 @@ void test_mktemp() {
     CU_ASSERT_FALSE(strcmp(addr, "OkWork   ") == 0);
 
 
+    munmap(addr, 10);
     unlinkat(0, res, AT_REMOVEDIR);
     BXIFREE(res);
     BXIFREE(file);

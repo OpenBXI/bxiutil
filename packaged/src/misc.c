@@ -676,13 +676,27 @@ bxierr_p _create_writable_file(const char * filename, size_t size, int *fd) {
 
     off_t rc = lseek(*fd, (off_t)size-1, SEEK_SET);
     if (rc == -1){
-        return bxierr_errno("Can't lseek %s for size %zu", filename, size);
+        bxierr_p err = bxierr_errno("Can't lseek %s for size %zu", filename, size);
+        rc = close(*fd);
+        if (rc == -1){
+            bxierr_p err2 = bxierr_errno("Can't fclose file descriptor %d for file %s",
+                                         *fd, filename);
+            BXIERR_CHAIN(err, err2);
+        }
+        return err;
 
     }
 
     ssize_t rc_w = write(*fd, "", 1);
     if (rc_w == -1){
-        return bxierr_errno("Can't write %s", filename);
+        bxierr_p err = bxierr_errno("Can't write %s", filename);
+        rc = close(*fd);
+        if (rc == -1){
+            bxierr_p err2 = bxierr_errno("Can't fclose file descriptor %d for file %s",
+                                         *fd, filename);
+            BXIERR_CHAIN(err, err2);
+        }
+        return err;
     }
     return BXIERR_OK;
 }
