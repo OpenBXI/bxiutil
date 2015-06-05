@@ -36,7 +36,7 @@
  * - Prefix: at least two upper case chars
  * - Key: at least two lower case chars
  * - Equal symbol: `=` or `:=`
- * - Distinct colon  and dot separator
+ * - Distinct: `:` and `.` separator
  * - Single line quoted strings (single or double),
  * - Number (long),
  * - Tuple: (), {} or [] enclosed, comma separated longs
@@ -143,6 +143,28 @@
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 # define YYSTYPE_IS_DECLARED 1
+/**
+ * Those are types used in the parser, where they are normally defined, then included in the lexer to be used.
+ * To avoid circular dependencies (and keep the lexer stand alone) basics type are defined in the lexer in a separated kvl_types.h file:
+ * ~~~{C}
+ * // Base types used in the lexer: can't be modified!
+ * long *num;
+ * char *str;
+ * bxivector_p tuple;
+ * ~~~
+ *
+ * It's possible to extend basics type in the parser with custom one, as long as union member remain pointers:
+ * ~~~{C}
+ * union YYSTYPE
+ * {
+ *     // Key/value lexer base types
+ *     #include <bxi/util/kvl_types.h>
+ * 
+ *     // One can add Parser specific types
+ *     myType *myStuff;
+ * };
+ * ~~~
+ */
 typedef union YYSTYPE YYSTYPE;
 #endif
 
