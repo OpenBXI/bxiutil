@@ -12,8 +12,6 @@ $(abs_builddir)/bxi/util/__init__.py: $(abs_builddir)/bxi/__init__.py
 
 # For installation
 nobase_python_PYTHON=\
-                  bxisignal.py\
-                  bxidaemon.py\
                   bxi/util/cffi_h.py
 
 
