@@ -405,10 +405,13 @@ void test_getfilename() {
     // Create a symlink
     char * newpath = bxistr_new("%s.link", oldpath);
     int rc = symlink(result, newpath);
-    if (0 != rc) BXILOG_REPORT(TEST_LOGGER, BXILOG_ERROR,
-                               bxierr_errno("Calling symlink(%s, %s) failed",
-                                            result, newpath),
-                               "Non fatal error.");
+    if (0 != rc) {
+        bxierr_p err = bxierr_errno("Calling symlink(%s, %s) failed",
+                                            result, newpath);
+        BXILOG_REPORT(TEST_LOGGER, BXILOG_ERROR,
+                      err,
+                      "Non fatal error.");
+    }
 
     stream = fopen(newpath, "r");
     if (NULL == stream) {
@@ -427,15 +430,20 @@ void test_getfilename() {
     fclose(stream);
 
     rc = unlink(newpath);
-    if (0 != rc) BXILOG_REPORT(TEST_LOGGER, BXILOG_ERROR,
-                               bxierr_errno("Calling unlink(%s) failed",
-                                             newpath),
-                               "Non fatal error.");
+    if (0 != rc) {
+        bxierr_p err = bxierr_errno("Calling unlink(%s) failed",
+                                    newpath);
+        BXILOG_REPORT(TEST_LOGGER, BXILOG_ERROR,
+                      err,
+                      "Non fatal error.");
+    }
     rc = unlink(oldpath);
-    if (0 != rc) BXILOG_REPORT(TEST_LOGGER, BXILOG_ERROR,
-                               bxierr_errno("Calling unlink(%s) failed",
-                                            oldpath),
-                               "Non fatal error.");
+    if (0 != rc) {
+        bxierr_p err = bxierr_errno("Calling unlink(%s) failed",
+                                    oldpath);
+        BXILOG_REPORT(TEST_LOGGER, BXILOG_ERROR,
+                      err, "Non fatal error.");
+    }
 
     BXIFREE(newpath);
     BXIFREE(oldpath);

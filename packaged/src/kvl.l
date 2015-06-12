@@ -284,9 +284,10 @@ yyscan_t kvl_init(char *fname, enum yytokentype (*kw_lookup_fnt)(char*)) {
         errno = 0;
         file_in = fopen(fname, "r");
         if (NULL == file_in) {
+            bxierr_p err = bxierr_errno("Calling fopen(\"%s\", \"r\"): failed", fname);
             BXILOG_REPORT(_LOGGER, BXILOG_ERROR,
-                bxierr_errno("Calling fopen(\"%s\", \"r\"): failed", fname),
-                "Can't initialize kvlexer!");
+                          err,
+                          "Can't initialize kvlexer!");
             return NULL;
         }
     }

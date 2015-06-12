@@ -574,6 +574,9 @@ bxierr_p bximisc_file_map(const char * filename,
     } else {
         BXIASSERT(BXIMISC_LOGGER, NULL != filename);
         if (load) {
+            if (filename == NULL) {
+                return bxierr_gen("Can't load a file without its name");
+            }
             errno = 0;
             file = open(filename, O_RDONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
             if (file == -1) return bxierr_errno("Can't open %s", filename);
