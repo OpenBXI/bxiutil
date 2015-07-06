@@ -99,6 +99,7 @@ bxierr_p bxivector_apply(bxivector_p vector,
     return 0 == err_nb ? BXIERR_OK : bxierr_new(BXIVECTOR_APPLY_ERR,
                                                 errors,
                                                 free,
+                                                NULL ,
                                                 NULL,
                                                 "Errors found in apply(): %zu/%zu",
                                                 err_nb, n);

@@ -237,14 +237,14 @@ bxierr_p bximisc_str_tuple(const char * start, char * end,
                 const char * comma = (char *) err->data;
 
                 if (*comma != sep && *comma != suffix) {
-                    return  bxierr_new(340, original_str, free, err,
+                    return  bxierr_new(340, original_str, free, NULL, err,
                                        "Bad char '%c', expecting '%c' or '%c' in '%s'",
                                        *comma, sep, suffix, original_str);
                 }
                 bxierr_destroy(&err);
                 // Next character
                 start = comma + 1;
-            } else return  bxierr_new(340, original_str, free, err,
+            } else return  bxierr_new(340, original_str, free, NULL, err,
                                       "Calling bximisc_strtoul() "
                                       "failed with string '%s'",
                                       original_str);
@@ -253,7 +253,8 @@ bxierr_p bximisc_str_tuple(const char * start, char * end,
         if (val > UINT8_MAX) {
             return bxierr_new(340,
                               original_str, free,
-                              NULL,
+                              NULL ,
+                              NULL ,
                               "Value too large %lu > %d in %s",
                               val, UINT8_MAX, original_str);
         }
@@ -384,6 +385,7 @@ bxierr_p bximisc_strtoul(const char * const str,
     if (endptr == str) return bxierr_new(BXIMISC_NODIGITS_ERR,
                                          strdup(str),
                                          free,
+                                         NULL ,
                                          NULL,
                                          "No digit found in '%s'",
                                          str);
@@ -391,6 +393,7 @@ bxierr_p bximisc_strtoul(const char * const str,
         return bxierr_new(BXIMISC_REMAINING_CHAR,
                           endptr,
                           NULL,
+                          NULL ,
                           NULL,
                           "Some non digits characters remain in string '%s'", str);
     }
@@ -406,6 +409,7 @@ bxierr_p bximisc_strtol(const char * const str, const int base, long * result) {
     if (endptr == str) return bxierr_new(BXIMISC_NODIGITS_ERR,
                                          strdup(str),
                                          free,
+                                         NULL ,
                                          NULL,
                                          "No digit found in '%s'",
                                          str);
@@ -413,6 +417,7 @@ bxierr_p bximisc_strtol(const char * const str, const int base, long * result) {
         return bxierr_new(BXIMISC_REMAINING_CHAR,
                           endptr,
                           NULL,
+                          NULL ,
                           NULL,
                           "Some non digits characters remain in string '%s'", str);
     }
@@ -594,7 +599,7 @@ bxierr_p bximisc_file_map(const char * filename,
             bxierr_p bxierr = bxierr_errno("An error occured while closing %s.", filename);
             int * file_p = bximem_calloc(sizeof(*file_p));
             *file_p = file;
-            bxierr = bxierr_new(BXIMISC_FILE_CLOSE_ERROR, file_p, free, bxierr,
+            bxierr = bxierr_new(BXIMISC_FILE_CLOSE_ERROR, file_p, free, NULL, bxierr,
                                 "An error occured while closing %s.", filename);
             if(init_file_addr != NULL && -1 == munmap(init_file_addr, size)) {
                 bxierr_p err2 = bxierr_errno("An error occured while unmapping %s.",

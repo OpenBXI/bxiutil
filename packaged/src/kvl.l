@@ -298,7 +298,7 @@ yyscan_t kvl_init(char *fname, enum yytokentype (*kw_lookup_fnt)(char*)) {
 /* Scanner clean-up */
 void kvl_finalize(yyscan_t scanner) {
     if (NULL == scanner) {
-        bxierr_p err = bxierr_new(18, NULL, NULL, NULL, "NULL scanner can't be freed!");
+        bxierr_p err = bxierr_new(18, NULL, NULL, NULL, NULL, "NULL scanner can't be freed!");
         BXILOG_REPORT(_LOGGER, BXILOG_CRITICAL, err, "can't finalize properly");
         return;
     }

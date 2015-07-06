@@ -583,6 +583,7 @@ bxierr_p bximap_translate_cpumask(const char * cpus, bxivector_p * vcpus) {
                               strdup(int_str),
                               free,
                               NULL,
+                              NULL,
                               "No digit found in '%s'",
                               int_str);
         }
@@ -594,7 +595,7 @@ bxierr_p bximap_translate_cpumask(const char * cpus, bxivector_p * vcpus) {
             if (cpu < 0) {
                 bxivector_destroy(vcpus, NULL);
                 return bxierr_new(BXIMAP_NEGATIVE_INTERGER, strdup(int_str),
-                                  free, NULL, "Negative cpu number found %s",
+                                  free, NULL, NULL, "Negative cpu number found %s",
                                   int_str);
             }
             if (',' == *next_int) next_int++;
@@ -848,7 +849,7 @@ bxierr_p _fill_vector_with_cpu(intptr_t first_cpu, intptr_t last_cpu, bxivector_
     TRACE(MAPPER_LOGGER, "first_cpu=\"%zd\" last_cpu=\"%zd\"",
           first_cpu, last_cpu);
     if (first_cpu > last_cpu) {
-        return bxierr_new(BXIMAP_INTERVAL_ERROR, NULL, NULL, NULL,
+        return bxierr_new(BXIMAP_INTERVAL_ERROR, NULL, NULL, NULL, NULL,
                           "Interval with a greater first index %zu than last index %zu",
                           first_cpu, last_cpu);
     }
