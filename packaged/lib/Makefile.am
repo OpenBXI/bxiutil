@@ -20,6 +20,9 @@ bxiutildir=$(pythondir)/bxi/util
 bxiutil_PYTHON=\
 		   $(srcdir)/bxi/util/__init__.py 
 
+EXTRA_DIST=\
+		   ${bxiutil_PYTHON}
+
 # For generation
 all-local: $(nobase_python_PYTHON) $(abs_builddir)/bxi/util/__init__.py
 
