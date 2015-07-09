@@ -1,4 +1,4 @@
     /* Types used in the lexer: can't be modified! */
-    long *num;
-    char *str;
-    bxivector_p tuple;
+    long *num; /**< todo*/
+    char *str; /**< todo*/
+    bxivector_p tuple; /**< todo*/

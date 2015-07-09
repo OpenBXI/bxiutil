@@ -11,8 +11,8 @@ $(abs_builddir)/bxi/util/__init__.py: $(abs_builddir)/bxi/__init__.py
 
 
 # For installation
-nobase_python_PYTHON=\
-                  bxi/util/cffi_h.py
+nodist_nobase_python_PYTHON=\
+							bxi/util/cffi_h.py
 
 
 #File present inside build and source folder should be install with a special rule
@@ -20,11 +20,11 @@ bxiutildir=$(pythondir)/bxi/util
 bxiutil_PYTHON=\
 		   $(srcdir)/bxi/util/__init__.py 
 
-EXTRA_DIST=\
-		   ${bxiutil_PYTHON}
+dist-hook: ${bxiutil_PYTHON}
+	cp ${bxiutil_PYTHON} $(distdir)/bxi/util
 
 # For generation
-all-local: $(nobase_python_PYTHON) $(abs_builddir)/bxi/util/__init__.py
+all-local: $(nodist_nobase_python_PYTHON) $(abs_builddir)/bxi/util/__init__.py
 
 clean-local:
 	if test $(srcdir) != $(builddir);\
