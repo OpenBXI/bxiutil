@@ -24,7 +24,29 @@
  * @file    stretch.h
  * @brief   Extensible array of data structures.
  *
- * TODO: document.
+ * This struct has been develloped to have an Extensible array
+ * but the address element won't changed.
+ * The aim is to keep pointer on elements and never changed
+ * this even if elements are added.
+ *
+ * This data structure is formed of one meta array on chunk.
+ * This meta array is an internal structure.
+ * When an extention is required some chunks are added
+ * the meta array is reallocated.
+ * However existing chunk aren't changed.
+ *
+ * Allocation of a stretch array:
+ * @snippet bxistretch.c INIT STRETCH
+ *
+ * Element access:
+ * @snippet bxistretch.c GET STRETCH
+ *
+ * Extention of array:
+ * @snippet bxistretch.c HIT STRETCH
+ *
+ * Liberate the array:
+ * @snippet bxistretch.c FREE STRETCH
+ *
  */
 
 // *********************************************************************************
@@ -93,5 +115,10 @@ void * bxistretch_get(bxistretch_p self, uint32_t index);
  *
  */
 void * bxistretch_hit(bxistretch_p self, uint32_t index);
+
+/**
+ * @example bxistretch.c
+ * An example on how to use the module stretch.
+ */
 
 #endif /* !STRETCH_H */

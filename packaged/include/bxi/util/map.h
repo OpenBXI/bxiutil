@@ -27,6 +27,28 @@
  *
  * ### Overview
  * This module implements a framework for the parallel execution of independent tasks
+ *
+ * To have the best performance with thread the first issue is to map each of them on cpus.
+ * This could be done as:
+ * @snippet bximap.c CPU BINDING
+ * 
+ * This module allows an easy way to balance the load between the threads for
+ * the execution of a loop over the threads.
+ * The following code shows how to initialize the threads the work to be done
+ * and execute the different iterations:
+ * @snippet bximap.c BALANCE LOAD
+ * 
+ * The work to be done should be factorize inside a function with a specific signature:
+ * @snippet bximap.c INNER LOOP
+ *
+ * Then when the work is finished the result of the iterations could be checked:
+ * @snippet bximap.c CHECK RESULT
+ * 
+ * Finally ending the threads:
+ * @snippet bximap.c STOP THREADS
+ * 
+ * ### Full Running Examples
+ * - @link bximap.c map a loop iteration on several threads. @endlink
  */
 
 // *********************************************************************************
@@ -191,5 +213,11 @@ bxierr_p bximap_on_cpu(size_t cpu);
  * @returns   BXIERR_OK if the string is well formed and the cpus are available
  */
 bxierr_p bximap_set_cpumask(char * cpus);
+
+/**
+ * @example bximap.c
+ * An example on how to use the module map.
+ *
+ */
 
 #endif /* BXILOOP_H_ */

@@ -37,14 +37,33 @@ lib_libbxiutil_common_la_CFLAGS=\
 					 $(LIB_CFLAGS)
 
 lib_libbxiutil_la_LIBADD=\
-						 lib/libbxiutil_kvl.la\
-						 lib/libbxiutil_common.la\
-						 $(LIB_LIBS)
+					 $(ZMQ_LIBS)\
+					 lib/libbxiutil_kvl.la\
+					 lib/libbxiutil_common.la\
+					 $(LIB_LIBS)
 
+TESTS=\
+	  doc/examples/bximap\
+	  doc/examples/bxistretch
+
+check_PROGRAMS=\
+			  doc/examples/bximap\
+			  doc/examples/bxistretch
+
+all-local:
+	mkdir -p doc/examples
+
+
+doc_examples_bximap_LDADD=\
+						 lib/libbxiutil.la
 
 #########################  PYTHON  ######################
 
 SUBDIRS=include lib doc
+
+EXTRA_DIST=\
+		   doc/examples/bximap.c\
+		   doc/examples/bxistretch.c
 
 #########################################################
 
