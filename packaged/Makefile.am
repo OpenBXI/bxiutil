@@ -54,6 +54,8 @@ all-local:
 	mkdir -p doc/examples
 
 
+doc_examples_bxistretch_LDADD=\
+						 lib/libbxiutil.la
 doc_examples_bximap_LDADD=\
 						 lib/libbxiutil.la
 
