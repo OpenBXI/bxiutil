@@ -58,6 +58,10 @@ doc_examples_bxistretch_LDADD=\
 						 lib/libbxiutil.la
 doc_examples_bximap_LDADD=\
 						 lib/libbxiutil.la
+doc_examples_bxistretch_CFLAGS=\
+					 -I$(top_srcdir)/packaged/include
+doc_examples_bximap_CFLAGS=\
+					 -I$(top_srcdir)/packaged/include
 
 #########################  PYTHON  ######################
 
