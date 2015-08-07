@@ -87,6 +87,10 @@ int main(int argc, char **argv) {
         err=  bxierr_gen("Get return non null for a not allocated element");
         BXIEXIT(EXIT_FAILURE, err, MAIN_LOGGER, BXILOG_CRITICAL);
     }
+    if (*first_element != 10) {
+        err=  bxierr_gen("first element changed");
+        BXIEXIT(EXIT_FAILURE, err, MAIN_LOGGER, BXILOG_CRITICAL);
+    }
     /**! [GET STRETCH]*/
     test = bxistretch_get(sarray, 0);
     if (*test != 10) {

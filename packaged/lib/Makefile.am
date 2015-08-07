@@ -2,6 +2,7 @@
 ##
 #
 
+if HAVE_PYTHON
 $(abs_builddir)/bxi/__init__.py:
 	touch  $@
 
@@ -37,3 +38,4 @@ clean-local:
 ##
 #
 CLEANFILES=bxi/util/cffi_h.py
+endif
