@@ -61,6 +61,10 @@ PC_PYTHON_CHECK_MODULE([cffi], [], [AC_MSG_ERROR(Module not found)])
 fi
 
 
+SUBPACKAGES="debuginfo doc"
+AC_SUBST([SUBPACKAGES])
+AC_BXIEXTRA_DIST="h2py.sh"
+AC_SUBST([AC_BXIEXTRA_DIST])
 
 #TODO add the pc.in file
 AC_CONFIG_FILES([Makefile packaged/Makefile packaged/lib/Makefile packaged/include/Makefile packaged/doc/Makefile tests/Makefile packaged/src/version.c packaged/include/bxi/util/version.h])
