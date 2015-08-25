@@ -24,7 +24,8 @@ from cffi.api import CDefError
 
 bxiffi.add_cdef_for_type("bxirng_p", C_DEF)
 
-__CAPI__ = bxiffi.get_ffi().dlopen('libbxiutil.so')
+__FFI__ = bxiffi.get_ffi()
+__CAPI__ = __FFI__.dlopen('libbxiutil.so')
 
 
 def get_capi():
@@ -34,3 +35,32 @@ def get_capi():
     @return the CFFI wrapped C library.
     """
     return __CAPI__
+
+
+class Map(object):
+    """
+    Wrap the map C module
+    """
+    def __init__(self, nb_thread=0):
+        """
+        Initialise the threads for the task parallelization.
+        @param nb_thread number of threads should be start.
+        @return
+        """
+        nb_thread_p = __FFI__.new("size_t [1]")
+        nb_thread_p[0] = nb_thread
+        __CAPI__.bximap_init(nb_thread_p)
+
+    def finalize(self):
+        """
+        Stop the threads
+        @return
+        """
+        __CAPI__.bximap_finalize()
+
+    def __del__(self):
+        self.finalize()
+
+    @staticmethod
+    def Cpu_mask(mask):
+        __CAPI__.bximap_set_cpumask(mask)

@@ -20,7 +20,7 @@ nobase_nodist_python_PYTHON=\
 bxiutildir=$(pythondir)/bxi/util
 bxiutil_PYTHON=\
 		   $(srcdir)/bxi/util/__init__.py\
-		   $(srcdir)/bxi/util/nodeset.py
+		   /bxi/util/nodeset.py
 
 dist-hook: ${bxiutil_PYTHON}
 	cp ${bxiutil_PYTHON} $(distdir)/bxi/util

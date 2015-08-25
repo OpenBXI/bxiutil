@@ -136,7 +136,7 @@ _intern_info shared_info = {
     .nb_threads = 0,
 };
 
-bxivector_p vcpus;
+bxivector_p vcpus = NULL;
 
 
 bxierr_define(BXIMAP_INITIALIZE, 0, INITIALIZE_MSG);
@@ -613,7 +613,7 @@ bxierr_p bximap_translate_cpumask(const char * cpus, bxivector_p * vcpus) {
 
 bxierr_p bximap_set_cpumask(char * cpus) {
     if (shared_info.state == MAPPER_INITIALIZED) return BXIMAP_INITIALIZE;
-    if (cpus == NULL) {
+    if (cpus == NULL || strcmp(cpus, "") == 0) {
         if (vcpus != NULL) {
             bxivector_destroy(&vcpus, NULL);
         }
