@@ -77,7 +77,7 @@ int clean_lexerSuite(void) {
 #define test_digit(buf, expected_value) do {            \
         CU_ASSERT(NUM == _lex_me(buf));                 \
         DEBUG(TEST_LOGGER, "num %ld", *_yylval.num);    \
-        CU_ASSERT((long)expected_value == *_yylval.num);      \
+        CU_ASSERT((unsigned long)expected_value == (unsigned long)*_yylval.num);      \
         BXIFREE(_yylval.num);                           \
         _lex_clean();                                   \
     } while (0)
