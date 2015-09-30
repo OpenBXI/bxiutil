@@ -244,7 +244,7 @@ void *yyalloc(size_t bytes, void *yyscanner) {
 
 void *yyrealloc(void *ptr, size_t bytes, void *yyscanner) {
     UNUSED(yyscanner);
-    return bximem_realloc(ptr, bytes);
+    return bximem_realloc(ptr, 0, bytes);
 }
 
 void yyfree(void *ptr, void *yyscanner) {      

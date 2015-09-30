@@ -153,8 +153,8 @@ void bxivector_push(bxivector_p vector, void * elem) {
     if (vector->total_size == vector->used_size){
         size_t old_total_size = vector->total_size;
         vector->total_size *= 2;
-        vector->array = bximem_realloc(vector->array,
-                                        (size_t)vector->total_size*sizeof(*vector->array));
+        vector->array = bximem_realloc(vector->array, old_total_size*sizeof(*vector->array),
+                                       (size_t)vector->total_size*sizeof(*vector->array));
         DEBUG(BXIVECTOR_LOGGER,
               "Reallocation for vector %p: old total_size=%zu, new total_size=%zu",
               vector, old_total_size, vector->total_size);

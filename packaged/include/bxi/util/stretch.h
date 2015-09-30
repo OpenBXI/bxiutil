@@ -83,9 +83,9 @@ typedef struct bxistretch_s_t *bxistretch_p;
  *
  * @returns   pointer on the newly allocated stretchable array
  */
-bxistretch_p bxistretch_new(uint16_t chunk_size,
-                            uint32_t element_size,
-                            uint32_t element_nb);
+bxistretch_p bxistretch_new(size_t chunk_size,
+                            size_t element_size,
+                            size_t element_nb);
 
 /**
  * Destroy a stretchable array.
@@ -103,7 +103,7 @@ void bxistretch_destroy(bxistretch_p *stretch_p);
  *
  * @returns  pointer on the element
  */
-void * bxistretch_get(bxistretch_p self, uint32_t index);
+void * bxistretch_get(bxistretch_p self, size_t index);
 
 /**
  * Allocate the memory space for all the element with an index lower
@@ -114,7 +114,7 @@ void * bxistretch_get(bxistretch_p self, uint32_t index);
  * @returns pointer on the element at the index
  *
  */
-void * bxistretch_hit(bxistretch_p self, uint32_t index);
+void * bxistretch_hit(bxistretch_p self, size_t index);
 
 /**
  * @example bxistretch.c

@@ -102,8 +102,13 @@ int main(int argc, char * argv[]) {
     char * res = getcwd(cwd, PATH_MAX);
     assert(NULL != res);
     char * fullpathname = bxistr_new("%s/%s", cwd, filename);
-    bxierr_p err = bxilog_init(progname, fullpathname);
-    assert(BXIERR_OK == err);
+
+    bxilog_param_p param;
+    bxierr_p err = bxilog_unit_test_config(progname, fullpathname, false, &param);
+    bxierr_abort_ifko(err);
+    err = bxilog_init(param);
+    bxierr_abort_ifko(err);
+
 //    bxilog_install_sighandler();
 
     fprintf(stderr, "Logging to file: %s\n", fullpathname);
@@ -167,11 +172,7 @@ int main(int argc, char * argv[]) {
 
     CU_cleanup_registry();
     err = bxilog_finalize(true);
-    if (BXIERR_OK != err) {
-        char * str = bxierr_str(err);
-        fprintf(stderr, "WARNING: bxilog finalization returned: %s", str);
-        BXIFREE(str);
-        bxierr_destroy(&err);
-    }
+    bxierr_abort_ifko(err);
+    bxilog_param_destroy(&param);
     return rc;
 }

@@ -93,10 +93,11 @@ char * bximisc_readlink(const char * const linkname) {
                 bxierr_errno("Calling lstat(%s) failed", linkname),
                 BXIMISC_LOGGER, BXILOG_CRITICAL);
     }
+    size_t old_size = 0;
     size_t n = (size_t) (sb.st_size + 1);
     char *targetname = NULL;
     while (true) {
-        targetname = bximem_realloc(targetname, n);
+        targetname = bximem_realloc(targetname, old_size, n);
         errno = 0;
         ssize_t r = readlink(linkname, targetname, n);
         if (r < 0) {
@@ -112,6 +113,7 @@ char * bximisc_readlink(const char * const linkname) {
             break;
         }
         FINE(BXIMISC_LOGGER, "Wrong size in lstat() of '%s'", linkname);
+        old_size = n;
         n *= 2;
     }
     return targetname;
