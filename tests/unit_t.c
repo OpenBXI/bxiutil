@@ -103,10 +103,7 @@ int main(int argc, char * argv[]) {
     assert(NULL != res);
     char * fullpathname = bxistr_new("%s/%s", cwd, filename);
 
-    bxilog_param_p param;
-    bxierr_p err = bxilog_unit_test_config(progname, fullpathname, false, &param);
-    bxierr_abort_ifko(err);
-    err = bxilog_init(param);
+    bxierr_p err = bxilog_init(bxilog_unit_test_config(progname, fullpathname, false));
     bxierr_abort_ifko(err);
 
 //    bxilog_install_sighandler();
@@ -173,6 +170,6 @@ int main(int argc, char * argv[]) {
     CU_cleanup_registry();
     err = bxilog_finalize(true);
     bxierr_abort_ifko(err);
-    bxilog_param_destroy(&param);
+
     return rc;
 }
