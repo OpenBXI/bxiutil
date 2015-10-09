@@ -232,7 +232,7 @@ digit       [-]?[[:digit:]]+
 \.              { return '.'; }
 <<EOF>>         { return END_OF_FILE; }
 
-.               { ERROR(_LOGGER, "Unexpected <%c>", yytext[0]); return (enum yytokentype)yytext[0]; }
+.               { ERROR(_LOGGER, "Unexpected char: 0x%x `%c`", yytext[0], yytext[0]); return (enum yytokentype)yytext[0]; }
 
 %%
 
