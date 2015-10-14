@@ -28,6 +28,9 @@
 #include <sys/wait.h>
 #include <fcntl.h>
 
+#include <bxi/base/log.h>
+#include <bxi/base/log/file_handler.h>
+
 // This is required to actually test the implementation
 
 #include "misc.c"
@@ -103,7 +106,9 @@ int main(int argc, char * argv[]) {
     assert(NULL != res);
     char * fullpathname = bxistr_new("%s/%s", cwd, filename);
 
-    bxierr_p err = bxilog_init(bxilog_unit_test_config(progname, fullpathname, false));
+    bxierr_p err = bxilog_init(bxilog_unit_test_config(progname,
+                                                       fullpathname,
+                                                       BXI_APPEND_OPEN_FLAGS));
     bxierr_abort_ifko(err);
 
 //    bxilog_install_sighandler();
