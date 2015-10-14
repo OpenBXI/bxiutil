@@ -29,7 +29,6 @@
 #include <fcntl.h>
 
 #include <bxi/base/log.h>
-#include <bxi/base/log/file_handler.h>
 
 // This is required to actually test the implementation
 
