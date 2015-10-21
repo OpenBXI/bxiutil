@@ -13,6 +13,7 @@ $(abs_builddir)/bxi/util/__init__.py: $(abs_builddir)/bxi/__init__.py
 
 # For installation
 nobase_nodist_python_PYTHON=\
+							bxi/util/version.py\
 							bxi/util/cffi_h.py
 
 nobase_python_PYTHON=\
@@ -35,6 +36,9 @@ clean-local:
 		rm -f $(builddir)/bxi/util/__init__.py $(builddir)/bxi/__init__.py;\
 	fi
 
+bxi/%/version.py:${abs_top_builddir}/version.py $(abs_top_builddir)/packaged/lib/bxi/util
+	cp $< $@
+BUILT_SOURCES=bxi/util/version.py
 #
 ##
 #
