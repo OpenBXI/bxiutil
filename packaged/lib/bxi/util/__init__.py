@@ -22,6 +22,7 @@ import bxi.base as bxibase
 import bxi.base.log as bxilog
 import re
 import math
+import sys
 
 _LOGGER = bxilog.get_logger(__name__)
 
@@ -82,7 +83,6 @@ class Map(object):
     @staticmethod
     def Cpu_mask(mask):
         __CAPI__.bximap_set_cpumask(mask)
-        
 
 
 # clm_sequencer
@@ -95,27 +95,29 @@ def indent(rows,
            separateRows=False,
            prefix='', postfix='',
            max_widths=None,
-           filler_char='_'):
+           filler_char='_',
+           output=sys.stdout):
     '''Indents a table by column.
-    @param rows: A sequence of sequences of items, one sequence per row.
-    @param hasHeader: True if the first row consists of the columns' names.
-    @param headerChar: Character to be used for the row separator line
+    @param[in] rows A sequence of sequences of items, one sequence per row.
+    @param[in] hasHeader True if the first row consists of the columns' names.
+    @param[in] headerChar Character to be used for the row separator line
         (if hasHeader==True or separateRows==True).
-    @param delim: The column delimiter.
-    @param justify_functions: Determines how are data justified in each column.
+    @param[in] delim The column delimiter.
+    @param[in] justify_functions Determines how are data justified in each column.
         Valid values are function of the form f(str,width)->str such as
         str.ljust, str.center and str.rjust. Default is str.ljust.
-    @param separateRows: True if rows are to be separated by a line
+    @param[in] separateRows True if rows are to be separated by a line
         of 'headerChar's.
-    @param prefix: A string prepended to each printed row.
-    @param postfix: A string appended to each printed row.
-    @param max_widths: Determines the maximum width for each column.
+    @param[in] prefix A string prepended to each printed row.
+    @param[in] postfix A string appended to each printed row.
+    @param[in] max_widths Determines the maximum width for each column.
         Words are wrapped to the specified maximum width if greater than 0.
         Wrapping is not done at all when max_width is set to None.
         This is the default.
-    @param filler_char: a row entry that is FILL_EMPTY_ENTRY will be filled by
+    @param[in] filler_char a row entry that is FILL_EMPTY_ENTRY will be filled by
         the specified filler character up to the maximum width for
         the related column.
+    @param[inout] output a file like object the output will be written to
     @return
     '''
     if justify_functions is None:
@@ -168,7 +170,7 @@ def indent(rows,
     _LOGGER.debug("MaxWidths: %s", maxWidths)
     rowSeparator = headerChar * (len(prefix) + len(postfix) + sum(maxWidths) +
                                  len(delim) * (len(maxWidths) - 1))
-    output = cStringIO.StringIO()
+
     if separateRows:
         print(rowSeparator, file=output)
     # for physicalRows in logicalRows:
@@ -193,8 +195,6 @@ def indent(rows,
         if separateRows or hasHeader:
             print(rowSeparator, file=output)
             hasHeader = False
-    return output.getvalue()
-
 
 # written by Mike Brown
 # http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/148061
@@ -250,7 +250,8 @@ def smart_display(header, data,
                   hsep=u'=', vsep=u' | ',
                   justify=None,
                   columns_max=None,
-                  filler_char=u'-'):
+                  filler_char=u'-',
+                  output=sys.stdout):
     '''
     Display an array so each columns are well aligned.
 
@@ -275,6 +276,7 @@ def smart_display(header, data,
         When max=REMOVE_UNSPECIFIED_COLUMNS, then
         only header from columns_max will be displayed.
     @param filler_char
+    @param output the file-like object the output must be written to
     @return
     @todo to be documented
 
@@ -336,11 +338,12 @@ def smart_display(header, data,
     for h in header:
         max_widths.append(columns_max.get(h, 0))
 
-    return indent([header] + data, hasHeader=True,
-                  headerChar=hsep, delim=vsep,
-                  separateRows=False,
-                  max_widths=max_widths,
-                  filler_char=filler_char)
+    indent([header] + data, hasHeader=True,
+           headerChar=hsep, delim=vsep,
+           separateRows=False,
+           max_widths=max_widths,
+           filler_char=filler_char,
+           output=output)
 
 
 def to_unicode(value, encoding='utf-8'):
