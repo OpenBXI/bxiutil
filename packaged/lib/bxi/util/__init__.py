@@ -89,13 +89,13 @@ class Map(object):
 # Code below taken from http://code.activestate.com/recipes/267662/ (r7)
 # and modified to our own needs.
 def indent(rows,
-           hasHeader=False, headerChar='-',
-           delim=' | ',
+           hasHeader=False, headerChar=u'-',
+           delim=u' | ',
            justify_functions=None,
            separateRows=False,
-           prefix='', postfix='',
+           prefix=u'', postfix=u'',
            max_widths=None,
-           filler_char='_',
+           filler_char=u'_',
            output=sys.stdout):
     '''Indents a table by column.
     @param[in] rows A sequence of sequences of items, one sequence per row.
@@ -185,7 +185,6 @@ def indent(rows,
                                     width) in zip(row2,
                                                   justify_functions,
                                                   maxWidths)]
-
         line_uni = [to_unicode(elt) for elt in line]
         line_uni = prefix + delim.join(line_uni) + postfix
         line_uni = to_str_from_unicode(line_uni)
