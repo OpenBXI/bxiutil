@@ -105,7 +105,7 @@ def indent(rows,
     @param[in] delim The column delimiter.
     @param[in] justify_functions Determines how are data justified in each column.
         Valid values are function of the form f(str,width)->str such as
-        str.ljust, str.center and str.rjust. Default is str.ljust.
+        unicode.ljust, unicode.center and unicode.rjust. Default is unicode.ljust.
     @param[in] separateRows True if rows are to be separated by a line
         of 'headerChar's.
     @param[in] prefix A string prepended to each printed row.
