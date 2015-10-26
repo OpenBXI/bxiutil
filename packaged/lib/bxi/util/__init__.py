@@ -120,6 +120,9 @@ def indent(rows,
     @param[inout] output a file like object the output will be written to
     @return
     '''
+    if not rows:
+        return
+
     if justify_functions is None:
         justify_functions = [unicode.ljust] * len(rows[0])
     _LOGGER.debug("Justify: %s", justify_functions)
@@ -380,4 +383,3 @@ def to_str_from_unicode(value, encoding='utf-8', should_be_uni=True):
         if should_be_uni:
             _LOGGER.warning("%s: is a string, should be unicode-typed" % value)
     return value
-
