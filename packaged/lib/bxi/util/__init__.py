@@ -10,26 +10,22 @@
 
 """
 from __future__ import print_function
-
-# Try to find other BXI packages in other folders
-from pkgutil import extend_path
-__path__ = extend_path(__path__, __name__)
-
-
 import cStringIO
-import bxi.ffi as bxiffi
-import bxi.base as bxibase
-import bxi.base.log as bxilog
 import re
 import math
 import sys
 
-_LOGGER = bxilog.get_logger(__name__)
+import bxi.ffi as bxiffi
+import bxi.base as bxibase
+import bxi.base.log as bxilog
 
-
+# Try to find other BXI packages in other folders
+from pkgutil import extend_path
+__path__ = extend_path(__path__, __name__)
 from bxi.util.cffi_h import C_DEF
 from cffi.api import CDefError
 
+_LOGGER = bxilog.get_logger(__name__)
 
 bxiffi.add_cdef_for_type("bxirng_p", C_DEF)
 
@@ -70,7 +66,8 @@ class Map(object):
         nb_thread_p[0] = nb_thread
         __CAPI__.bximap_init(nb_thread_p)
 
-    def finalize(self):
+    @staticmethod
+    def finalize():
         """
         Stop the threads
         @return
@@ -81,7 +78,7 @@ class Map(object):
         self.finalize()
 
     @staticmethod
-    def Cpu_mask(mask):
+    def cpu_mask(mask):
         __CAPI__.bximap_set_cpumask(mask)
 
 
@@ -89,7 +86,7 @@ class Map(object):
 # Code below taken from http://code.activestate.com/recipes/267662/ (r7)
 # and modified to our own needs.
 def indent(rows,
-           hasHeader=False, headerChar=u'-',
+           hasheader=False, headerchar=u'-',
            delim=u' | ',
            justify_functions=None,
            separateRows=False,
@@ -99,15 +96,15 @@ def indent(rows,
            output=sys.stdout):
     '''Indents a table by column.
     @param[in] rows A sequence of sequences of items, one sequence per row.
-    @param[in] hasHeader True if the first row consists of the columns' names.
-    @param[in] headerChar Character to be used for the row separator line
-        (if hasHeader==True or separateRows==True).
+    @param[in] hasheader True if the first row consists of the columns' names.
+    @param[in] headerchar Character to be used for the row separator line
+        (if hasheader==True or separateRows==True).
     @param[in] delim The column delimiter.
     @param[in] justify_functions Determines how are data justified in each column.
         Valid values are function of the form f(str,width)->str such as
         unicode.ljust, unicode.center and unicode.rjust. Default is unicode.ljust.
     @param[in] separateRows True if rows are to be separated by a line
-        of 'headerChar's.
+        of 'headerchar's.
     @param[in] prefix A string prepended to each printed row.
     @param[in] postfix A string appended to each printed row.
     @param[in] max_widths Determines the maximum width for each column.
@@ -149,11 +146,12 @@ def indent(rows,
         @return
         @todo to be documented
         '''
-        newRows = [wrap_onspace_strict(item, width).split('\n') for (item, width) in zip(row, max_widths)]
-        _LOGGER.debug("NewRows: %s", newRows)
-        if len(newRows) <= 1:
-            return newRows
-        return [[substr or '' for substr in item] for item in map(None, *newRows)]
+        newrows = [wrap_onspace_strict(item, width).split('\n')
+                   for (item, width) in zip(row, max_widths)]
+        _LOGGER.debug("NewRows: %s", newrows)
+        if len(newrows) <= 1:
+            return newrows
+        return [[substr or '' for substr in item] for item in map(None, *newrows)]
 
     # break each logical row into one or more physical ones
     logicalRows = [rowWrapper(row) for row in rows]
@@ -171,7 +169,7 @@ def indent(rows,
     # get the maximum of each column by the string length of its items
     maxWidths = [max([len(item) for item in column]) for column in columns]
     _LOGGER.debug("MaxWidths: %s", maxWidths)
-    rowSeparator = headerChar * (len(prefix) + len(postfix) + sum(maxWidths) +
+    rowSeparator = headerchar * (len(prefix) + len(postfix) + sum(maxWidths) +
                                  len(delim) * (len(maxWidths) - 1))
 
     if separateRows:
@@ -194,9 +192,10 @@ def indent(rows,
 
         print(line_uni,
               file=output)
-        if separateRows or hasHeader:
+        if separateRows or hasheader:
             print(rowSeparator, file=output)
-            hasHeader = False
+            hasheader = False
+
 
 # written by Mike Brown
 # http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/148061
@@ -340,8 +339,8 @@ def smart_display(header, data,
     for h in header:
         max_widths.append(columns_max.get(h, 0))
 
-    indent([header] + data, hasHeader=True,
-           headerChar=hsep, delim=vsep,
+    indent([header] + data, hasheader=True,
+           headerchar=hsep, delim=vsep,
            separateRows=False,
            max_widths=max_widths,
            filler_char=filler_char,
