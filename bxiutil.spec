@@ -69,7 +69,7 @@ Provides: %{name}
 #TODO: What do you require
 Requires: zeromq3
 
-Requires: bxibase >= 3.3.0
+Requires: bxibase >= 4.0.0
 BuildRequires: flex == 2.5.37
 
 #TODO: Give a description (seen by rpm -qi) (No more than 80 characters)
