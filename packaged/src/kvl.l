@@ -264,9 +264,7 @@ yyscan_t kvl_init_from_fd(FILE *file_in, char *fname, enum yytokentype (*kw_look
     yyextra_data_s* extra = bximem_calloc(sizeof(yyextra_data_s));
     if (NULL == kw_lookup_fnt) kw_lookup_fnt = nokw;
     extra->kw_lookup = kw_lookup_fnt;
-    if (NULL == fname) {
-        extra->filename = strdup("from fd");
-    }
+    extra->filename = (NULL == fname ? strdup("from fd") : strdup(fname));
     yylex_init_extra(extra, &scanner);
     yyset_in(file_in, scanner);
 
