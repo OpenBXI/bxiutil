@@ -241,6 +241,8 @@ void kvl_finalize(yyscan_t scanner);
  */
 YY_EXTRA_TYPE yyget_extra(yyscan_t scanner);
 
+char *yyget_text ( yyscan_t scanner );
+
 /**
  * BXI logger prefix used to designate logger(s) from this module
  */
