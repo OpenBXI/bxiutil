@@ -226,7 +226,7 @@ digit       [-]?[[:digit:]]+
 {equal}         { return '='; }
 
     /* Separators */
-\n              { YY_TRACK_NEWLINE; return EOL; }
+\n              { YY_TRACK_NEWLINE; /* Consume new_line */ }
 
 :               { return ':'; }
 \.              { return '.'; }
