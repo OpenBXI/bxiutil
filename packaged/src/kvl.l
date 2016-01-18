@@ -138,7 +138,6 @@ digit       [-]?[[:digit:]]+
                     ERROR(_LOGGER, "String are single line only!");
                     fclose(e_buf_fp);
                     if (NULL != e_buf) BXIFREE(e_buf);
-                    return EOL;
                 }
 
 <<EOF>>         {
@@ -187,7 +186,6 @@ digit       [-]?[[:digit:]]+
                     BEGIN(INITIAL);
                     ERROR(_LOGGER, "New line encountered while in Tuple!");
                     bxivector_destroy(&e_tuple, (void (*)(void **))bximem_destroy);
-                    return EOL;
                 }
 .               {
                     BEGIN(INITIAL);

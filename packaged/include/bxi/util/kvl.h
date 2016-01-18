@@ -69,7 +69,6 @@
  *         case NUM:         return "NUM";
  *         case STR:         return "STR";
  *         case TUPLE:       return "TUPLE";
- *         case EOL:         return "EOL";
  *         case END_OF_FILE: return "EOF";
  *         default:          return "/!\\UNKNOWN/!\\";
  *     }
@@ -136,7 +135,6 @@
      NUM = 260,
      STR = 261,
      TUPLE = 262,
-     EOL = 263,
      END_OF_FILE = 264
    };
 #endif

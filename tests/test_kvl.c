@@ -107,11 +107,6 @@ int clean_lexerSuite(void) {
         _lex_clean();                   \
     } while (0)
 
-#define test_eol(buf) do {              \
-        CU_ASSERT(EOL == _lex_me(buf)); \
-        _lex_clean();                   \
-    } while (0)
-
 #define test_err(buf, expected_mistoken) do {           \
         CU_ASSERT(expected_mistoken == _lex_me(buf));   \
         _lex_clean();                                   \
@@ -125,7 +120,6 @@ char *tok2str(enum yytokentype tok) {
         case NUM: return "NUM";
         case STR: return "STR";
         case TUPLE: return "TUPLE";
-        case EOL: return "EOL";
         default: return "/!\\UNKNOWN/*\\";
     }
 }
@@ -149,7 +143,6 @@ void _lex_clean() {
 
 void lexSpecial(void) {
     test_eof(" \0");
-    test_eol("\n");
 }
 
 void lexKey(void) {
@@ -241,7 +234,7 @@ void lexString(void) {
     test_err("'enclose mismatch\"", 0);
     test_err("\"enclose mismatch'", 0);
 
-    test_err("'multi\nline str'", EOL);
+    test_err("'multi\nline str'", 0);
 
     test_err("\"", '\0');
     test_err("'", '\0');
