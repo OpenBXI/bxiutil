@@ -32,14 +32,14 @@ union YYSTYPE
 /* BXI LOG */
 SET_LOGGER(_LOGGER, KVL_LOG_NAME"_lexer");
 
-#define YY_TRACK_NEWLINE do {                            \
+#define YY_TRACK_NEWLINE do {                           \
         yylloc->first_line = ++yylloc->last_line;       \
         yylloc->first_column = yylloc->last_column = 1; \
     } while (0)
 
 #define YY_USER_ACTION do {                         \
         yylloc->first_column = yylloc->last_column; \
-        yylloc->last_column += (int)yyleng;              \
+        yylloc->last_column += (int)yyleng;         \
     } while (0);
 
 #define YY_FATAL_ERROR(msg) CRITICAL(_LOGGER, "%s", msg)
@@ -108,8 +108,15 @@ digit       [-]?[[:digit:]]+
                     } else {
                         BEGIN(INSIMPLEQUOTE);
                     }
-                    // FIXME: error checking!
+                    errno = 0;
                     e_buf_fp = open_memstream(&e_buf, &e_buf_len);
+                    if (!e_buf_fp) {
+                        bxierr_p err = bxierr_errno("open_memstream");
+                        BXILOG_REPORT(_LOGGER, BXILOG_ERROR, err,
+                                      "open_memstream failed while openning quote");
+                        bxierr_destroy(&err);
+                        return (enum yytokentype)yytext[0];
+                    }
                 }
 
 <INSIMPLEQUOTE>'  |
@@ -159,8 +166,14 @@ digit       [-]?[[:digit:]]+
 <INBRACE>{
 {digit}[[:blank:]]*{comma}? {
                     long *digit = bximem_calloc(sizeof(long));
-                    bxierr_p rc = bximisc_strtol(yytext, 10, digit); // FIXME: error handling!
-                    if (bxierr_isko(rc)) bxierr_destroy(&rc);
+                    bxierr_p rc = bximisc_strtol(yytext, 10, digit);
+                    if (bxierr_isko(rc)) {
+                        BXILOG_REPORT(_LOGGER, BXILOG_ERROR, rc, 
+                                      "Error while parsing in brace digit");
+                        bxierr_destroy(&rc);
+                        return (enum yytokentype)yytext[0];
+                    }
+                    bxierr_destroy(&rc);
                     bxivector_push(e_tuple, digit);
                 }
 
@@ -198,8 +211,14 @@ digit       [-]?[[:digit:]]+
     /* Int */
 {digit}         {
                     long *digit = bximem_calloc(sizeof(long));
-                    bxierr_p rc = bximisc_strtol(yytext, 10, digit); // FIXME: error handling!
-                    if (bxierr_isko(rc)) bxierr_destroy(&rc);
+                    bxierr_p rc = bximisc_strtol(yytext, 10, digit);
+                    if (bxierr_isko(rc)) {
+                        BXILOG_REPORT(_LOGGER, BXILOG_ERROR, rc,
+                                      "Error while parsing digit");
+                        bxierr_destroy(&rc);
+                        return (enum yytokentype)yytext[0];
+                    }
+                    bxierr_destroy(&rc);
                     yylval->num = digit;
                     return NUM;
                 }
