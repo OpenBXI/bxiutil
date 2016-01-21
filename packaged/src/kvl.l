@@ -167,7 +167,7 @@ digit       [-]?[[:digit:]]+
 {digit}[[:blank:]]*{comma}? {
                     long *digit = bximem_calloc(sizeof(long));
                     bxierr_p rc = bximisc_strtol(yytext, 10, digit);
-                    if (bxierr_isko(rc)) {
+                    if (bxierr_isko(rc) && BXIMISC_REMAINING_CHAR != rc->code) {
                         BXILOG_REPORT(_LOGGER, BXILOG_ERROR, rc, 
                                       "Error while parsing in brace digit");
                         bxierr_destroy(&rc);
@@ -212,7 +212,7 @@ digit       [-]?[[:digit:]]+
 {digit}         {
                     long *digit = bximem_calloc(sizeof(long));
                     bxierr_p rc = bximisc_strtol(yytext, 10, digit);
-                    if (bxierr_isko(rc)) {
+                    if (bxierr_isko(rc) && BXIMISC_REMAINING_CHAR != rc->code) {
                         BXILOG_REPORT(_LOGGER, BXILOG_ERROR, rc,
                                       "Error while parsing digit");
                         bxierr_destroy(&rc);
@@ -243,7 +243,11 @@ digit       [-]?[[:digit:]]+
 {equal}         { return '='; }
 
     /* Separators */
-\n              { YY_TRACK_NEWLINE; /* Consume new_line */ }
+\n              { 
+                    YY_TRACK_NEWLINE;
+
+                    /* Consume new_line */
+                }
 
 :               { return ':'; }
 \.              { return '.'; }
