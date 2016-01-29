@@ -512,12 +512,10 @@ bxierr_p bximisc_mkdir(const char* const foldername) {
             rc = stat(foldername, &buf);
             if (rc == -1) {
                 bxierr_p bxierr = bxierr_errno("Calling stat() failed %s", foldername);
-                ERROR(BXIMISC_LOGGER, "%s", bxierr_str(bxierr));
                 return bxierr;
             }
         } else {
           bxierr_p bxierr = bxierr_errno("Can't create %s", foldername);
-          ERROR(BXIMISC_LOGGER, "%s", bxierr_str(bxierr));
           return bxierr;
 
         }
@@ -533,7 +531,6 @@ bxierr_p bximisc_mkdirs(const char* const foldername) {
     if (rc == -1) {
         if (errno != ENOENT) { // All other errors are critical
           bxierr_p bxierr = bxierr_errno("Calling stat() failed on %s", foldername);
-          ERROR(BXIMISC_LOGGER, "%s", bxierr_str(bxierr));
           return bxierr;
         }
 
@@ -543,8 +540,7 @@ bxierr_p bximisc_mkdirs(const char* const foldername) {
         if (!S_ISDIR(buf.st_mode)) {
           bxierr_p bxierr = bxierr_errno("Can't create '%s': name already exists and "
                                           "is not a directory. Aborting.",
-                  foldername);
-          ERROR(BXIMISC_LOGGER, "%s", bxierr_str(bxierr));
+                                          foldername);
           return bxierr;
 
         } else {
