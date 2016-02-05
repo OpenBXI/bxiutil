@@ -26,6 +26,7 @@ bxiutil_PYTHON=\
 
 dist-hook: ${bxiutil_PYTHON}
 	cp ${bxiutil_PYTHON} $(distdir)/bxi/util
+	cp $(srcdir)/bxi/__init__.py $(distdir)/bxi/
 
 # For generation
 all-local: $(nodist_nobase_python_PYTHON) $(abs_builddir)/bxi/util/__init__.py
