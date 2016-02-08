@@ -67,7 +67,7 @@ URL:	 	https://novahpc.frec.bull.fr
 Provides: %{name}
 #Conflicts:
 #TODO: What do you require
-Requires: zeromq3
+Requires: zeromq
 
 Requires: bxibase >= 4.0.0
 BuildRequires: flex == 2.5.37
