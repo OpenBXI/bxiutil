@@ -102,7 +102,7 @@ bxierr_p _fill_vector_with_cpu(intptr_t first_cpu, intptr_t last_cpu, bxivector_
 // *********************************************************************************
 
 
-SET_LOGGER(MAPPER_LOGGER, "bxiutil.map");
+SET_LOGGER(MAPPER_LOGGER, "~bxiutil.map");
 pthread_once_t mapper_once_control = PTHREAD_ONCE_INIT;
 
 

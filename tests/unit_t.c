@@ -37,7 +37,7 @@
 #include "vector.c"
 #include "rng.c"
 
-SET_LOGGER(TEST_LOGGER, "bxiutil.test");
+SET_LOGGER(TEST_LOGGER, "test.bxiutil");
 char ** ARGV = NULL;
 
 // Actual test functions are separated into their respective test file.
