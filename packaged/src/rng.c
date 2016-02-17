@@ -46,7 +46,7 @@ static void _destroy_key();
 // *********************************************************************************
 // ********************************** Global Variables *****************************
 // *********************************************************************************
-SET_LOGGER(BXIRNG_LOGGER, "~bxiutil.rng");
+SET_LOGGER(BXIRNG_LOGGER, BXILOG_LIB_PREFIX "bxiutil.rng");
 
 static pthread_key_t RND_KEY;
 static pthread_once_t RND_KEY_ONCE = PTHREAD_ONCE_INIT;
