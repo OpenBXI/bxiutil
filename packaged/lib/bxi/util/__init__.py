@@ -25,7 +25,7 @@ __path__ = extend_path(__path__, __name__)
 from bxi.util.cffi_h import C_DEF
 from cffi.api import CDefError
 
-_LOGGER = bxilog.get_logger('~bxiutil')
+_LOGGER = bxilog.getLogger(bxilog.LIB_PREFIX + 'bxiutil')
 
 bxiffi.add_cdef_for_type("bxirng_p", C_DEF)
 
