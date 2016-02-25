@@ -159,7 +159,7 @@ digit       [-]?[[:digit:]]+
     /* Tuple */
 {oTuple}        {
                     BEGIN(INBRACE);
-                    e_enclosing = ('[' == yytext[0]) ? ']' : ( '(' == yytext[0] ? ')' : '}') ;
+                    e_enclosing = (char) (('[' == yytext[0]) ? ']' : ( '(' == yytext[0] ? ')' : '}')) ;
                     e_tuple = bxivector_new(0, NULL);
                 }
 
@@ -240,7 +240,7 @@ digit       [-]?[[:digit:]]+
                     return KEY;
                 }
 
-{equal}         { return '='; }
+{equal}         { return (enum yytokentype)'='; }
 
     /* Separators */
 \n              { 
@@ -249,8 +249,8 @@ digit       [-]?[[:digit:]]+
                     /* Consume new_line */
                 }
 
-:               { return ':'; }
-\.              { return '.'; }
+:               { return (enum yytokentype)':'; }
+\.              { return (enum yytokentype)'.'; }
 <<EOF>>         { return END_OF_FILE; }
 
 .               { ERROR(_LOGGER, "Unexpected char: 0x%x `%c`", yytext[0], yytext[0]); return (enum yytokentype)yytext[0]; }
@@ -276,7 +276,7 @@ void yyfree(void *ptr, void *yyscanner) {
 /* Always returns 0 lookup failback function */
 enum yytokentype nokw(char *token_buffer) {
     UNUSED(token_buffer);
-    return 0;
+    return (enum yytokentype) 0;
 }
 
 /* Scanner initialization from file descriptor */
