@@ -240,7 +240,7 @@ void test_bitarray(void) {
     char bitset_op[BITNSLOTS(MAX)];
     memset(bitset_op, 0, BITNSLOTS(MAX));
     for(size_t i = 0; i < BITNSLOTS(MAX); i++) {
-        bitset_op[i] = bitset23[i] | bitset5[i];
+        bitset_op[i] = (char)(bitset23[i] | bitset5[i]);
     }
     str = bximisc_bitarray_str(bitset_op, MAX);
     DEBUG(TEST_LOGGER, "Union of 2, 3 and 5 multiples: %s", str);
