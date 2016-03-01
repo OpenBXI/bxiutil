@@ -180,3 +180,37 @@ def reducer(line):
 def global_reducer(line):
     """Create the nodeset list from a number list."""
     return ["'Reduce' function not implemented for now!"]
+
+
+###############################################################################
+def compact(l):
+    return compact_to_str(find_sets(l))
+
+
+def find_sets(l):
+    glob = list()
+    f = list()
+    for elt in l:
+        try:
+            if f[-1] + 1 == elt:
+                f.append(elt)
+            else:
+                glob.append(f)
+                f = list()
+        except IndexError:
+            pass
+        if len(f) == 0:
+            f.append(elt)
+    glob.append(f)
+    return glob
+
+
+def compact_to_str(glob):
+    return ",".join([list_to_str(l) for l in glob])
+
+
+def list_to_str(l):
+    if len(l) > 2:
+        return "%d-%d" % (l[0], l[-1])
+    else:
+        return ",".join([str(x) for x in l])
