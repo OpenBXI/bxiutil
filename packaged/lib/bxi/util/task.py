@@ -146,46 +146,51 @@ def tasked(cmd, timeout=5, topo="", nodes="", no_remote=False):
 
     @return The execution code: 0 if ok, 1 else
     """
+    _LOGGER.debug("Initializing clush task object")
     handler = MyHandler()
     task = ClusterShell.Task.task_self()
     cmd = ' '.join(cmd)
 
-    # task.set_info('print_debug', task_debug)
+    _LOGGER.debug("Configuring clush debugging function to use bxilog")
     task.set_info("debug", True)
 
     tree = False
-    # topo
+    remote = not no_remote
+
     if len(topo) > 0:
+        _LOGGER.debug("Reding the clush topology file: '%s'", topo)
         task.load_topology(topo)
         tree = True
 
     if len(nodes) == 0:
         nodes = "localhost"
 
-    # schedule taks
-    # task.shell(todo, handler=handler)
+    _LOGGER.debug("Scheduling the task: cmd: '%s', nodes: '%s',"
+                  " timeout: '%d', tree: '%s', remote: '%s'",
+                  cmd, nodes, timeout, tree, remote)
     task.shell(cmd,
                nodes=nodes, handler=handler, timeout=timeout,
-               tree=tree, remote=not no_remote)
+               tree=tree, remote=remote)
 
-    ClusterShell.Task.task_wait()
-
-    # Go!
+    _LOGGER.debug("Requesting task to start")
     task.resume()
 
-    # debriefing
+    _LOGGER.debug("Waiting for task completion")
+    ClusterShell.Task.task_wait()
+
+    _LOGGER.debug("Task completed")
     rc = 0
     if task.max_retcode():
         for ret, nodes in task.iter_retcodes():
             if ret != 0:
                 rc = 1
                 for node in nodes:
-                    _LOGGER.warning('%s terminated with %s: %s',
+                    _LOGGER.warning("%s terminated with %s: %s",
                                     node, ret, task.node_buffer(node))
 
     if task.num_timeout():
-        _LOGGER.warning('%d timeout reached: %s', task.num_timeout(),
-                        ', '.join(task.iter_keys_timeout()))
+        _LOGGER.warning("%d timeout reached: %s", task.num_timeout(),
+                        ", ".join(task.iter_keys_timeout()))
         rc = 1
 
     return rc
@@ -193,12 +198,12 @@ def tasked(cmd, timeout=5, topo="", nodes="", no_remote=False):
 
 if '__main__' == __name__:
     PARSER = argparse.ArgumentParser()
-    PARSER.add_argument('--timeout', '-t', default=5, type=int)
-    PARSER.add_argument('--loglevel', '-l', default=':debug,bxi:output', type=str)
-    PARSER.add_argument('todo', default=['uname', '-r'], type=str, nargs='*')
-    PARSER.add_argument('--topo', type=str, default="")
-    PARSER.add_argument('--nodes', '-w', type=str, default="")
-    PARSER.add_argument('--no-remote', action="store_true", default=False)
+    PARSER.add_argument("--timeout", "-t", default=5, type=int)
+    PARSER.add_argument("--loglevel", "-l", default=":debug,bxi:output", type=str)
+    PARSER.add_argument("cmd", default="uname -r", type=str)
+    PARSER.add_argument("--topo", type=str, default="")
+    PARSER.add_argument("--nodes", "-w", type=str, default="")
+    PARSER.add_argument("--no-remote", action="store_true", default=False)
     ARGS = PARSER.parse_args()
 
     bxilog.basicConfig(cfg_items=ARGS.loglevel)
