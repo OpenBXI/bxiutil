@@ -16,7 +16,6 @@ import ClusterShell.Task
 import ClusterShell.Event
 
 import bxi.base.log as bxilog
-import posless as argparse
 
 
 _LOGGER = bxilog.get_logger(bxilog.LIB_PREFIX + "util.task")
@@ -149,7 +148,7 @@ def tasked(cmd, timeout=5, topo="", nodes="", no_remote=False):
     _LOGGER.debug("Initializing clush task object")
     handler = MyHandler()
     task = ClusterShell.Task.task_self()
-    cmd = ' '.join(cmd)
+    cmd = " ".join(cmd)
 
     _LOGGER.debug("Configuring clush debugging function to use bxilog")
     task.set_info("debug", True)
@@ -196,7 +195,9 @@ def tasked(cmd, timeout=5, topo="", nodes="", no_remote=False):
     return rc
 
 
-if '__main__' == __name__:
+if "__main__" == __name__:
+    import posless as argparse
+
     PARSER = argparse.ArgumentParser()
     PARSER.add_argument("--timeout", "-t", default=5, type=int)
     PARSER.add_argument("--loglevel", "-l", default=":debug,bxi:output", type=str)
