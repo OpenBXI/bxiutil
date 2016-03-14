@@ -9,7 +9,6 @@ Module to allow using ClusterShell to dispatch commands using gateways
            This is not Free or Open Source software.\n
            Please contact Bull SAS for details about its license.\n
            Bull - Rue Jean Jaurès - B.P. 68 - 78340 Les Clayes-sous-Bois
-
 """
 
 
