@@ -148,7 +148,7 @@ def tasked(cmd, timeout=5, topo="", nodes="", no_remote=False):
     """
     handler = MyHandler()
     task = ClusterShell.Task.task_self()
-    todo = ' '.join(cmd)
+    cmd = ' '.join(cmd)
 
     # task.set_info('print_debug', task_debug)
     task.set_info("debug", True)
@@ -164,7 +164,7 @@ def tasked(cmd, timeout=5, topo="", nodes="", no_remote=False):
 
     # schedule taks
     # task.shell(todo, handler=handler)
-    task.shell(todo,
+    task.shell(cmd,
                nodes=nodes, handler=handler, timeout=timeout,
                tree=tree, remote=not no_remote)
 
@@ -184,7 +184,7 @@ def tasked(cmd, timeout=5, topo="", nodes="", no_remote=False):
                                     node, ret, task.node_buffer(node))
 
     if task.num_timeout():
-        _LOGGER.warning('%d timeouted: %s', task.num_timeout(),
+        _LOGGER.warning('%d timeout reached: %s', task.num_timeout(),
                         ', '.join(task.iter_keys_timeout()))
         rc = 1
 
