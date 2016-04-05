@@ -101,7 +101,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 #%posttrans new
 %build
 #autoreconf -i
-%configure --disable-debug
+%configure --disable-debug %{?checkdoc}
 %{__make}
 
 %install
