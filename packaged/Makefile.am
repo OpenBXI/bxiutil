@@ -26,7 +26,8 @@ lib_libbxiutil_kvl_la_SOURCES=\
 		  src/kvl.c
 
 lib_libbxiutil_common_la_LDFLAGS=\
-					 $(ZMQ_LIBS)
+								 $(LIBTOOLLDFLAGS)\
+								 $(ZMQ_LIBS)
 
 lib_libbxiutil_kvl_la_CFLAGS=\
 					 -I$(top_srcdir)/packaged/include
