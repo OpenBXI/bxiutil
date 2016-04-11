@@ -139,8 +139,8 @@ void bxirng_new_rngs(uint32_t seed, size_t n, bxirng_s ** rngs_p) {
     bxirng_p rng = bxirng_new(seed);
     bxirng_s * rngs = *rngs_p;
     for (size_t i = 0; i < n; i++) {
-        uint32_t seed = bxirng_nextint(rng, 0, RAND_MAX);
-        _init_rng(rngs + i, seed);
+        uint32_t i_seed = bxirng_nextint(rng, 0, RAND_MAX);
+        _init_rng(rngs + i, i_seed);
     }
     bxirng_destroy(&rng);
 }
