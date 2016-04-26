@@ -38,9 +38,9 @@
 // *********************************************************************************
 // ********************************** Defines **************************************
 // *********************************************************************************
-#define INITIALIZE_MSG "Bximap already initialize"
-#define NOT_INITIALIZED_MSG "Bximap not initialized"
-#define RUNNING_MSG "Bximap already running"
+#define INITIALIZE_MSG "bximap already initialized"
+#define NOT_INITIALIZED_MSG "bximap has not been initialized"
+#define RUNNING_MSG "bximap is already running"
 #define NO_CONTEXT_MSG "Bximap got NULL context"
 #define NULL_PTR_MSG "Bximap got NULL context pointer"
 #define ARG_ERROR_MSG "Argument Error"
@@ -139,29 +139,22 @@ _intern_info shared_info = {
 bxivector_p vcpus = NULL;
 
 
-bxierr_define(BXIMAP_INITIALIZE, 0, INITIALIZE_MSG);
-bxierr_define(BXIMAP_NOT_INITIALIZED, 0, NOT_INITIALIZED_MSG);
-bxierr_define(BXIMAP_NO_CONTEXT, 0, NO_CONTEXT_MSG);
-bxierr_define(BXIMAP_NULL_PTR, 0, NULL_PTR_MSG);
-bxierr_define(BXIMAP_ARG_ERROR, 0, ARG_ERROR_MSG);
-bxierr_define(BXIMAP_RUNNING, 0, RUNNING_MSG);
-
-
-
-
 /* initialize a new mapping
  * Map the iteration from start to end over the threads
  * each thread has grain iteration to do (only the last one could be shorter)
  *  if gain is equal to 0 the optimal size is used */
 bxierr_p bximap_new(size_t start,
-                     size_t end,
-                     size_t granularity,
-                     bxierr_p   (*func)(size_t start, size_t end, size_t thread, void *usr_data),
-                     void * usr_data,
-                     bximap_ctx_p * task_p
-                    ){
-    if (task_p == NULL) return BXIMAP_NULL_PTR;
-    if(start > end || func == NULL) return BXIMAP_ARG_ERROR;
+                    size_t end,
+                    size_t granularity,
+                    bxierr_p   (*func)(size_t start, size_t end,
+                                       size_t thread,
+                                       void *usr_data),
+                    void * usr_data,
+                    bximap_ctx_p * task_p){
+
+    bxiassert(NULL != task_p);
+    bxiassert(start <= end && NULL != func);
+
     if (*task_p == NULL) *task_p = bximem_calloc(sizeof(**task_p));
     bximap_ctx_p task = *task_p;
     task->start = start;
@@ -173,14 +166,20 @@ bxierr_p bximap_new(size_t start,
 }
 
 bxierr_p bximap_destroy(bximap_ctx_p *ctx) {
+
+    for (size_t i = 0; i < (*ctx)->next_error; i++) {
+        bxierr_p err = (*ctx)->tasks_error[i];
+        bxierr_destroy(&err);
+    }
     BXIFREE((*ctx)->tasks_error);
     BXIFREE(*ctx);
     return BXIERR_OK;
 }
 
 bxierr_p bximap_get_error(bximap_ctx_p context, size_t *n, bxierr_p **err_p) {
-    if(context == NULL) return BXIMAP_NO_CONTEXT;
-    if (n == NULL || err_p == NULL) return BXIMAP_NULL_PTR;
+    bxiassert(NULL != context);
+    bxiassert(NULL != n  && NULL != err_p);
+
     *n = context->next_error;
     if (*n != 0) *err_p = context->tasks_error;
     return BXIERR_OK;
@@ -188,10 +187,16 @@ bxierr_p bximap_get_error(bximap_ctx_p context, size_t *n, bxierr_p **err_p) {
 
 /* execute the work describe by the context */
 bxierr_p bximap_execute(bximap_ctx_p context){
-    if(context == NULL) return BXIMAP_NO_CONTEXT;
-    if(shared_info.state != MAPPER_INITIALIZED) return BXIMAP_NOT_INITIALIZED;
+    bxiassert(NULL != context);
+
+    if (shared_info.state != MAPPER_INITIALIZED) {
+        return bxierr_simple(BXIMAP_NOT_INITIALIZED, NOT_INITIALIZED_MSG);
+    }
+
     if(shared_info.global_task != &last_task && shared_info.global_task != NULL){
-        return BXIMAP_RUNNING;
+        return bxierr_new(BXIMAP_RUNNING,
+                          NULL, NULL, NULL, NULL,
+                          RUNNING_MSG);
     }
 
     struct timespec mapping_time;
@@ -221,7 +226,7 @@ bxierr_p bximap_execute(bximap_ctx_p context){
     shared_info.global_task->next_error = 0;
 
     size_t remaining_work = (context->end - context->start) % granularity;
-    if ( remaining_work != 0 ) {
+    if (remaining_work != 0) {
         //With this granularity some work remain
         if (shared_info.nb_tasks % shared_info.nb_threads != 0){
             //Considering that each iteration takes the same time
@@ -383,7 +388,9 @@ bxierr_p bximap_execute(bximap_ctx_p context){
  *      the number of physical cpu will be used
  */
 bxierr_p bximap_init(size_t * nb_threads){
-    if (shared_info.state == MAPPER_INITIALIZED) return BXIMAP_INITIALIZE;
+    if (shared_info.state == MAPPER_INITIALIZED) {
+        return bxierr_simple(BXIMAP_INITIALIZE, INITIALIZE_MSG);
+    }
     size_t thr_nb = nb_threads == NULL ? 0 : *nb_threads;
 
     struct timespec creation_time;
@@ -480,7 +487,9 @@ bxierr_p bximap_init(size_t * nb_threads){
 
 /* clean properly the threads and liberate the memory */
 bxierr_p bximap_finalize(){
-    if(shared_info.state != MAPPER_INITIALIZED) return BXIMAP_NOT_INITIALIZED;
+    if(shared_info.state != MAPPER_INITIALIZED) {
+        return bxierr_simple(BXIMAP_NOT_INITIALIZED, NOT_INITIALIZED_MSG);
+    }
     struct timespec stop_time;
     bxierr_p err = BXIERR_OK;
     bxierr_p err2 = bxitime_get(CLOCK_MONOTONIC, &stop_time);
@@ -594,7 +603,7 @@ bxierr_p bximap_translate_cpumask(const char * cpus, bxivector_p * vcpus) {
         } else {
             if (cpu < 0) {
                 bxivector_destroy(vcpus, NULL);
-                return bxierr_new(BXIMAP_NEGATIVE_INTERGER, strdup(int_str),
+                return bxierr_new(BXIMAP_NEGATIVE_INTEGER, strdup(int_str),
                                   free, NULL, NULL, "Negative cpu number found %s",
                                   int_str);
             }
@@ -612,7 +621,9 @@ bxierr_p bximap_translate_cpumask(const char * cpus, bxivector_p * vcpus) {
 }
 
 bxierr_p bximap_set_cpumask(char * cpus) {
-    if (shared_info.state == MAPPER_INITIALIZED) return BXIMAP_INITIALIZE;
+    if (shared_info.state == MAPPER_INITIALIZED) {
+        return bxierr_simple(BXIMAP_INITIALIZE, INITIALIZE_MSG);
+    }
     if (cpus == NULL || strcmp(cpus, "") == 0) {
         if (vcpus != NULL) {
             bxivector_destroy(&vcpus, NULL);
@@ -650,7 +661,8 @@ bxierr_p bximap_set_cpumask(char * cpus) {
 
 void _mapper_parent_before_fork(void) {
     TRACE(MAPPER_LOGGER, "%s state:%d", __func__, shared_info.state);
-    if(  BXIMAP_NOT_INITIALIZED != bximap_finalize() ){
+    bxierr_p err = bximap_finalize();
+    if (BXIMAP_NOT_INITIALIZED != err->code) {
         shared_info.state = MAPPER_FORKED;
     }
 }

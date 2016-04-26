@@ -56,8 +56,37 @@
 // *********************************************************************************
 
 
-#define BXIMAP_NEGATIVE_INTERGER 560
-#define BXIMAP_INTERVAL_ERROR 560
+#define BXIMAP_NEGATIVE_INTEGER 36471317    // Leet speak of .EGATI.EI.T
+#define BXIMAP_INTERVAL_ERROR 173241322     // Leet speak of I.TER.ALERR
+
+/**
+ * The error code returned when the module has already been initialized.
+ */
+#define BXIMAP_INITIALIZE 1171413           // Leet speak of I.ITIA.I.E
+
+
+/**
+ * The error code returned when the module has not been initialized.
+ */
+#define BXIMAP_NOT_INITIALIZED 11714130     // Leet speak of I.ITIA.I.ED
+
+/**
+ * The error returned when a NULL context is provided as an argument.
+ */
+#define BXIMAP_NO_CONTEXT 9007387            // Leet speak of .O.O.TEXT
+                                             // Prefixed with a '9' so it does not
+                                             // start with a '0' (octal meaning!)
+
+/**
+ * The error returned when the module is already running.
+ */
+#define BXIMAP_RUNNING 216                   // Leet speak of R...1.G
+
+/**
+ * The error returned when some arguments are invalid.
+ */
+#define BXIMAP_ARG_ERROR 42632202           // Leet speak of ARGERROR
+
 
 // *********************************************************************************
 // ********************************** Types   **************************************
@@ -70,31 +99,7 @@ typedef struct bximap_ctx_s_t * bximap_ctx_p;
 // *********************************************************************************
 // ********************************** Global Variables *****************************
 // *********************************************************************************
-/**
- * The error returned when the module has not been initialized.
- */
-extern const bxierr_p BXIMAP_NOT_INITIALIZED;
 
-
-/**
- * The error returned when the module has already been initialized.
- */
-extern const bxierr_p BXIMAP_INITIALIZE;
-
-/**
- * The error returned when a NULL context is provided as an argument.
- */
-extern const bxierr_p BXIMAP_NO_CONTEXT;
-
-/**
- * The error returned when the module is already running.
- */
-extern const bxierr_p BXIMAP_RUNNING;
-
-/**
- * The error returned when some arguments are invalid.
- */
-extern const bxierr_p BXIMAP_ARG_ERROR;
 
 // *********************************************************************************
 // ********************************** Interface ************************************
