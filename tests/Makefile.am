@@ -1,5 +1,7 @@
 TESTS = unit_t
-check_PROGRAMS= unit_t
+
+inst_checkdir=$(docdir)/tests/
+inst_check_PROGRAMS= unit_t
 unit_t_CFLAGS =\
 			   -I$(top_srcdir)/packaged/include\
 			   -I$(top_srcdir)/packaged/src\

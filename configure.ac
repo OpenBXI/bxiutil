@@ -63,7 +63,7 @@ PC_PYTHON_CHECK_MODULE([cffi], [], [AC_MSG_ERROR(Module not found)])
 fi
 
 
-SUBPACKAGES="debuginfo doc"
+SUBPACKAGES="debuginfo doc tests devel"
 AC_SUBST([SUBPACKAGES])
 AC_BXIEXTRA_DIST="h2py.sh"
 AC_SUBST([AC_BXIEXTRA_DIST])
