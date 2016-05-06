@@ -196,7 +196,7 @@ def tasked(cmd, timeout=5, topo="", nodes="", no_remote=False):
 
 
 if "__main__" == __name__:
-    import posless as argparse
+    import bxi.base.posless as argparse
 
     PARSER = argparse.ArgumentParser()
     PARSER.add_argument("--timeout", "-t", default=5, type=int)
