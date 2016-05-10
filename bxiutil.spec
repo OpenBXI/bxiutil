@@ -86,11 +86,13 @@ Doxygen documentation of BXI utils functions
 
 %package devel
 Summary: Header files providing the bxiutil API
+Requires: %{name}
 %description devel
 Header files providing the bxiutil API
 
 %package tests
 Summary: Tests for the BXI util package 
+Requires: %{name}
 #TODO: Give a description (seen by rpm -qi) (No more than 80 characters)
 %description tests
 Tests for BXI util package
