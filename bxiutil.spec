@@ -73,6 +73,10 @@ Requires: zeromq
 Requires: bxibase >= 4.0.0
 BuildRequires: bxibase-devel >= 4.0.0
 BuildRequires: flex == 2.5.37
+BuildRequires: gcc
+buildRequires: gcc-c++
+BuildRequires: net-snmp-devel
+BuildRequires: CUnit-devel
 
 #TODO: Give a description (seen by rpm -qi) (No more than 80 characters)
 %description
@@ -124,6 +128,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{__make} install DESTDIR=$RPM_BUILD_ROOT  %{?mflags_install}
 mkdir -p $RPM_BUILD_ROOT/%{target_doc_dir}
 cp ChangeLog $RPM_BUILD_ROOT/%{target_doc_dir}
+rm -f $RPM_BUILD_ROOT/%{target_lib_dir}/lib*.la
 
 
 %post
