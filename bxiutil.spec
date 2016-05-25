@@ -70,8 +70,8 @@ Provides: %{name}
 BuildRequires: zeromq-devel
 Requires: zeromq
 
-Requires: bxibase >= 4.0.0
-BuildRequires: bxibase-devel >= 4.0.0
+Requires: bxibase >= 5.1.0
+BuildRequires: bxibase-devel >= 5.1.0
 BuildRequires: flex == 2.5.37
 BuildRequires: gcc
 buildRequires: gcc-c++
