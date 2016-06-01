@@ -278,7 +278,7 @@ def smart_display(header, data,
 
     @param justify: a list of alignement justifiers, one for each column.
         Values in the list should be a function f(s,w)->s such as
-        str.rjust, str.ljust and str.center. Default is str.ljust.
+        unicode.rjust, unicode.ljust and unicode.center. Default is str.ljust.
 
     @param columns_max: a {column_header: max} dictionnary that should be used
         for the display of the related column. If max is 0, it means
@@ -303,7 +303,7 @@ def smart_display(header, data,
     if justify is not None:
         assert len(justify) == len(header)
     else:
-        justify = ['left'] * len(header)
+        justify = [unicode.ljust] * len(header)
     if columns_max is None:
         columns_max = dict()
 
@@ -355,6 +355,7 @@ def smart_display(header, data,
            separateRows=False,
            max_widths=max_widths,
            filler_char=filler_char,
+           justify_functions=justify,
            output=output)
 
 
