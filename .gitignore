@@ -50,3 +50,9 @@
 
 # /tests/
 /tests/Makefile.in
+
+**/*.pyc
+
+
+**/*.pyo
+
