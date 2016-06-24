@@ -119,6 +119,27 @@ char * bximisc_readlink(const char * const linkname) {
     return targetname;
 }
 
+char * bximisc_abs_readlink(const char * const linkname) {
+    BXIASSERT(BXIMISC_LOGGER, NULL != linkname);
+
+    char * link = bximisc_readlink(linkname);
+    if (NULL == link) return link;
+    if ('/' == link[0]) return link;
+
+    // Relative path returned, try to compute the path from the linkname given.
+    char * found = strrchr(linkname, '/');
+    if (NULL == found) return link;
+
+    size_t dirname_len = (size_t) (found - linkname);
+    size_t link_len = strlen(link);
+    size_t len = dirname_len + ARRAYLEN("/") + link_len + 1; // NUL terminating byte
+    char * result = bximem_calloc(len * sizeof(*result));
+    memcpy(result, linkname, dirname_len);
+    result[dirname_len] = '/';
+    memcpy(result + dirname_len + 1, link, link_len);
+
+    return result;
+}
 
 char * bximisc_tuple_str(const size_t n,
                          const uint8_t * const tuple,

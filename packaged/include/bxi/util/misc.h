@@ -163,6 +163,18 @@ bxierr_p bximisc_get_filename(FILE * stream, char ** filename);
 char * bximisc_readlink(const char * link_name);
 
 /**
+ * Return the absolute path of the file the given link_name is pointing to.
+ *
+ * The returned string will have to be freed().
+ *
+ * @param link_name the name of the link
+ *
+ * @return the absolute path of the file the given `link_name` points to.
+ */
+char * bximisc_abs_readlink(const char * link_name);
+
+
+/**
  * Return a string representing the given tuple;
  *
  * Note: the tuple is read up to the endmark or until n values has been processed
