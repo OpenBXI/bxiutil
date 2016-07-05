@@ -142,7 +142,7 @@ def indent(rows,
         '''
         Trasform the given row item into a final string.
         @param item
-        @parammaxwidth
+        @param maxwidth
         @return
         @todo to be documented
         '''
