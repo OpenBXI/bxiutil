@@ -1,3 +1,4 @@
+if HAVE_TESTS
 TESTS = unit_t
 
 inst_checkdir=$(docdir)/tests/
@@ -49,3 +50,4 @@ DISTCLEANFILES=\
 			   unit_t.bxilog\
 			   report/${PACKAGE_NAME}-Results.xml\
 			   report/${PACKAGE_NAME}-Listing.xml
+endif

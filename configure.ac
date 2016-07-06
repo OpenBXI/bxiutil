@@ -53,6 +53,7 @@ AC_FUNC_ERROR_AT_LINE
 AC_FUNC_STRERROR_R
 AC_CHECK_FUNCS([gethostname memset mkdir pow strdup strtol])
 
+BXIDISABLE_TESTS
 BXIDISABLE_PYTHON
 if test "$ENABLE_PYTHON" == "yes"
 then
