@@ -9,7 +9,7 @@
 # Bull software starts with 1.1-Bull.1.0
 # For versionning policy, please see wiki:
 # http://intran0x.frec.bull.fr/projet/HPC/wiki_etudes/index.php/How_to_generate_RPM#Bull_rpm_NAMING_CONVENTION
-%define version 3.5.1
+%define version 3.6.0
 
 # Using the .snapshot suffix helps the SVN tagging process.
 # Please run <your_svn_checkout>/devtools/packaged/bin/auto_tag -m
@@ -61,17 +61,21 @@ Distribution:	Bull HPC
 #Vendor:         Bull
 License:        GPL
 BuildArch:	x86_64
-URL:	 	https://novahpc.frec.bull.fr
+URL:            https://novahpc.frec.bull.fr
 
 #TODO: What do you provide
 Provides: %{name}
+
 #Conflicts:
 #TODO: What do you require
+
+# BXI
+Requires: bxibase >= 5.1.1
+BuildRequires: bxibase-devel >= 5.1.1
+
+# External
 BuildRequires: zeromq-devel
 Requires: zeromq
-
-Requires: bxibase >= 5.1.0
-BuildRequires: bxibase-devel >= 5.1.0
 BuildRequires: flex == 2.5.37
 BuildRequires: gcc
 buildRequires: gcc-c++
@@ -95,7 +99,7 @@ Requires: %{name}
 Header files providing the bxiutil API
 
 %package tests
-Summary: Tests for the BXI util package 
+Summary: Tests for the BXI util package
 Requires: %{name}
 #TODO: Give a description (seen by rpm -qi) (No more than 80 characters)
 %description tests
@@ -180,4 +184,3 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 ## Do not add anything after the following line!
 ##################################################
 %changelog
-
