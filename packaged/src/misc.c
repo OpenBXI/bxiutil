@@ -592,6 +592,7 @@ bxierr_p bximisc_file_map(const char * filename,
     int file = -1;
     errno = 0;
     char * init_file_addr = NULL;
+    bxierr_p err = BXIERR_OK, err2;
     if (!link_onfile){
         init_file_addr = mmap(NULL, size, MMAP_PROT,
                               MAP_PRIVATE | MAP_ANONYMOUS, file, 0);
@@ -608,24 +609,34 @@ bxierr_p bximisc_file_map(const char * filename,
             init_file_addr = mmap(NULL, size, MMAP_PROT,
                                   MAP_PRIVATE, file, 0);
         } else {
-            bxierr_p err = _create_writable_file(filename, size, &file);
+            err2 = _create_writable_file(filename, size, &file);
+            BXIERR_CHAIN(err, err2);
+
             if (bxierr_isko(err)) return err;
             errno = 0;
             init_file_addr = mmap(NULL, size, MMAP_PROT,
                                   MAP_SHARED, file, 0);
+
+            if (-1 == fchmod(file, S_IRUSR | S_IRGRP | S_IROTH)) {
+                err2 = bxierr_errno("An error occured while changing access mode of %s.", filename);
+                BXIERR_CHAIN(err, err2);
+            }
+
         }
         if (-1 == close(file)) {
-            bxierr_p bxierr = bxierr_errno("An error occured while closing %s.", filename);
+            err2 = bxierr_errno("An error occured while closing %s.", filename);
+            BXIERR_CHAIN(err, err2);
             int * file_p = bximem_calloc(sizeof(*file_p));
             *file_p = file;
-            bxierr = bxierr_new(BXIMISC_FILE_CLOSE_ERROR, file_p, free, NULL, bxierr,
-                                "An error occured while closing %s.", filename);
+            err2 = bxierr_new(BXIMISC_FILE_CLOSE_ERROR, file_p, free, NULL, NULL,
+                              "An error occured while closing %s.", filename);
+            BXIERR_CHAIN(err, err2);
             if(init_file_addr != NULL && -1 == munmap(init_file_addr, size)) {
                 bxierr_p err2 = bxierr_errno("An error occured while unmapping %s.",
                                              filename);
-                BXIERR_CHAIN(bxierr, err2);
+                BXIERR_CHAIN(err, err2);
             }
-            return bxierr;
+            return err;
         }
     }
 

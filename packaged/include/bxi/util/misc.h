@@ -319,6 +319,8 @@ void bximisc_stats(size_t n, uint32_t *data, bximisc_stats_s * stats_p);
  * @param[out] addr address of the mapped memory
  *
  * @return BXIERR_OK on success, anything else on error
+ * @note When creating the file the write
+ *       rights is removed after mapping the file.
  */
 bxierr_p bximisc_file_map(const char * filename,
                           size_t size,
