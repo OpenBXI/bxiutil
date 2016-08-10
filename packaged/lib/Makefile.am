@@ -18,7 +18,8 @@ nobase_nodist_python_PYTHON=\
 
 nobase_python_PYTHON=\
 							bxi/util/nodeset.py\
-							bxi/util/task.py
+							bxi/util/task.py\
+							bxi/util/interface.py
 
 #File present inside build and source folder should be install with a special rule
 bxiutildir=$(pythondir)/bxi/util
