@@ -101,7 +101,7 @@ void bxirng_destroy(bxirng_p * rng_p) {
 
 /*
  * Thread safe random generator. Return a number in the interval
- * [start, end]. Note that 'start' and 'end' are included.
+ * [start, end[. Note that 'start' is included and 'end' is excluded.
  */
 uint32_t bxirng_nextint(bxirng_p self, uint32_t start, uint32_t end) {
     BXIASSERT(BXIRNG_LOGGER, start < end);

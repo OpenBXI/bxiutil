@@ -95,7 +95,7 @@ void bxirng_destroy(bxirng_p * self_p);
  * @param start the start interval
  * @param end the end interval
  *
- * @return a number in the interval [`start`, `end`]
+ * @return a number in the interval [`start`, `end`[
  *
  * @see bxirng_nextint_tsd()
  */
@@ -148,7 +148,7 @@ void bxirng_select(bxirng_p self, uint8_t n, uint8_t p, uint8_t *result);
  * @param start the beginning of the interval
  * @param end the end of the interval
  *
- * @return a pseudo-random number in the interval [`start`, `end`]
+ * @return a pseudo-random number in the interval [`start`, `end`[
  *
  * @see bxirng_nextint()
  */
