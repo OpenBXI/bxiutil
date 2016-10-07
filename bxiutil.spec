@@ -59,7 +59,7 @@ Distribution:	Bull HPC
 
 # Automatically filled in by PDP: it should not appear therefore!
 #Vendor:         Bull
-License:        GPL
+License:        'Bull S.A.S. proprietary : All rights reserved'
 BuildArch:	x86_64
 URL:            https://novahpc.frec.bull.fr
 
@@ -70,8 +70,8 @@ Provides: %{name}
 #TODO: What do you require
 
 # BXI
-Requires: bxibase >= 5.1.1
-BuildRequires: bxibase-devel >= 5.1.1
+Requires: bxibase >= 5.2.1
+BuildRequires: bxibase-devel >= 5.2.1
 
 # External
 BuildRequires: zeromq-devel
