@@ -44,12 +44,6 @@ REMOVE_UNSPECIFIED_COLUMNS = -1
 # Use by replace_if_none
 NONE_VALUE = unicode(None)
 
-_NON_PRINTABLE_CHAR = set([chr(i) for i in range(256)]).difference(string.printable)
-_NON_PRINTABLE_STR = "".join(x for x in _NON_PRINTABLE_CHAR)
-_NON_PRINTABLE_SUB = "."*len(_NON_PRINTABLE_STR)
-BLOB2STR_TRANSLATE_TABLE = string.maketrans(_NON_PRINTABLE_STR, _NON_PRINTABLE_SUB)
-
-
 def get_capi():
     """
     Return the CFFI wrapped C library.
@@ -57,10 +51,6 @@ def get_capi():
     @return the CFFI wrapped C library.
     """
     return __CAPI__
-
-
-def blob2str(blob):
-    return blob.translate(BLOB2STR_TRANSLATE_TABLE)
 
 
 class Map(object):
