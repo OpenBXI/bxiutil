@@ -70,15 +70,15 @@ URL:            https://novahpc.frec.bull.fr
 Provides: %{name}
 
 #Conflicts:
-#TODO: What do you require
 
 # BXI
-Requires: bxibase >= 5.2.1
 BuildRequires: bxibase-devel >= 5.2.1
+#Requires: bxibase >= 5.2.1
 
 # External
-BuildRequires: zeromq-devel
 Requires: zeromq
+
+BuildRequires: zeromq-devel
 BuildRequires: flex == 2.5.37
 BuildRequires: gcc
 buildRequires: gcc-c++
