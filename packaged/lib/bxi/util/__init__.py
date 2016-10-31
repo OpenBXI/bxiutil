@@ -44,6 +44,7 @@ REMOVE_UNSPECIFIED_COLUMNS = -1
 # Use by replace_if_none
 NONE_VALUE = unicode(None)
 
+
 def get_capi():
     """
     Return the CFFI wrapped C library.
