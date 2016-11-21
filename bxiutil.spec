@@ -9,7 +9,7 @@
 # Bull software starts with 1.1-Bull.1.0
 # For versionning policy, please see wiki:
 # http://intran0x.frec.bull.fr/projet/HPC/wiki_etudes/index.php/How_to_generate_RPM#Bull_rpm_NAMING_CONVENTION
-%define version 3.7.1
+%define version 3.8.0
 
 # Using the .snapshot suffix helps the SVN tagging process.
 # Please run <your_svn_checkout>/devtools/packaged/bin/auto_tag -m
@@ -72,7 +72,7 @@ Provides: %{name}
 #Conflicts:
 
 # BXI
-BuildRequires: bxibase-devel >= 5.2.1
+BuildRequires: bxibase-devel >= 6.0.0
 #Requires: bxibase >= 5.2.1
 
 # External
