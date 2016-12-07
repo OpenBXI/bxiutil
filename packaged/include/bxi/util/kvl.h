@@ -105,6 +105,22 @@
         typedef void* yyscan_t;
     #endif
 
+#ifndef YYTOKENTYPE
+#define YYTOKENTYPE
+   /**
+    * Tokens symbols table, so that GDB and other debuggers
+    * know about them.
+    */
+   enum yytokentype {
+     PREFIX = 258,
+     KEY = 259,
+     NUM = 260,
+     STR = 261,
+     TUPLE = 262,
+     END_OF_FILE = 264
+   };
+#endif
+
 #ifndef YY_TYPEDEF_YY_EXTRA_T
     #define YY_TYPEDEF_YY_EXTRA_T
         /**
@@ -122,22 +138,6 @@
             enum yytokentype (*kw_lookup)(char *token_buffer);
         } yyextra_data_s;
     #endif
-
-#ifndef YYTOKENTYPE
-#define YYTOKENTYPE
-   /**
-    * Tokens symbols table, so that GDB and other debuggers
-    * know about them.
-    */
-   enum yytokentype {
-     PREFIX = 258,
-     KEY = 259,
-     NUM = 260,
-     STR = 261,
-     TUPLE = 262,
-     END_OF_FILE = 264
-   };
-#endif
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 # define YYSTYPE_IS_DECLARED 1
