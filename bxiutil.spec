@@ -43,6 +43,10 @@ Prefix: /usr
 %define target_python_lib_dir %{python2_sitearch}
 %define target_man_dir %{_mandir}
 %define target_doc_dir /usr/share/doc/%{name}
+%define src_tagfiles_prefix %{?tagfiles_prefix}%{?!tagfiles_prefix:/usr/share/doc}
+%define src_tagfiles_suffix %{?tagfiles_suffix}%{?!tagfiles_suffix:%{version}/doxygen.tag}
+%define target_htmldirs_prefix ../
+%define target_htmldirs_suffix /
 
 # TODO: Give your summary
 Summary:	The bxiutil provides all functions and objects that are used by BXI objects
@@ -63,7 +67,7 @@ Distribution:	Bull HPC
 # Automatically filled in by PDP: it should not appear therefore!
 #Vendor:         Bull
 License:        'Bull S.A.S. proprietary : All rights reserved'
-BuildArch:	x86_64
+BuildArch:      x86_64
 URL:            https://novahpc.frec.bull.fr
 
 #TODO: What do you provide
@@ -91,6 +95,9 @@ BXI utils functions
 
 %package doc
 Summary: Documentation of BXI utils functions
+BuildRequires: bxibase-doc
+Requires: bxibase-doc
+BuildRequires: %{name}
 #TODO: Give a description (seen by rpm -qi) (No more than 80 characters)
 %description doc
 Doxygen documentation of BXI utils functions
@@ -128,7 +135,12 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 #%posttrans new
 %build
 #autoreconf -i
-%configure --disable-debug %{?checkdoc}
+%configure --disable-debug %{?checkdoc} \
+    --with-tagfiles-prefix=%{src_tagfiles_prefix} \
+    --with-tagfiles-suffix=%{src_tagfiles_suffix} \
+    --with-htmldirs-prefix=%{target_htmldirs_prefix} \
+    --with-htmldirs-suffix=%{target_htmldirs_suffix}
+
 %{__make}
 
 %install
@@ -140,7 +152,23 @@ rm -f $RPM_BUILD_ROOT/%{target_lib_dir}/lib*.la
 
 %post
 
+%post doc
+rm -f %{target_doc_dir}/last
+ln -s $( \
+        ls %{target_doc_dir} | \
+            grep '^[0-9]\+[0-9.]*[0-9]\+$' | \
+            sort | tail -n1 \
+    ) %{target_doc_dir}/last
+
 %postun
+
+%postun doc
+rm -f %{target_doc_dir}/last
+ln -s $( \
+        ls %{target_doc_dir} | \
+            grep '^[0-9]\+[0-9.]*[0-9]\+$' | \
+            sort | tail -n1 \
+    ) %{target_doc_dir}/last
 
 %preun
 
