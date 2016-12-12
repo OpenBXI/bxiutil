@@ -46,7 +46,7 @@ Prefix: /usr
 %define src_tagfiles_prefix %{?tagfiles_prefix}%{?!tagfiles_prefix:/usr/share/doc}
 %define src_tagfiles_suffix %{?tagfiles_suffix}%{?!tagfiles_suffix:%{version}/doxygen.tag}
 %define target_htmldirs_prefix ../
-%define target_htmldirs_suffix /
+%define target_htmldirs_suffix /last/
 
 # TODO: Give your summary
 Summary:	The bxiutil provides all functions and objects that are used by BXI objects
