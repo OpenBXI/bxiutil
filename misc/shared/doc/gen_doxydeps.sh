@@ -115,4 +115,3 @@ do
     echo "TAGFILES += \"$TAGFILE \\" >> "$DOXYCONF"
     echo "           = $HTMLDIR\""   >> "$DOXYCONF"
 done
-
