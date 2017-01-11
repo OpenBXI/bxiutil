@@ -99,8 +99,7 @@ BXI utils functions
 Summary: Documentation of BXI utils functions
 BuildRequires: bxibase-doc
 Requires: bxibase-doc
-BuildRequires: %{name}
-#TODO: Give a description (seen by rpm -qi) (No more than 80 characters)
+
 %description doc
 Doxygen documentation of BXI utils functions
 
@@ -113,7 +112,7 @@ Header files providing the bxiutil API
 %package tests
 Summary: Tests for the BXI util package
 Requires: %{name}
-#TODO: Give a description (seen by rpm -qi) (No more than 80 characters)
+
 %description tests
 Tests for BXI util package
 
