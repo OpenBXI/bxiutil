@@ -91,7 +91,7 @@ buildRequires: gcc-c++
 BuildRequires: net-snmp-devel
 BuildRequires: CUnit-devel
 
-#TODO: Give a description (seen by rpm -qi) (No more than 80 characters)
+# Description (seen by rpm -qi) (No more than 80 characters)
 %description
 BXI utils functions
 
@@ -100,12 +100,14 @@ Summary: Documentation of BXI utils functions
 BuildRequires: bxibase-doc
 Requires: bxibase-doc
 
+# Description (seen by rpm -qi) (No more than 80 characters)
 %description doc
 Doxygen documentation of BXI utils functions
 
 %package devel
 Summary: Header files providing the bxiutil API
 Requires: %{name}
+# Description (seen by rpm -qi) (No more than 80 characters)
 %description devel
 Header files providing the bxiutil API
 
@@ -113,6 +115,7 @@ Header files providing the bxiutil API
 Summary: Tests for the BXI util package
 Requires: %{name}
 
+# Description (seen by rpm -qi) (No more than 80 characters)
 %description tests
 Tests for BXI util package
 
