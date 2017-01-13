@@ -56,7 +56,6 @@ SET_LOGGER(_LOGGER, KVL_LOG_NAME"_lexer");
 %option warn nodefault
 
     /* Enforce default options */
-%option ansi-definitions ansi-prototypes
 %option pointer
 
     /* Use a "pure" scanner: without any global var */

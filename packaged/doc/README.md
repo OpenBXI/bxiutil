@@ -1,12 +1,13 @@
-BXI Util                                   {#index}
+BXI Util  {#mainpage}
 =====================
 
 [TOC]
 
-BXI Util Library for C Language                    {#BXIUtil4C}
-================================
+BXI Util Library for C Language  {#BXIUtil4C}
+===============================
 
-## Overview ##                                           {#Overview_c}
+Overview  {#Overview-c}
+--------
 
 The BXI Util Library provides various standalone utilities for BXI products.
 It provides the following plain C modules:
@@ -17,4 +18,3 @@ It provides the following plain C modules:
 - kvl.h: a key/value lexer
 - stretch.h: a dynamic array of data structures supporting resizing
 - misc.h: various functions.
-
