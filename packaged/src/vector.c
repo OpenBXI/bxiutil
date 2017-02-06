@@ -81,28 +81,23 @@ bxierr_p bxivector_apply(bxivector_p vector,
 
     BXIASSERT(BXIVECTOR_LOGGER, NULL != vector);
     BXIASSERT(BXIVECTOR_LOGGER, NULL != func);
+    bxierr_list_p list = bxierr_list_new();
     size_t n = bxivector_get_size(vector);
-    bxierr_p * errors = NULL;
-    size_t err_nb = 0;
+
     for (size_t i = 0; i < n; i++) {
         bxierr_p err = func(bxivector_get_elem(vector, i), data_cb);
         if (bxierr_isko(err)) {
-            // First error, allocate the errors array
-            if (NULL == errors) {
-                errors = bximem_calloc(n*sizeof(*errors));
-            }
-            errors[i] = err;
-            err_nb++;
+            bxierr_list_append(list, err);
         }
     }
 
-    return 0 == err_nb ? BXIERR_OK : bxierr_new(BXIVECTOR_APPLY_ERR,
-                                                errors,
-                                                free,
-                                                NULL ,
-                                                NULL,
-                                                "Errors found in apply(): %zu/%zu",
-                                                err_nb, n);
+    if (0 == list->errors_nb) {
+        return BXIERR_OK;
+    } else {
+        return bxierr_from_list(BXIVECTOR_APPLY_ERR, list,
+                                "Errors found in apply(): %zu/%zu",
+                                list->errors_nb, n);
+    }
 }
 
 /*
