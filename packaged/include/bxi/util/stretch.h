@@ -24,7 +24,7 @@
  * @file    stretch.h
  * @brief   Extensible array of data structures.
  *
- * This struct has been develloped to have an Extensible array
+ * This struct has been developed to have an Extensible array
  * but the address element won't changed.
  * The aim is to keep pointer on elements and never changed
  * this even if elements are added.
