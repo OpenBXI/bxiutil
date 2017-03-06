@@ -92,6 +92,7 @@ bxierr_p bxivector_apply(bxivector_p vector,
     }
 
     if (0 == list->errors_nb) {
+        bxierr_list_free(list);
         return BXIERR_OK;
     } else {
         return bxierr_from_list(BXIVECTOR_APPLY_ERR, list,
