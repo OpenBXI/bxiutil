@@ -39,13 +39,16 @@
  * @brief   Miscellaneous but useful functions.
  *
  * For bitarray manipulation
- * To declare an ``array'' of 47 bits:
+ * To declare an all-zero ``array'' of 47 bits:
  *
- *      char bitarray[BITNSLOTS(47)];
+ *      char bitarray[BITNSLOTS(47)] = {0};
+ *      // or
+ *      char * bitarray = bximem_calloc(BITNSLOTS(47));
  *
- * To set the 23rd bit:
+ * To set/unset the 23rd bit:
  *
  *      BITSET(bitarray, 23);
+ *      BITCLEAR(bitarray, 23);
  *
  * To test the 35th bit:
  *
