@@ -11,7 +11,7 @@
 ###############################################################################
 */
 //#define ZMQ
-#define FADD
+//#define FADD
 #define _GNU_SOURCE
 #include <sched.h>
 
@@ -19,6 +19,7 @@
 #include <unistd.h> //sysconf
 #include <pthread.h>
 #include <math.h>
+#include <errno.h>
 #include <bxi/base/log.h>
 
 
@@ -76,6 +77,7 @@ typedef struct{
     size_t          nb_tasks;
     size_t          ended;
     pthread_t   *   threads_id;
+    size_t *        threads_args;
     _state_mapper   state;
 #ifndef ZMQ
     size_t          next_task;
@@ -93,9 +95,10 @@ typedef struct{
 static void _mapper_parent_before_fork(void);
 static void _mapper_parent_after_fork(void);
 static void _mapper_once(void);
-bxierr_p _do_job(bximap_ctx_p task, size_t thread_id);
-void * _start_function(void* arg);
-bxierr_p _fill_vector_with_cpu(intptr_t first_cpu, intptr_t last_cpu, bxivector_p vcpu);
+static bxierr_p _do_job(bximap_ctx_p task, size_t thread_id);
+static void * _start_function(void* arg);
+static bxierr_p _fill_vector_with_cpu(intptr_t first_cpu, intptr_t last_cpu,
+                                      bxivector_p vcpu);
 
 // *********************************************************************************
 // ********************************** Global Variables *****************************
@@ -187,6 +190,8 @@ bxierr_p bximap_get_error(bximap_ctx_p context, size_t *n, bxierr_p **err_p) {
 
 /* execute the work describe by the context */
 bxierr_p bximap_execute(bximap_ctx_p context){
+    int rc = 0;
+    UNUSED(rc);
     bxiassert(NULL != context);
 
     if (shared_info.state != MAPPER_INITIALIZED) {
@@ -203,6 +208,7 @@ bxierr_p bximap_execute(bximap_ctx_p context){
     bxitime_get(CLOCK_MONOTONIC, &mapping_time);
     double running_duration = 0, mapping_duration, tmp;
     UNUSED(running_duration);
+    UNUSED(tmp);
 
     // split the work between the threads.
     shared_info.global_task = context;
@@ -283,12 +289,36 @@ bxierr_p bximap_execute(bximap_ctx_p context){
     shared_info.ended  = 0;
 #ifdef FADD
     //start the task with all the threads
-    pthread_mutex_lock(&cond_mutex);
-    pthread_cond_broadcast(&wait_work);
-    pthread_mutex_unlock(&cond_mutex);
+    bxierr_p perr = BXIERR_OK;
+    rc = 0;
+    errno = 0;
+    rc = pthread_mutex_lock(&cond_mutex);
+    if (0 != rc) {
+        perr = bxierr_errno("Error on pthread mutex lock");
+        BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, perr, "Error");
+    }
+    errno = 0;
+    rc = pthread_cond_broadcast(&wait_work);
+    if (0 != rc) {
+        perr = bxierr_errno("Error on pthread cond broadcast");
+        BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, perr, "Error");
+    }
+    errno = 0;
+    rc = pthread_mutex_unlock(&cond_mutex);
+    if (0 != rc) {
+        perr = bxierr_errno("Error on pthread mutex unlock");
+        BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, perr, "Error");
+    }
 #else
     __sync_synchronize();
-    pthread_barrier_wait(&barrier);
+    errno = 0;
+    PANIC(MAPPER_LOGGER, "Enter barrier")
+    rc = pthread_barrier_wait(&barrier);
+    PANIC(MAPPER_LOGGER, "Leave barrier")
+    if (0 != rc && PTHREAD_BARRIER_SERIAL_THREAD != rc) {
+        bxierr_p perr = bxierr_errno("Error on pthread barrier wait");
+        BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, perr, "Error");
+    }
 #endif
 
     size_t nb_iterations = 0;
@@ -328,12 +358,19 @@ bxierr_p bximap_execute(bximap_ctx_p context){
          (size_t)0, running_duration, nb_iterations);
 
 #ifdef FADD
-    while(shared_info.ended < shared_info.nb_threads - 1){
+    while(shared_info.ended < shared_info.nb_threads - 1) {
         __sync_synchronize();
     }
-    __sync_synchronize();
 #else
-    pthread_barrier_wait(&barrier);
+    __sync_synchronize();
+    errno = 0;
+    PANIC(MAPPER_LOGGER, "Enter barrier")
+    rc = pthread_barrier_wait(&barrier);
+    PANIC(MAPPER_LOGGER, "Leave barrier")
+    if (0 != rc && PTHREAD_BARRIER_SERIAL_THREAD != rc) {
+        err2 = bxierr_errno("Error on pthread barrier wait");
+        BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err2, "Error");
+    }
 #endif
 #else
 
@@ -341,7 +378,7 @@ bxierr_p bximap_execute(bximap_ctx_p context){
     double sending_duration, receiving_duration;
     bxierr_p err = bxitime_get(CLOCK_MONOTONIC, &sending_time);
     for(size_t i = 0; i < shared_info.nb_tasks; i++){
-        bxierr_p err2 = bxizmq_snd_data_zc(&shared_info.tasks[i],
+        bxierr_p err2 = bxizmq_data_snd_zc(&shared_info.tasks[i],
                                            sizeof(shared_info.tasks[i]),
                                            shared_info.zocket_tasks, 0, 10, 10000,
                                            NULL, NULL);
@@ -354,17 +391,21 @@ bxierr_p bximap_execute(bximap_ctx_p context){
     err2 = bxitime_get(CLOCK_MONOTONIC, &receiving_time);
     BXIERR_CHAIN(err, err2);
     for(size_t i = 0; i < shared_info.nb_tasks; i++){
-        void * task_err = BXIERR_OK;
-        err2 = bxizmq_rcv_data(&task_err, 0, shared_info.zocket_result, 0, false);
+        bxierr_p task_err = NULL;
+        bxierr_p * task_err_p = &task_err;
+        size_t received_size = 0;
+        err2 = bxizmq_data_rcv((void **)&task_err_p, sizeof(task_err), shared_info.zocket_result, 0, false,
+                               &received_size);
         BXIERR_CHAIN(err, err2);
         if (bxierr_isko(task_err)) {
-            size_t next_error = shared_info.next_error++;
+            size_t next_error = shared_info.global_task->next_error++;
+
             shared_info.global_task->tasks_error[next_error] = task_err;
         }
     }
-    err2 = bximisc_get_duration_from(CLOCK_MONOTONIC,
-                                     receiving_time,
-                                     &receiving_duration);
+    err2 = bxitime_duration(CLOCK_MONOTONIC,
+                            receiving_time,
+                            &receiving_duration);
     BXIERR_CHAIN(err, err2);
     INFO(MAPPER_LOGGER,
          "Timing ZMQ send %f seconds, recv %f seconds",
@@ -429,34 +470,73 @@ bxierr_p bximap_init(size_t * nb_threads){
     if (nb_threads != NULL) *nb_threads = thr_nb;
     INFO(MAPPER_LOGGER, "Mapper initialized %zu threads", thr_nb);
 
-    size_t * threads_args  = bximem_calloc(thr_nb * sizeof(*threads_args));
+    shared_info.threads_args  = bximem_calloc(thr_nb * sizeof(*shared_info.threads_args));
 
     shared_info.threads_id  = bximem_calloc(thr_nb* sizeof(*shared_info.threads_id));
     shared_info.nb_threads = thr_nb;
     shared_info.ended  = 0;
     size_t first = 0;
+    int rc = 0;
 
 #ifndef ZMQ
     first++;
     //condition use between to set of task to avoid keep the thread wake up
 #ifdef FADD
-    pthread_mutex_init(&cond_mutex, NULL);
-    pthread_cond_init (&wait_work, NULL);
+    rc = 0;
+    errno = 0;
+    rc = pthread_mutex_init(&cond_mutex, NULL);
+    if (0 != rc) {
+        err2 = bxierr_errno("Error on pthread mutex init");
+        BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err2, "Error");
+    }
+    errno = 0;
+    rc = pthread_cond_init(&wait_work, NULL);
+    if (0 != rc) {
+        err2 = bxierr_errno("Error on pthread cond init");
+        BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err2, "Error");
+    }
 #else
-    pthread_barrier_init(&barrier, NULL, (unsigned int) thr_nb);
+    errno = 0;
+    rc = pthread_barrier_init(&barrier, NULL, (unsigned int) thr_nb);
+    if (0 != rc) {
+        err2 = bxierr_errno("Error on pthread barrier init");
+        BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err2, "Error");
+    }
 #endif
 #else
     TRACE(MAPPER_LOGGER, "Master start zmq");
-    pthread_barrier_init(&zmq_barrier, NULL, (unsigned) (thr_nb + 1));
-    shared_info.context = zmq_ctx_new();
-    shared_info.zocket_pub = bxizmq_zsocket_new_checked(shared_info.context,ZMQ_PUB, MAP_PUB_ZMQ_URL, true, false, 0 , 0, 0);
-    shared_info.zocket_tasks = bxizmq_zsocket_new_checked(shared_info.context,ZMQ_PUSH, MAP_TASK_ZMQ_URL, true, false, 0 , 0, 0);
-    shared_info.zocket_result = bxizmq_zsocket_new_checked(shared_info.context,ZMQ_PULL, MAP_RESULT_ZMQ_URL, true, false, 0 , 0, 0);
+    errno = 0;
+    rc = pthread_barrier_init(&zmq_barrier, NULL, (unsigned) (thr_nb + 1));
+    if (0 != rc) {
+        err2 = bxierr_errno("Error on pthread barrier init");
+        BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err2, "Error");
+    }
+    err2 = bxizmq_context_new(&shared_info.context);
+    shared_info.zocket_pub = NULL;
+    shared_info.zocket_tasks = NULL;
+    shared_info.zocket_result = NULL;
+    BXIERR_CHAIN(err, err2);
+    err2 = bxizmq_zocket_bind(shared_info.context, ZMQ_PUB, MAP_PUB_ZMQ_URL,
+                              NULL, &shared_info.zocket_pub);
+    BXIERR_CHAIN(err, err2);
+    err2 = bxizmq_zocket_bind(shared_info.context, ZMQ_PUSH, MAP_TASK_ZMQ_URL,
+                              NULL, &shared_info.zocket_tasks);
+    BXIERR_CHAIN(err, err2);
+    err2 = bxizmq_zocket_bind(shared_info.context, ZMQ_PULL, MAP_RESULT_ZMQ_URL,
+                              NULL, &shared_info.zocket_result);
+    BXIERR_CHAIN(err, err2);
 #endif
 
     for(size_t i = first; i < shared_info.nb_threads; i++){
-        threads_args[i] = i;
-        pthread_create(&shared_info.threads_id[i], NULL, &_start_function, &threads_args[i]);
+        shared_info.threads_args[i] = i;
+
+        errno = 0;
+        int rc = pthread_create(&shared_info.threads_id[i], NULL,
+                                &_start_function, &shared_info.threads_args[i]);
+        if (0 != rc) {
+            err2 = bxierr_errno("Error on pthread create");
+            BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err2, "Error");
+        }
         TRACE(MAPPER_LOGGER, "Creation of one thread:%zu", i);
     }
 
@@ -465,13 +545,27 @@ bxierr_p bximap_init(size_t * nb_threads){
     while(shared_info.ended < thr_nb - 1) __sync_synchronize();
 #else
     __sync_synchronize();
-    pthread_barrier_wait(&barrier);
+    errno = 0;
+    PANIC(MAPPER_LOGGER, "Enter barrier")
+    rc = pthread_barrier_wait(&barrier);
+    PANIC(MAPPER_LOGGER, "Leave barrier")
+    if (0 != rc && PTHREAD_BARRIER_SERIAL_THREAD != rc) {
+        err2 = bxierr_errno("Error on pthread barrier wait");
+        BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err2, "Error");
+    }
 #endif
 #else
-    pthread_barrier_wait(&zmq_barrier);
+    errno = 0;
+    PANIC(MAPPER_LOGGER, "Enter barrier")
+    rc = pthread_barrier_wait(&zmq_barrier);
+    PANIC(MAPPER_LOGGER, "Leave barrier")
+    if (0 != rc && PTHREAD_BARRIER_SERIAL_THREAD != rc) {
+        err2 = bxierr_errno("Error on pthread barrier wait");
+        BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err2, "Error");
+    }
 #endif
 
-    int rc = pthread_once( &mapper_once_control , _mapper_once);
+    rc = pthread_once( &mapper_once_control , _mapper_once);
     BXIASSERT(MAPPER_LOGGER, rc == 0);
     TRACE(MAPPER_LOGGER, "Initialization done.");
 
@@ -481,12 +575,12 @@ bxierr_p bximap_init(size_t * nb_threads){
     err2 = bxitime_duration(CLOCK_MONOTONIC, creation_time, &duration);
     BXIERR_CHAIN(err, err2);
     INFO(MAPPER_LOGGER, "Map initialization %f seconds", duration);
-    BXIFREE(threads_args);
     return err;
 }
 
 /* clean properly the threads and liberate the memory */
 bxierr_p bximap_finalize(){
+    int rc = 0;
     if(shared_info.state != MAPPER_INITIALIZED) {
         return bxierr_simple(BXIMAP_NOT_INITIALIZED, NOT_INITIALIZED_MSG);
     }
@@ -502,46 +596,101 @@ bxierr_p bximap_finalize(){
     first++;
 #ifdef FADD
     while(shared_info.ended < shared_info.nb_threads - 1) __sync_synchronize();
-    pthread_mutex_lock(&cond_mutex);
-    pthread_cond_broadcast(&wait_work);
-    pthread_mutex_unlock(&cond_mutex);
-    pthread_mutex_destroy(&cond_mutex);
-    pthread_cond_destroy(&wait_work);
+    rc = 0;
+    errno = 0;
+    rc = pthread_mutex_lock(&cond_mutex);
+    if (0 != rc) {
+        err2 = bxierr_errno("Error on pthread cond init");
+        BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err2, "Error");
+    }
+    errno = 0;
+    rc = pthread_cond_broadcast(&wait_work);
+    if (0 != rc) {
+        err2 = bxierr_errno("Error on pthread cond init");
+        BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err2, "Error");
+    }
+    errno = 0;
+    rc = pthread_mutex_unlock(&cond_mutex);
+    if (0 != rc) {
+        err2 = bxierr_errno("Error on pthread cond init");
+        BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err2, "Error");
+    }
+    errno = 0;
+    rc = pthread_mutex_destroy(&cond_mutex);
+    if (0 != rc) {
+        err2 = bxierr_errno("Error on pthread cond init");
+        BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err2, "Error");
+    }
+    errno = 0;
+    rc = pthread_cond_destroy(&wait_work);
+    if (0 != rc) {
+        err2 = bxierr_errno("Error on pthread cond init");
+        BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err2, "Error");
+    }
 #else
-    pthread_barrier_wait(&barrier);
-    pthread_barrier_destroy(&barrier);
+    errno = 0;
+    PANIC(MAPPER_LOGGER, "Enter barrier")
+    rc = pthread_barrier_wait(&barrier);
+    PANIC(MAPPER_LOGGER, "Leave barrier")
+    if (0 != rc && PTHREAD_BARRIER_SERIAL_THREAD != rc) {
+        err2 = bxierr_errno("Error on pthread barrier wait");
+        BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err2, "Error");
+    }
+    errno = 0;
+    rc = pthread_barrier_destroy(&barrier);
+    if (0 != rc) {
+        err2 = bxierr_errno("Error on pthread barrier destroy");
+        BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err2, "Error");
+    }
 #endif
 #else
     TRACE(MAPPER_LOGGER, "Master sends last task");
     for(size_t i = 0; i < shared_info.nb_threads; i++){
-        err2 = bxizmq_snd_data_zc(&last_task,  sizeof(last_task),
+        err2 = bxizmq_data_snd_zc(&last_task,  sizeof(last_task),
                                   shared_info.zocket_pub, 0, 10, 10000, NULL, NULL);
         BXIERR_CHAIN(err, err2);
     }
 #endif
 
-    //TODO join threads
     for(size_t i = first; i < shared_info.nb_threads; i++){
         void * retval;
         TRACE(MAPPER_LOGGER, "Master joins thread:%zu", i);
-        pthread_join(shared_info.threads_id[i], &retval);
-        TRACE(MAPPER_LOGGER, "thread:%zu return %ld", i, (long)retval);
+        errno = 0;
+        rc = pthread_join(shared_info.threads_id[i], &retval);
+        if (0 != rc) {
+            err2 = bxierr_errno("Error on pthread barrier destroy");
+            BXIERR_CHAIN(err, err2);
+        } else {
+            err2 = (bxierr_p)retval;
+
+            if (bxierr_isko(err2)) {
+                TRACE(MAPPER_LOGGER, "thread:%zu return BIXERR OK: %ld", i, (long)retval);
+            } else {
+                TRACE(MAPPER_LOGGER, "thread:%zu return error: %ld", i, (long)retval);
+            }
+            BXIERR_CHAIN(err, err2);
+        }
     }
 
     BXIFREE(shared_info.threads_id);
+    BXIFREE(shared_info.threads_args);
     shared_info.state = MAPPER_UNSET;
 
 #ifdef ZMQ
     TRACE(MAPPER_LOGGER, "Master cleans zmq");
-    err2 = bxizmq_zsocket_cleanup(shared_info.zocket_pub);
+    err2 = bxizmq_zocket_destroy(shared_info.zocket_pub);
     BXIERR_CHAIN(err, err2);
-    err2 = bxizmq_zsocket_cleanup(shared_info.zocket_tasks);
+    err2 = bxizmq_zocket_destroy(shared_info.zocket_tasks);
     BXIERR_CHAIN(err, err2);
-    err2 = bxizmq_zsocket_cleanup(shared_info.zocket_result);
+    err2 = bxizmq_zocket_destroy(shared_info.zocket_result);
     BXIERR_CHAIN(err, err2);
-    pthread_barrier_destroy(&zmq_barrier);
+    errno = 0;
+    rc = pthread_barrier_destroy(&zmq_barrier);
+    if (0 != rc) {
+        err2 = bxierr_errno("Error on pthread barrier destroy");
+        BXIERR_CHAIN(err, err2);
+    }
     TRACE(MAPPER_LOGGER, "Master destroy ctx");
-    int rc = 0;
     do{
         rc = zmq_ctx_destroy(shared_info.context);
     } while (rc == -1 && zmq_errno() == EINTR);
@@ -689,13 +838,14 @@ bxierr_p _do_job(bximap_ctx_p task, size_t thread_id){
     return err;
 }
 
-void * _start_function(void* arg){
+void * __start_function(void* arg){
     size_t thread_id = *(size_t*) arg;
     bximap_ctx_p current_task = NULL;
     bxierr_p err = BXIERR_OK, err2;
     struct timespec starting_time;
     double working_time = 0;
     size_t nb_iterations =0;
+    int rc = 0;
     TRACE(MAPPER_LOGGER, "thread:%zu start", thread_id);
     if (vcpus != NULL) {
         size_t nb_cpus = bxivector_get_size(vcpus);
@@ -709,23 +859,40 @@ void * _start_function(void* arg){
     }
 #ifdef ZMQ
     TRACE(MAPPER_LOGGER, "thread:%zu start zmq", thread_id);
-    void *  zocket_sub_end     = bxizmq_zsocket_new_checked(shared_info.context,
-                                                            ZMQ_SUB, MAP_PUB_ZMQ_URL,
-                                                            false, true, ZMQ_SUBSCRIBE, "", 0);
-    void *  zocket_pull_tasks  = bxizmq_zsocket_new_checked(shared_info.context,
-                                                            ZMQ_PULL, MAP_TASK_ZMQ_URL,
-                                                            false, false,
-                                                            0 , 0, 0);
-    void *  zocket_push_result = bxizmq_zsocket_new_checked(shared_info.context,
-                                                            ZMQ_PUSH, MAP_RESULT_ZMQ_URL,
-                                                            false, false,
-                                                            0 , 0, 0);
+    void *  zocket_sub_end = NULL;
+    err2 = bxizmq_zocket_connect(shared_info.context, ZMQ_SUB, MAP_PUB_ZMQ_URL,
+                                 &zocket_sub_end);
+    BXIERR_CHAIN(err, err2);
+    err2 = bxizmq_zocket_setopt(zocket_sub_end, ZMQ_SUBSCRIBE, "", 0);
+    BXIERR_CHAIN(err, err2);
+    void *  zocket_pull_tasks = NULL;
+    err2 = bxizmq_zocket_connect(shared_info.context, ZMQ_PULL, MAP_TASK_ZMQ_URL,
+                                 &zocket_pull_tasks);
+    BXIERR_CHAIN(err, err2);
+    void *  zocket_push_result = NULL;
+    err2 = bxizmq_zocket_connect(shared_info.context, ZMQ_PUSH, MAP_RESULT_ZMQ_URL,
+                                 &zocket_push_result);
+    BXIERR_CHAIN(err, err2);
     zmq_pollitem_t items [] = { {zocket_pull_tasks, 0, ZMQ_POLLIN, 0 },
         {zocket_sub_end, 0, ZMQ_POLLIN, 0 }};
-    pthread_barrier_wait(&zmq_barrier);
+    errno = 0;
+    PANIC(MAPPER_LOGGER, "Enter barrier")
+    rc = pthread_barrier_wait(&zmq_barrier);
+    PANIC(MAPPER_LOGGER, "Leave barrier")
+    if (0 != rc && PTHREAD_BARRIER_SERIAL_THREAD != rc) {
+        err = bxierr_errno("Error on pthread barrier wait");
+        BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err, "Error");
+    }
 #else
 #ifndef FADD
-    pthread_barrier_wait(&barrier);
+    errno = 0;
+    PANIC(MAPPER_LOGGER, "Enter barrier")
+    rc = pthread_barrier_wait(&barrier);
+    PANIC(MAPPER_LOGGER, "Leave barrier")
+    if (0 != rc && PTHREAD_BARRIER_SERIAL_THREAD != rc) {
+        err2 = bxierr_errno("Error on pthread barrier wait");
+        BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err2, "Error");
+    }
 #endif
 #endif
 
@@ -735,27 +902,48 @@ void * _start_function(void* arg){
 
 #ifndef ZMQ
 #ifdef FADD
-        pthread_mutex_lock(&cond_mutex);
+        errno = 0;
+        rc = pthread_mutex_lock(&cond_mutex);
+        if (0 != rc) {
+            err2 = bxierr_errno("Error on pthread mutex lock");
+            BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err2, "Error");
+        }
         shared_info.ended++;
-        pthread_cond_wait(&wait_work, &cond_mutex);
-        pthread_mutex_unlock(&cond_mutex);
+        __sync_synchronize();
+        errno = 0;
+        rc = pthread_cond_wait(&wait_work, &cond_mutex);
+        if (0 != rc) {
+            err2 = bxierr_errno("Error on pthread cond wait");
+            BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err2, "Error");
+        }
+        errno = 0;
+        rc = pthread_mutex_unlock(&cond_mutex);
+        if (0 != rc) {
+            err2 = bxierr_errno("Error on pthread mutex unlock");
+            BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err2, "Error");
+        }
 #else
-        pthread_barrier_wait(&barrier);
+        errno = 0;
+        PANIC(MAPPER_LOGGER, "Enter barrier")
+        rc = pthread_barrier_wait(&barrier);
+        PANIC(MAPPER_LOGGER, "Leave barrier")
+        if (0 != rc && PTHREAD_BARRIER_SERIAL_THREAD != rc) {
+            err2 = bxierr_errno("Error on pthread barrier wait");
+            BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err2, "Error");
+        }
 #endif
 #else
         int rc = zmq_poll(items, 2, -1); // -1 -> wait infinitely
         if (rc == -1) {
             if(zmq_errno() == EINTR) continue;
-            BXIEXIT(EXIT_FAILURE, errno, MAPPER_LOGGER, BXILOG_ERROR,
-                    true, "Calling zmq_poll failed.");
+            return bxierr_errno("Calling zmq_poll failed.");
         }
         if (items [0].revents & ZMQ_POLLIN) {
             zmq_msg_t zmsg;
             errno = 0;
             int rc = zmq_msg_init(&zmsg);
             if (rc == -1) {
-                BXIEXIT(EXIT_FAILURE, errno, MAPPER_LOGGER, BXILOG_CRITICAL, true,
-                        "Calling zmq_msg_init() failed.");
+                return bxierr_errno("Calling zmq_msg_init() failed.");
             }
 
             rc = zmq_msg_recv(&zmsg, zocket_pull_tasks, 0);
@@ -764,8 +952,8 @@ void * _start_function(void* arg){
                     rc = zmq_msg_recv(&zmsg, zocket_pull_tasks, 0);
                 }
                 if (rc == -1) {
-                    BXIEXIT(EXIT_FAILURE, errno, MAPPER_LOGGER, BXILOG_CRITICAL, true,
-                            "Can't receive a msg through zsocket: %p", zocket_pull_tasks);
+                    return bxierr_errno("Can't receive a msg through zsocket: %p",
+                                        zocket_pull_tasks);
                 }
             }
             current_task = zmq_msg_data(&zmsg);
@@ -788,7 +976,7 @@ void * _start_function(void* arg){
 
 #ifndef ZMQ
         working_time = 0;
-        nb_iterations =0;
+        nb_iterations = 0;
         if (thread_id < shared_info.nb_tasks){
             current_task = &shared_info.tasks[thread_id];
             TRACE(MAPPER_LOGGER, "thread:%zu start task:%zu", thread_id, current_task->id);
@@ -831,11 +1019,18 @@ void * _start_function(void* arg){
         DEBUG(MAPPER_LOGGER, "Timing thread:%zu worked %f seconds for %zu iterations",
               thread_id, working_time, nb_iterations);
 #ifndef FADD
-        pthread_barrier_wait(&barrier);
+        errno = 0;
+        PANIC(MAPPER_LOGGER, "Enter barrier")
+        rc = pthread_barrier_wait(&barrier);
+        PANIC(MAPPER_LOGGER, "Leave barrier")
+        if (0 != rc && PTHREAD_BARRIER_SERIAL_THREAD != rc) {
+            err2 = bxierr_errno("Error on pthread barrier wait");
+            BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err2, "Error");
+        }
 #endif
 #else
-        err2 = bxizmq_snd_data_zc(&err, 0,
-                                  zocket_push_result, 0, 10, 10000, NULL, NULL);
+        err2 = bxizmq_data_snd(&task_err, sizeof(task_err),
+                               zocket_push_result, 0, 10, 10000);
         BXIERR_CHAIN(err, err2);
 #endif
 
@@ -844,15 +1039,25 @@ void * _start_function(void* arg){
     TRACE(MAPPER_LOGGER, "thread:%zu clean zmq", thread_id);
     INFO(MAPPER_LOGGER, "Timing thread:%zu worked %f seconds for %zu iterations",
          thread_id, working_time, nb_iterations);
-    err2 = bxizmq_zsocket_cleanup(zocket_sub_end);
+    err2 = bxizmq_zocket_destroy(zocket_sub_end);
     BXIERR_CHAIN(err, err2);
-    err2 = bxizmq_zsocket_cleanup(zocket_pull_tasks);
+    err2 = bxizmq_zocket_destroy(zocket_pull_tasks);
     BXIERR_CHAIN(err, err2);
-    err2 = bxizmq_zsocket_cleanup(zocket_push_result);
+    err2 = bxizmq_zocket_destroy(zocket_push_result);
     BXIERR_CHAIN(err, err2);
 #endif
     TRACE(MAPPER_LOGGER, "thread:%zu stop", thread_id);
     return err;
+}
+
+void * _start_function(void* arg){
+   bxierr_p  err = __start_function(arg);
+   if (bxierr_isko(err)) {
+       BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err, "Error");
+   }
+    size_t thread_id = *(size_t*) arg;
+    TRACE(MAPPER_LOGGER, "thread:%zu stop", thread_id);
+   return err;
 }
 
 

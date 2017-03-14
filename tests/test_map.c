@@ -343,7 +343,7 @@ void test_map(void) {
         //fprintf(stderr, "test i: %d -> %d and should be 0 \n", 0, test[0]);
     for(size_t i = 2; i < 4; i++){
         bxierr_p inerr = errors[i-2];
-        CU_ASSERT_EQUAL(inerr->code,TEST_ERR);
+        CU_ASSERT_EQUAL(inerr->code, TEST_ERR);
 //        bxierr_destroy(&inerr);
         //fprintf(stderr, "test i: %d -> %d and should be 1 \n", i, test[i]);
         CU_ASSERT_EQUAL(test[i], 1);
