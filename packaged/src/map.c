@@ -312,9 +312,9 @@ bxierr_p bximap_execute(bximap_ctx_p context){
 #else
     __sync_synchronize();
     errno = 0;
-    PANIC(MAPPER_LOGGER, "Enter barrier")
+    TRACE(MAPPER_LOGGER, "Enter barrier")
     rc = pthread_barrier_wait(&barrier);
-    PANIC(MAPPER_LOGGER, "Leave barrier")
+    TRACE(MAPPER_LOGGER, "Leave barrier")
     if (0 != rc && PTHREAD_BARRIER_SERIAL_THREAD != rc) {
         bxierr_p perr = bxierr_errno("Error on pthread barrier wait");
         BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, perr, "Error");
@@ -364,9 +364,9 @@ bxierr_p bximap_execute(bximap_ctx_p context){
 #else
     __sync_synchronize();
     errno = 0;
-    PANIC(MAPPER_LOGGER, "Enter barrier")
+    TRACE(MAPPER_LOGGER, "Enter barrier")
     rc = pthread_barrier_wait(&barrier);
-    PANIC(MAPPER_LOGGER, "Leave barrier")
+    TRACE(MAPPER_LOGGER, "Leave barrier")
     if (0 != rc && PTHREAD_BARRIER_SERIAL_THREAD != rc) {
         err2 = bxierr_errno("Error on pthread barrier wait");
         BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err2, "Error");
@@ -546,9 +546,9 @@ bxierr_p bximap_init(size_t * nb_threads){
 #else
     __sync_synchronize();
     errno = 0;
-    PANIC(MAPPER_LOGGER, "Enter barrier")
+    TRACE(MAPPER_LOGGER, "Enter barrier")
     rc = pthread_barrier_wait(&barrier);
-    PANIC(MAPPER_LOGGER, "Leave barrier")
+    TRACE(MAPPER_LOGGER, "Leave barrier")
     if (0 != rc && PTHREAD_BARRIER_SERIAL_THREAD != rc) {
         err2 = bxierr_errno("Error on pthread barrier wait");
         BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err2, "Error");
@@ -556,9 +556,9 @@ bxierr_p bximap_init(size_t * nb_threads){
 #endif
 #else
     errno = 0;
-    PANIC(MAPPER_LOGGER, "Enter barrier")
+    TRACE(MAPPER_LOGGER, "Enter barrier")
     rc = pthread_barrier_wait(&zmq_barrier);
-    PANIC(MAPPER_LOGGER, "Leave barrier")
+    TRACE(MAPPER_LOGGER, "Leave barrier")
     if (0 != rc && PTHREAD_BARRIER_SERIAL_THREAD != rc) {
         err2 = bxierr_errno("Error on pthread barrier wait");
         BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err2, "Error");
@@ -629,9 +629,9 @@ bxierr_p bximap_finalize(){
     }
 #else
     errno = 0;
-    PANIC(MAPPER_LOGGER, "Enter barrier")
+    TRACE(MAPPER_LOGGER, "Enter barrier")
     rc = pthread_barrier_wait(&barrier);
-    PANIC(MAPPER_LOGGER, "Leave barrier")
+    TRACE(MAPPER_LOGGER, "Leave barrier")
     if (0 != rc && PTHREAD_BARRIER_SERIAL_THREAD != rc) {
         err2 = bxierr_errno("Error on pthread barrier wait");
         BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err2, "Error");
@@ -876,9 +876,9 @@ void * __start_function(void* arg){
     zmq_pollitem_t items [] = { {zocket_pull_tasks, 0, ZMQ_POLLIN, 0 },
         {zocket_sub_end, 0, ZMQ_POLLIN, 0 }};
     errno = 0;
-    PANIC(MAPPER_LOGGER, "Enter barrier")
+    TRACE(MAPPER_LOGGER, "Enter barrier")
     rc = pthread_barrier_wait(&zmq_barrier);
-    PANIC(MAPPER_LOGGER, "Leave barrier")
+    TRACE(MAPPER_LOGGER, "Leave barrier")
     if (0 != rc && PTHREAD_BARRIER_SERIAL_THREAD != rc) {
         err = bxierr_errno("Error on pthread barrier wait");
         BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err, "Error");
@@ -886,9 +886,9 @@ void * __start_function(void* arg){
 #else
 #ifndef FADD
     errno = 0;
-    PANIC(MAPPER_LOGGER, "Enter barrier")
+    TRACE(MAPPER_LOGGER, "Enter barrier")
     rc = pthread_barrier_wait(&barrier);
-    PANIC(MAPPER_LOGGER, "Leave barrier")
+    TRACE(MAPPER_LOGGER, "Leave barrier")
     if (0 != rc && PTHREAD_BARRIER_SERIAL_THREAD != rc) {
         err2 = bxierr_errno("Error on pthread barrier wait");
         BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err2, "Error");
@@ -924,9 +924,9 @@ void * __start_function(void* arg){
         }
 #else
         errno = 0;
-        PANIC(MAPPER_LOGGER, "Enter barrier")
+        TRACE(MAPPER_LOGGER, "Enter barrier")
         rc = pthread_barrier_wait(&barrier);
-        PANIC(MAPPER_LOGGER, "Leave barrier")
+        TRACE(MAPPER_LOGGER, "Leave barrier")
         if (0 != rc && PTHREAD_BARRIER_SERIAL_THREAD != rc) {
             err2 = bxierr_errno("Error on pthread barrier wait");
             BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err2, "Error");
@@ -1020,9 +1020,9 @@ void * __start_function(void* arg){
               thread_id, working_time, nb_iterations);
 #ifndef FADD
         errno = 0;
-        PANIC(MAPPER_LOGGER, "Enter barrier")
+        TRACE(MAPPER_LOGGER, "Enter barrier")
         rc = pthread_barrier_wait(&barrier);
-        PANIC(MAPPER_LOGGER, "Leave barrier")
+        TRACE(MAPPER_LOGGER, "Leave barrier")
         if (0 != rc && PTHREAD_BARRIER_SERIAL_THREAD != rc) {
             err2 = bxierr_errno("Error on pthread barrier wait");
             BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err2, "Error");
