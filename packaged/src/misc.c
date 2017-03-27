@@ -449,13 +449,19 @@ bxierr_p bximisc_strtol(const char * const str, const int base, long * result) {
 
 
 #define UNKNOWN_LAST UINT64_MAX
-char * bximisc_bitarray_str(const char * const bitarray, const uint64_t n) {
+char * bximisc_bitarray_str(const char * const bitarray, const uint64_t n,
+                            const char *prefix,
+                            const char *separator,
+                            const char *suffix) {
+
     assert(bitarray != NULL && n < UNKNOWN_LAST);
     // Create the line for printing
     char * line = NULL;
     size_t line_len = 0;
     FILE* fd = open_memstream(&line, &line_len);
-    fprintf(fd, "[");
+
+    fprintf(fd, "%s", prefix);
+
     bool hole = true; // A hole, is a contiguous zone of cleared bits
     bool first = true;
     uint64_t last = UNKNOWN_LAST; // Last known bit in a series of set bit
@@ -464,7 +470,7 @@ char * bximisc_bitarray_str(const char * const bitarray, const uint64_t n) {
             if (hole) { // Only if we had a hole, that is previous bit set was not i-1
                 if (last == UNKNOWN_LAST) { // Print a space if last bit set is unknown
                     if (!first) { // and i is not the first element
-                        fprintf(fd, " ");
+                        fprintf(fd, "%s", separator);
                     } else first = !first;
                 }
                 fprintf(fd, "%lu", (unsigned long)i); // Print the bit
@@ -480,7 +486,7 @@ char * bximisc_bitarray_str(const char * const bitarray, const uint64_t n) {
         }
     }
     if (last != UNKNOWN_LAST && !hole) fprintf(fd, "-%lu", (unsigned long)last);
-    fprintf(fd, "]");
+    fprintf(fd, "%s", suffix);
     fclose(fd);
     return line;
 }

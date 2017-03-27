@@ -299,7 +299,10 @@ bxierr_p bximisc_strtol(const char * str, int base, long *result);
  *
  * @return a string representing the given bitarray
  */
-char * bximisc_bitarray_str(const char *bitarray, uint64_t n);
+char * bximisc_bitarray_str(const char *bitarray, uint64_t n,
+                            const char *prefix,
+                            const char *separator,
+                            const char *suffix);
 
 /**
  * Return statistics on the given data.

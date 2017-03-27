@@ -218,7 +218,7 @@ void test_bitarray(void) {
             CU_ASSERT_TRUE(i % 2 == 0 || i % 3 == 0);
         }
     }
-    char * str = bximisc_bitarray_str(bitset23, MAX);
+    char * str = bximisc_bitarray_str(bitset23, MAX, "[", " ", "]");
     DEBUG(TEST_LOGGER, "Multiple of 2 and 3: %s", str);
     BXIFREE(str);
 
@@ -242,7 +242,7 @@ void test_bitarray(void) {
     for(size_t i = 0; i < BITNSLOTS(MAX); i++) {
         bitset_op[i] = (char)(bitset23[i] | bitset5[i]);
     }
-    str = bximisc_bitarray_str(bitset_op, MAX);
+    str = bximisc_bitarray_str(bitset_op, MAX, "[", " ", "]");
     DEBUG(TEST_LOGGER, "Union of 2, 3 and 5 multiples: %s", str);
     BXIFREE(str);
     for (size_t i = 0; i < MAX; i++) {
@@ -256,7 +256,7 @@ void test_bitarray(void) {
     for(size_t i = 0; i < BITNSLOTS(MAX); i++) {
         bitset_op[i] = (char)~bitset5[i];
     }
-    str = bximisc_bitarray_str(bitset_op, MAX);
+    str = bximisc_bitarray_str(bitset_op, MAX, "[", " ", "]");
     DEBUG(TEST_LOGGER, "Complement of multiple of 5: %s", str);
     BXIFREE(str);
     for (size_t i = 0; i < MAX; i++) {
