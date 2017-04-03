@@ -34,6 +34,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <libgen.h>
+#include <sysexits.h>
 
 
 #ifdef __linux__

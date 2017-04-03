@@ -20,6 +20,7 @@
 #include <pthread.h>
 #include <math.h>
 #include <errno.h>
+#include <string.h>
 #include <bxi/base/log.h>
 
 

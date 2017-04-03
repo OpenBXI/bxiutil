@@ -66,7 +66,7 @@ doc_examples_bximap_CFLAGS=\
 
 #########################  PYTHON  ######################
 
-SUBDIRS=include lib doc
+SUBDIRS=include . lib doc
 
 EXTRA_DIST=\
 		   doc/examples/bximap.c\

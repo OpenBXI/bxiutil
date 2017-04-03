@@ -10,28 +10,22 @@
 
 """
 from __future__ import print_function
-import cStringIO
 import re
 import math
 import sys
-import string
-
-import bxi.ffi as bxiffi
-import bxi.base as bxibase
+from pkgutil import extend_path
 import bxi.base.log as bxilog
 
 
 # Try to find other BXI packages in other folders
-from pkgutil import extend_path
 __path__ = extend_path(__path__, __name__)
-from bxi.util.cffi_h import C_DEF
-from cffi.api import CDefError
+
+from bxi.util.cffi_h import ffi
 
 _LOGGER = bxilog.getLogger(bxilog.LIB_PREFIX + 'bxiutil')
 
-bxiffi.add_cdef_for_type("bxirng_p", C_DEF)
 
-__FFI__ = bxiffi.get_ffi()
+__FFI__ = ffi
 __CAPI__ = __FFI__.dlopen('libbxiutil.so')
 
 
@@ -43,6 +37,15 @@ REMOVE_UNSPECIFIED_COLUMNS = -1
 
 # Use by replace_if_none
 NONE_VALUE = unicode(None)
+
+
+def get_ffi():
+    """
+    Return the ffi object used by this module to interact with the C backend.
+
+    @return the ffi object used by this module to interact with the C backend.
+    """
+    return __FFI__
 
 
 def get_capi():
@@ -81,6 +84,9 @@ class Map(object):
 
     @staticmethod
     def cpu_mask(mask):
+        """
+        Map the threads on some cpus
+        """
         __CAPI__.bximap_set_cpumask(mask)
 
 
@@ -232,8 +238,10 @@ def wrap_onspace_strict(text, width):
         text = str(None)
     if width == 0:
         return text
-    wordRegex = re.compile(r'\S{' + str(width) + r',}')
-    return wrap_onspace(wordRegex.sub(lambda m: wrap_always(m.group(), width), text), width)
+    wordregex = re.compile(r'\S{' + str(width) + r',}')
+    return wrap_onspace(wordregex.sub(lambda m: wrap_always(m.group(), width),
+                                      text),
+                        width)
 
 
 def wrap_always(text, width):
@@ -338,8 +346,8 @@ def smart_display(header, data,
     col_nb = len(header)
     line_nb = len(data)
     max_widths = []
-    for h in header:
-        max_widths.append(columns_max.get(h, 0))
+    for head_line in header:
+        max_widths.append(columns_max.get(head_line, 0))
 
     indent([header] + data, hasheader=True,
            headerchar=hsep, delim=vsep,

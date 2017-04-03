@@ -15,23 +15,7 @@
 #define BXIMISC_H_
 
 #ifndef BXICFFI
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
-#include <errno.h>
-#include <time.h>
-#include <pthread.h>
-#include <error.h>
-#include <signal.h>
-#include <sys/signalfd.h>
-#include <sysexits.h>
-
 #include "bxi/base/err.h"
-#include "bxi/base/time.h"
-#include "bxi/base/log.h"
 #endif
 
 /**

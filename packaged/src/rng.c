@@ -18,6 +18,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <pthread.h>
+#include <sysexits.h>
 
 #include "bxi/base/log.h"
 #include "bxi/util/misc.h"
