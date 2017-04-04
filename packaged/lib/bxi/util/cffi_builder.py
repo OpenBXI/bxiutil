@@ -12,7 +12,7 @@
 """
 
 from cffi import FFI
-from bxi.base.builder import ffibuilder as base_ffibuilder
+from bxi.base.cffi_builder import ffibuilder as base_ffibuilder
 
 import bxi.util_cffi_def as cdef
 libname = 'bxiutil'

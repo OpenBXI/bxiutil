@@ -1,7 +1,7 @@
 $(abs_builddir)/bxi/${MODULE_NAME}/__init__.py: $(abs_builddir)/bxi/__init__.py
 	touch  $@
 
-bxi/${MODULE_NAME}/cffi_h.py:bxi/${MODULE_NAME}/builder.py bxi/${MODULE_NAME}_cffi_def.py \
+bxi/${MODULE_NAME}/cffi_h.py:bxi/${MODULE_NAME}/cffi_builder.py bxi/${MODULE_NAME}_cffi_def.py \
 	$(abs_builddir)/bxi/__init__.py
 	C_INCLUDE_PATH="$(top_srcdir)/packaged/include:$(abs_top_builddir)/packaged/include:\
 	${C_INCLUDE_PATH}" \
@@ -15,8 +15,11 @@ nodist_bxibase_PYTHON=\
 			   $(srcdir)/bxi/${MODULE_NAME}/__init__.py
 
 bxidir=$(pythondir)/bxi
+noinst_bxidir=$(pythondir)/bxi
+nodist_noinst_bxi_PYTHON=\
+	 			  $(srcdir)/bxi/__init__.py
 nodist_bxi_PYTHON=\
-				  $(srcdir)/bxi/__init__.py
+				  bxi/${MODULE_NAME}_cffi_def.py
 
 $(abs_top_builddir)/packaged/lib/bxi/${MODULE_NAME}:
 	mkdir -p $@
@@ -26,7 +29,8 @@ bxi/%/version.py:${abs_top_builddir}/version.py  $(abs_top_builddir)/packaged/li
 BUILT_SOURCES=bxi/${MODULE_NAME}/version.py
 
 dist-hook:
-	cp ${bxiutil_PYTHON} $(distdir)/bxi/${MODULE_NAME}
+	cp ${nodist_bxibase_PYTHON} $(distdir)/bxi/${MODULE_NAME}
+	cp ${nodist_noinst_bxi_PYTHON} $(distdir)/bxi
 	cp ${nodist_bxi_PYTHON} $(distdir)/bxi
 
 # For generation
