@@ -52,3 +52,6 @@ nobase_nodist_python_PYTHON=\
 							bxi/${MODULE_NAME}/version.py\
 							bxi/${MODULE_NAME}_cffi_def.py\
 							bxi/${MODULE_NAME}/cffi_h.py
+
+nobase_python_PYTHON+=\
+							bxi/${MODULE_NAME}/cffi_builder.py
