@@ -18,10 +18,6 @@ bxibasedir=$(pythondir)/bxi/${MODULE_NAME}
 nodist_bxibase_PYTHON=\
 			   $(srcdir)/bxi/${MODULE_NAME}/__init__.py
 
-bxidir=$(pythondir)/bxi
-nodist_bxi_PYTHON=\
-				  bxi/${MODULE_NAME}_cffi_def.py
-
 $(abs_top_builddir)/packaged/lib/bxi/${MODULE_NAME}:
 	mkdir -p $@
 
@@ -32,7 +28,6 @@ BUILT_SOURCES=bxi/${MODULE_NAME}/version.py
 dist-hook:
 	cp ${nodist_bxibase_PYTHON} $(distdir)/bxi/${MODULE_NAME}
 	cp $(srcdir)/bxi/__init__.py $(distdir)/bxi
-	cp ${nodist_bxi_PYTHON} $(distdir)/bxi
 
 # For generation
 all-local:\
