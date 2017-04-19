@@ -40,7 +40,7 @@ clean-local:
 		then\
 		rm -f $(builddir)/bxi/${MODULE_NAME}/__init__.py $(builddir)/bxi/__init__.py \
 			$(builddir)/bxi/${MODULE_NAME}/cffi_h.py;\
-		${ADD_CLEAN}
+		${ADD_CLEAN}\
 	fi
 
 
