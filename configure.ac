@@ -36,7 +36,7 @@ PKG_CHECK_MODULES([ZMQ], [libzmq >= 3.0.0], [],
                    AC_CHECK_LIB([zmq], [zmq_msg_init], [], [AC_MSG_ERROR([Could not find zmq library])])
                   ])
 
-LDFLAGS+=" $ZMQ_LIBS "
+LDFLAGS="$LDFLAGS $ZMQ_LIBS "
 
 ################################ Internal dependencies ###########################
 ## Checks for libraries.
@@ -55,7 +55,7 @@ AC_CHECK_FUNCS([gethostname memset mkdir pow strdup strtol])
 
 BXIDISABLE_TESTS
 BXIDISABLE_PYTHON
-if test "$ENABLE_PYTHON" == "yes"
+if test "$ENABLE_PYTHON" = "yes"
 then
 INIT_BXIPYTHON
 
