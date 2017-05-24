@@ -280,6 +280,9 @@ bxierr_p bximisc_strtol(const char * str, int base, long *result);
  *
  * @param bitarray a bitarray
  * @param n the number of bits in the given bitarray
+ * @param prefix
+ * @param separator
+ * @param suffix
  *
  * @return a string representing the given bitarray
  */
