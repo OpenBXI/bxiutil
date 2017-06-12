@@ -17,7 +17,7 @@
 # and to understand the SVN tagging process.
 # If you don't care, then, just starts with Bull.1.0%{?dist}.%{?revision}snapshot
 # and run 'make tag' when you want to tag.
-%define release Bull.1.0%{?dist}.%{?revision}snapshot
+%define release Bull.2.0%{?dist}.%{?revision}snapshot
 
 # Warning: Bull's continuous compilation tools refuse the use of
 # %release in the src_dir variable!
@@ -97,7 +97,7 @@ BXI utils functions
 
 %package doc
 Summary: Documentation of BXI utils functions
-BuildRequires: bxibase-doc
+#BuildRequires: bxibase-doc
 Requires: bxibase-doc
 
 # Description (seen by rpm -qi) (No more than 80 characters)
