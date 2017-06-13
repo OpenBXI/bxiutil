@@ -18,6 +18,7 @@ wget https://github.com/zeromq/libzmq/releases/download/v4.2.1/zeromq-4.2.1.tar.
     wget https://github.com/OpenBXI/bxibase/archive/7.0.0-Bull.1.0.tar.gz && \
     tar xvf 7.0.0-Bull.1.0.tar.gz -C ${TMPDIR} && \
     cd ${TMPDIR}/bxibase-7.0.0-Bull.1.0 && \
+    ./bootstrap.sh &&\
     ./configure  && \
     make -j${CPUS_NB} && \
     sudo make -j${CPUS_NB} install && \
