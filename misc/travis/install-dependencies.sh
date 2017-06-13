@@ -22,5 +22,6 @@ wget https://github.com/zeromq/libzmq/releases/download/v4.2.1/zeromq-4.2.1.tar.
     ./configure  --prefix=/usr/ && \
     make -j${CPUS_NB} && \
     sudo make -j${CPUS_NB} install && \
-    sudo ldconfig
+    sudo ldconfig && \
+    python -c 'import bxi.base'
 
