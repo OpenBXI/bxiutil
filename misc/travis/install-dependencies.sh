@@ -21,7 +21,7 @@ wget https://github.com/zeromq/libzmq/releases/download/v4.2.1/zeromq-4.2.1.tar.
     ./bootstrap.sh &&\
     ./configure  --prefix=/usr/ && \
     make -j${CPUS_NB} && \
-    export CC=`which $CC`
+    export CC=`which $CC` &&\
     sudo make -j${CPUS_NB} install && \
     sudo ldconfig
 
