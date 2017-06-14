@@ -207,7 +207,7 @@ bxierr_p bximap_execute(bximap_ctx_p context){
 
     struct timespec mapping_time;
     bxitime_get(CLOCK_MONOTONIC, &mapping_time);
-    double running_duration = 0, mapping_duration, tmp;
+    double running_duration = 0, mapping_duration = 0, tmp = 0;
     UNUSED(running_duration);
     UNUSED(tmp);
 
