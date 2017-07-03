@@ -130,10 +130,10 @@ def indent(rows,
 
     if justify_functions is None:
         justify_functions = [unicode.ljust] * len(rows[0])
-    _LOGGER.debug("Justify: %s", justify_functions)
+    _LOGGER.lowest("Justify: %s", justify_functions)
     if max_widths is None:
         max_widths = [0] * len(rows[0])
-    _LOGGER.debug("max_widths: %s", max_widths)
+    _LOGGER.lowest("max_widths: %s", max_widths)
 
     def i2str(item, maxwidth):
         '''
@@ -156,27 +156,27 @@ def indent(rows,
         '''
         newrows = [wrap_onspace_strict(item, width).split('\n')
                    for (item, width) in zip(row, max_widths)]
-        _LOGGER.debug("NewRows: %s", newrows)
+        _LOGGER.lowest("NewRows: %s", newrows)
         if len(newrows) <= 1:
             return newrows
         return [[substr or '' for substr in item] for item in map(None, *newrows)]
 
     # break each logical row into one or more physical ones
     logicalRows = [rowWrapper(row) for row in rows]
-    _LOGGER.debug("logicalRows: %s", logicalRows)
+    _LOGGER.lowest("logicalRows: %s", logicalRows)
     # Fetch the list of physical rows
     physicalRows = logicalRows[0]
     for lrow in logicalRows[1:]:
         physicalRows += lrow
-    _LOGGER.debug("physicalRows: %s", physicalRows)
+    _LOGGER.lowest("physicalRows: %s", physicalRows)
     # columns of physical rows
     if len(physicalRows) == 0:
         return ''
     columns = map(None, *physicalRows)
-    _LOGGER.debug("columns: %s", columns)
+    _LOGGER.lowest("columns: %s", columns)
     # get the maximum of each column by the string length of its items
     maxWidths = [max([len(item) for item in column]) for column in columns]
-    _LOGGER.debug("MaxWidths: %s", maxWidths)
+    _LOGGER.lowest("MaxWidths: %s", maxWidths)
     rowSeparator = headerchar * (len(prefix) + len(postfix) + sum(maxWidths) +
                                  len(delim) * (len(maxWidths) - 1))
 
@@ -184,7 +184,7 @@ def indent(rows,
         print(rowSeparator, file=output)
     # for physicalRows in logicalRows:
     for row in physicalRows:
-        _LOGGER.debug("row: %s", row)
+        _LOGGER.lowest("row: %s", row)
         row2 = []
         for r in row:
             row2.append(to_unicode(r))
@@ -371,7 +371,7 @@ def to_unicode(value, encoding='utf-8'):
     elif isinstance(value, basestring):
         try:
             value = unicode(value, encoding)
-        except (UnicodeDecodeError):
+        except UnicodeDecodeError:
             value = value.decode('utf-8', 'replace')
     return value
 
