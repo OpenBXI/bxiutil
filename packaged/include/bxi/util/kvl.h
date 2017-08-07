@@ -244,7 +244,7 @@ char *yyget_text ( yyscan_t scanner );
 /**
  * BXI logger prefix used to designate logger(s) from this module
  */
-#define KVL_LOG_NAME "kvl"
+#define KVL_LOG_NAME BXILOG_LIB_PREFIX "bxiutil.kvl"
 
 #endif // __kvl_lexer_h__
 

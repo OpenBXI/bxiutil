@@ -30,7 +30,7 @@ union YYSTYPE
 #include <bxi/util/kvl.h>
 
 /* BXI LOG */
-SET_LOGGER(_LOGGER, KVL_LOG_NAME"_lexer");
+SET_LOGGER(_LOGGER, KVL_LOG_NAME);
 
 #define YY_TRACK_NEWLINE do {                           \
         yylloc->first_line = ++yylloc->last_line;       \
