@@ -279,7 +279,7 @@ def smart_display(header, data,
         Values in the list should be a function f(s,w)->s such as
         unicode.rjust, unicode.ljust and unicode.center. Default is str.ljust.
 
-    @param columns_max: a {column_header: max} dictionnary that should be used
+    @param columns_max: a {column_header: max} dictionary that should be used
         for the display of the related column. If max is 0, it means
         that the column will not be displayed at all. If max is greater
         than 0, then max characters will be used for the display of the column.
