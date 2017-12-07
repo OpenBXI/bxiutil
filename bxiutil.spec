@@ -78,8 +78,8 @@ Provides: %{name}
 #Conflicts:
 
 # BXI
-BuildRequires: bxibase-devel >= 8.0.0
-Requires: bxibase >= 8.0.0
+BuildRequires: bxibase-devel >= 9.0.0
+Requires: bxibase >= 9.0.0
 
 # External
 Requires: zeromq
