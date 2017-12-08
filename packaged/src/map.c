@@ -15,8 +15,8 @@
 #define _GNU_SOURCE
 #include <sched.h>
 
-#include <stdlib.h> //getenv
-#include <unistd.h> //sysconf
+#include <stdlib.h> // getenv
+#include <unistd.h> // sysconf
 #include <pthread.h>
 #include <math.h>
 #include <errno.h>
@@ -37,16 +37,17 @@
 #endif
 
 #include "bxi/util/map.h"
+
 // *********************************************************************************
 // ********************************** Defines **************************************
 // *********************************************************************************
+
 #define INITIALIZE_MSG "bximap already initialized"
 #define NOT_INITIALIZED_MSG "bximap has not been initialized"
 #define RUNNING_MSG "bximap is already running"
-#define NO_CONTEXT_MSG "Bximap got NULL context"
-#define NULL_PTR_MSG "Bximap got NULL context pointer"
+#define NO_CONTEXT_MSG "bximap got NULL context"
+#define NULL_PTR_MSG "bximap got NULL context pointer"
 #define ARG_ERROR_MSG "Argument Error"
-
 
 typedef enum {
     MAPPER_UNSET,
@@ -125,7 +126,6 @@ pthread_barrier_t zmq_barrier;
 #endif
 
 
-
 struct bximap_ctx_s_t last_task = {
     .start = 0,
     .end = 0,
@@ -143,7 +143,7 @@ _intern_info shared_info = {
 bxivector_p vcpus = NULL;
 
 
-/* initialize a new mapping
+/* Initialize a new mapping
  * Map the iteration from start to end over the threads
  * each thread has grain iteration to do (only the last one could be shorter)
  *  if gain is equal to 0 the optimal size is used */
@@ -154,7 +154,7 @@ bxierr_p bximap_new(size_t start,
                                        size_t thread,
                                        void *usr_data),
                     void * usr_data,
-                    bximap_ctx_p * task_p){
+                    bximap_ctx_p * task_p) {
 
     bxiassert(NULL != task_p);
     bxiassert(start <= end && NULL != func);
@@ -190,7 +190,7 @@ bxierr_p bximap_get_error(bximap_ctx_p context, size_t *n, bxierr_p **err_p) {
 }
 
 /* execute the work describe by the context */
-bxierr_p bximap_execute(bximap_ctx_p context){
+bxierr_p bximap_execute(bximap_ctx_p context) {
     int rc = 0;
     UNUSED(rc);
     bxiassert(NULL != context);
@@ -199,7 +199,8 @@ bxierr_p bximap_execute(bximap_ctx_p context){
         return bxierr_simple(BXIMAP_NOT_INITIALIZED, NOT_INITIALIZED_MSG);
     }
 
-    if(shared_info.global_task != &last_task && shared_info.global_task != NULL){
+    if (shared_info.global_task != &last_task
+        && shared_info.global_task != NULL) {
         return bxierr_new(BXIMAP_RUNNING,
                           NULL, NULL, NULL, NULL,
                           RUNNING_MSG);
@@ -211,7 +212,7 @@ bxierr_p bximap_execute(bximap_ctx_p context){
     UNUSED(running_duration);
     UNUSED(tmp);
 
-    // split the work between the threads.
+    // Split the work between the threads.
     shared_info.global_task = context;
     size_t cur_start = context->start;
     size_t granularity = context->granularity;
@@ -222,7 +223,7 @@ bxierr_p bximap_execute(bximap_ctx_p context){
             granularity++;
         }
     }
-    shared_info.nb_tasks = ((context->end - context->start) / granularity);
+    shared_info.nb_tasks = (context->end - context->start) / granularity;
     if (shared_info.global_task->tasks_error != NULL) {
         BXIFREE(shared_info.global_task->tasks_error);
     }
@@ -234,37 +235,36 @@ bxierr_p bximap_execute(bximap_ctx_p context){
 
     size_t remaining_work = (context->end - context->start) % granularity;
     if (remaining_work != 0) {
-        //With this granularity some work remain
-        if (shared_info.nb_tasks % shared_info.nb_threads != 0){
-            //Considering that each iteration takes the same time
-            //if the number of task isn't proportional to the number of threads
-            //the remaining work is done in an additional task
-            //this task will be done in parallel of other larger tasks
+        // With this granularity some work remain
+        if (shared_info.nb_tasks % shared_info.nb_threads != 0) {
+            // Considering that each iteration takes the same time
+            // if the number of task isn't proportional to the number of threads
+            // the remaining work is done in an additional task
+            // this task will be done in parallel of other larger tasks
             shared_info.nb_tasks++;
             remaining_work = 0;
         }
     }
 
-    shared_info.tasks = bximem_calloc((size_t) shared_info.nb_tasks * sizeof(*shared_info.tasks));
-    for(size_t i = 0; i < shared_info.nb_tasks; i++){
+    shared_info.tasks = bximem_calloc((size_t)shared_info.nb_tasks * sizeof(*shared_info.tasks));
+    for (size_t i = 0; i < shared_info.nb_tasks; i++) {
 
-        //spread the remaining work among all
-        //first tasks could have less
-        //It's mandatory to have less work inside some tasks
-        size_t additionnal_work = remaining_work / (shared_info.nb_tasks - i);
-        if (remaining_work %  (shared_info.nb_tasks - i) != 0){
-            additionnal_work++;
+        // Spread the remaining work among all
+        // First tasks could have less
+        // It's mandatory to have less work inside some tasks
+        size_t additional_work = remaining_work / (shared_info.nb_tasks - i);
+        if (remaining_work % (shared_info.nb_tasks - i) != 0) {
+            additional_work++;
         }
-        remaining_work -= additionnal_work;
+        remaining_work -= additional_work;
 
-
-        shared_info.tasks[i].granularity = granularity + additionnal_work;
+        shared_info.tasks[i].granularity = granularity + additional_work;
 
         shared_info.tasks[i].func = shared_info.global_task->func;
         shared_info.tasks[i].usr_data = shared_info.global_task->usr_data;
         shared_info.tasks[i].start = cur_start;
         shared_info.tasks[i].end = cur_start + shared_info.tasks[i].granularity;
-        if (shared_info.tasks[i].end > shared_info.global_task->end){
+        if (shared_info.tasks[i].end > shared_info.global_task->end) {
             shared_info.tasks[i].end = shared_info.global_task->end;
         }
 
@@ -272,8 +272,7 @@ bxierr_p bximap_execute(bximap_ctx_p context){
         TRACE(MAPPER_LOGGER, "Task %zu start %zu end %zu granularity %zu"
               " granularity requested %zu",
               i, shared_info.tasks[i].start, shared_info.tasks[i].end,
-              shared_info.tasks[i].granularity,
-              granularity);
+              shared_info.tasks[i].granularity, granularity);
         cur_start += shared_info.tasks[i].granularity;
     }
 
@@ -322,10 +321,10 @@ bxierr_p bximap_execute(bximap_ctx_p context){
     }
 #endif
 
-    size_t nb_iterations = 0;
     struct timespec running_time;
 
-    nb_iterations += (shared_info.tasks[0].end - shared_info.tasks[0].start);
+    size_t nb_iterations = shared_info.tasks[0].end
+                           - shared_info.tasks[0].start;
 
     bxierr_p err = bxitime_get(CLOCK_MONOTONIC, &running_time);
     bxierr_p task_err = _do_job( &shared_info.tasks[0], 0);
@@ -339,15 +338,16 @@ bxierr_p bximap_execute(bximap_ctx_p context){
     }
 
     size_t next_task = __sync_fetch_and_add (&shared_info.next_task, 1);
-    while (next_task < shared_info.nb_tasks){
-        nb_iterations += (shared_info.tasks[next_task].end - shared_info.tasks[next_task].start);
+    while (next_task < shared_info.nb_tasks) {
+        nb_iterations += shared_info.tasks[next_task].end
+                         - shared_info.tasks[next_task].start;
         err2 = bxitime_get(CLOCK_MONOTONIC, &running_time);
-        task_err = _do_job( &shared_info.tasks[next_task], 0);
+        task_err = _do_job(&shared_info.tasks[next_task], 0);
         BXIERR_CHAIN(err, err2);
-        double tmp;
-        err2 = bxitime_duration(CLOCK_MONOTONIC, running_time, &tmp);
+        double tmp_duration;
+        err2 = bxitime_duration(CLOCK_MONOTONIC, running_time, &tmp_duration);
         BXIERR_CHAIN(err, err2);
-        running_duration += tmp;
+        running_duration += tmp_duration;
         if (bxierr_isko(task_err)) {
             size_t next_error = __sync_fetch_and_add(&shared_info.global_task->next_error, 1);
             TRACE(MAPPER_LOGGER, "thread:%d next_error %zu", 0, next_error);
@@ -359,7 +359,7 @@ bxierr_p bximap_execute(bximap_ctx_p context){
          (size_t)0, running_duration, nb_iterations);
 
 #ifdef FADD
-    while(shared_info.ended < shared_info.nb_threads - 1) {
+    while (shared_info.ended < shared_info.nb_threads - 1) {
         __sync_synchronize();
     }
 #else
@@ -378,7 +378,7 @@ bxierr_p bximap_execute(bximap_ctx_p context){
     struct timespec sending_time, receiving_time;
     double sending_duration, receiving_duration;
     bxierr_p err = bxitime_get(CLOCK_MONOTONIC, &sending_time);
-    for(size_t i = 0; i < shared_info.nb_tasks; i++){
+    for (size_t i = 0; i < shared_info.nb_tasks; i++) {
         bxierr_p err2 = bxizmq_data_snd_zc(&shared_info.tasks[i],
                                            sizeof(shared_info.tasks[i]),
                                            shared_info.zocket_tasks, 0, 10, 10000,
@@ -391,11 +391,12 @@ bxierr_p bximap_execute(bximap_ctx_p context){
     BXIERR_CHAIN(err, err2);
     err2 = bxitime_get(CLOCK_MONOTONIC, &receiving_time);
     BXIERR_CHAIN(err, err2);
-    for(size_t i = 0; i < shared_info.nb_tasks; i++){
+    for (size_t i = 0; i < shared_info.nb_tasks; i++) {
         bxierr_p task_err = NULL;
         bxierr_p * task_err_p = &task_err;
         size_t received_size = 0;
-        err2 = bxizmq_data_rcv((void **)&task_err_p, sizeof(task_err), shared_info.zocket_result, 0, false,
+        err2 = bxizmq_data_rcv((void **)&task_err_p, sizeof(task_err),
+                               shared_info.zocket_result, 0, false,
                                &received_size);
         BXIERR_CHAIN(err, err2);
         if (bxierr_isko(task_err)) {
@@ -429,7 +430,7 @@ bxierr_p bximap_execute(bximap_ctx_p context){
  *      if the variable isn't valid or is equal to 0
  *      the number of physical cpu will be used
  */
-bxierr_p bximap_init(size_t * nb_threads){
+bxierr_p bximap_init(size_t * nb_threads) {
     if (shared_info.state == MAPPER_INITIALIZED) {
         return bxierr_simple(BXIMAP_INITIALIZE, INITIALIZE_MSG);
     }
@@ -439,13 +440,12 @@ bxierr_p bximap_init(size_t * nb_threads){
     bxierr_p err = BXIERR_OK;
     bxierr_p err2 = bxitime_get(CLOCK_MONOTONIC, &creation_time);
     BXIERR_CHAIN(err, err2);
-    if (shared_info.state == MAPPER_FOLLOW_FORKED &&\
-        shared_info.nb_threads != 0 ) {
-
+    if (shared_info.state == MAPPER_FOLLOW_FORKED
+        && shared_info.nb_threads != 0) {
         thr_nb = shared_info.nb_threads;
     }
 
-    if (thr_nb == 0){
+    if (thr_nb == 0) {
         char * nb_threads_s = getenv("BXIMAP_NB_THREADS");
         long sys_cpu = 0;
         if (nb_threads_s != NULL){
@@ -456,9 +456,9 @@ bxierr_p bximap_init(size_t * nb_threads){
                   "Mapper getenv returned: %s, bximisc_strtol: %ld",
                   nb_threads_s, sys_cpu);
         }
-        if (sys_cpu <= 0){
+        if (sys_cpu <= 0) {
             sys_cpu = sysconf(_SC_NPROCESSORS_CONF);
-            if (sys_cpu < 1){
+            if (sys_cpu < 1) {
                 WARNING(MAPPER_LOGGER,
                         "Can't detect the number of processors only"
                         " one thread will be used");
@@ -466,16 +466,16 @@ bxierr_p bximap_init(size_t * nb_threads){
             }
             TRACE(MAPPER_LOGGER, "Mapper sysconf returned: %ld", sys_cpu);
         }
-        thr_nb = (size_t) sys_cpu;
+        thr_nb = (size_t)sys_cpu;
     }
     if (nb_threads != NULL) *nb_threads = thr_nb;
     INFO(MAPPER_LOGGER, "Mapper initialized %zu threads", thr_nb);
 
-    shared_info.threads_args  = bximem_calloc(thr_nb * sizeof(*shared_info.threads_args));
+    shared_info.threads_args = bximem_calloc((size_t)thr_nb * sizeof(*shared_info.threads_args));
 
-    shared_info.threads_id  = bximem_calloc(thr_nb* sizeof(*shared_info.threads_id));
+    shared_info.threads_id = bximem_calloc((size_t)thr_nb * sizeof(*shared_info.threads_id));
     shared_info.nb_threads = thr_nb;
-    shared_info.ended  = 0;
+    shared_info.ended = 0;
     size_t first = 0;
     int rc = 0;
 
@@ -498,7 +498,7 @@ bxierr_p bximap_init(size_t * nb_threads){
     }
 #else
     errno = 0;
-    rc = pthread_barrier_init(&barrier, NULL, (unsigned int) thr_nb);
+    rc = pthread_barrier_init(&barrier, NULL, (unsigned)thr_nb);
     if (0 != rc) {
         err2 = bxierr_errno("Error on pthread barrier init");
         BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err2, "Error");
@@ -528,12 +528,13 @@ bxierr_p bximap_init(size_t * nb_threads){
     BXIERR_CHAIN(err, err2);
 #endif
 
-    for(size_t i = first; i < shared_info.nb_threads; i++){
+    for (size_t i = first; i < shared_info.nb_threads; i++) {
         shared_info.threads_args[i] = i;
 
         errno = 0;
         int rc = pthread_create(&shared_info.threads_id[i], NULL,
-                                &_start_function, &shared_info.threads_args[i]);
+                                &_start_function,
+                                &shared_info.threads_args[i]);
         if (0 != rc) {
             err2 = bxierr_errno("Error on pthread create");
             BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err2, "Error");
@@ -543,7 +544,7 @@ bxierr_p bximap_init(size_t * nb_threads){
 
 #ifndef ZMQ
 #ifdef FADD
-    while(shared_info.ended < thr_nb - 1) __sync_synchronize();
+    while (shared_info.ended < thr_nb - 1) __sync_synchronize();
 #else
     __sync_synchronize();
     errno = 0;
@@ -580,9 +581,9 @@ bxierr_p bximap_init(size_t * nb_threads){
 }
 
 /* clean properly the threads and liberate the memory */
-bxierr_p bximap_finalize(){
+bxierr_p bximap_finalize() {
     int rc = 0;
-    if(shared_info.state != MAPPER_INITIALIZED) {
+    if (shared_info.state != MAPPER_INITIALIZED) {
         return bxierr_simple(BXIMAP_NOT_INITIALIZED, NOT_INITIALIZED_MSG);
     }
     struct timespec stop_time;
@@ -596,7 +597,7 @@ bxierr_p bximap_finalize(){
 #ifndef ZMQ
     first++;
 #ifdef FADD
-    while(shared_info.ended < shared_info.nb_threads - 1) __sync_synchronize();
+    while (shared_info.ended < shared_info.nb_threads - 1) __sync_synchronize();
     rc = 0;
     errno = 0;
     rc = pthread_mutex_lock(&cond_mutex);
@@ -646,14 +647,15 @@ bxierr_p bximap_finalize(){
 #endif
 #else
     TRACE(MAPPER_LOGGER, "Master sends last task");
-    for(size_t i = 0; i < shared_info.nb_threads; i++){
+    for (size_t i = 0; i < shared_info.nb_threads; i++) {
         err2 = bxizmq_data_snd_zc(&last_task,  sizeof(last_task),
-                                  shared_info.zocket_pub, 0, 10, 10000, NULL, NULL);
+                                  shared_info.zocket_pub,
+                                  0, 10, 10000, NULL, NULL);
         BXIERR_CHAIN(err, err2);
     }
 #endif
 
-    for(size_t i = first; i < shared_info.nb_threads; i++){
+    for (size_t i = first; i < shared_info.nb_threads; i++) {
         void * retval;
         TRACE(MAPPER_LOGGER, "Master joins thread:%zu", i);
         errno = 0;
@@ -715,7 +717,7 @@ bxierr_p bximap_on_cpu(size_t cpu) {
     CPU_SET(cpu, &cpu_mask);
     errno = 0;
     if (sched_setaffinity(0, 1, &cpu_mask) != 0) {
-        return bxierr_errno("Process binding on the cpu failled (sched_setaffinity)");
+        return bxierr_errno("Process binding on the cpu failed (sched_setaffinity)");
     }
     return BXIERR_OK;
 }
@@ -790,15 +792,17 @@ bxierr_p bximap_set_cpumask(char * cpus) {
             BXIFREE(cpus_str);
             cpus_str = next_cpus;
         }
-        TRACE(MAPPER_LOGGER,"Convertion of %s into %zu element: [%s]", cpus,
-              bxivector_get_size(vcpus), cpus_str);
+        TRACE(MAPPER_LOGGER,
+              "Conversion of %s into %zu element: [%s]",
+              cpus, bxivector_get_size(vcpus), cpus_str);
         BXIFREE(cpus_str);
 
         size_t cpu = (size_t)bxivector_get_elem(vcpus, 0);
         TRACE(MAPPER_LOGGER,"Schedule on cpu=\"%zu\"", cpu);
         bxierr_p next = bximap_on_cpu(cpu);
         if (bxierr_isko(err)) {
-            BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, next, "Can't be mapped on cpu %zu", cpu);
+            BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, next,
+                          "Can't be mapped on cpu %zu", cpu);
         }
     }
 
@@ -816,10 +820,12 @@ void _mapper_parent_before_fork(void) {
         shared_info.state = MAPPER_FORKED;
     }
 }
-void _mapper_once(void){
+
+void _mapper_once(void) {
     TRACE(MAPPER_LOGGER, "%s state:%d", __func__, shared_info.state);
     pthread_atfork(_mapper_parent_before_fork, _mapper_parent_after_fork, NULL);
 }
+
 void _mapper_parent_after_fork(void) {
     TRACE(MAPPER_LOGGER, "%s state:%d", __func__, shared_info.state);
     if (shared_info.state != MAPPER_FORKED) return;
@@ -839,13 +845,13 @@ bxierr_p _do_job(bximap_ctx_p task, size_t thread_id){
     return err;
 }
 
-void * __start_function(void* arg){
+void * __start_function(void *arg) {
     size_t thread_id = *(size_t*) arg;
     bximap_ctx_p current_task = NULL;
     bxierr_p err = BXIERR_OK, err2;
     struct timespec starting_time;
     double working_time = 0;
-    size_t nb_iterations =0;
+    size_t nb_iterations = 0;
     int rc = 0;
     TRACE(MAPPER_LOGGER, "thread:%zu start", thread_id);
     if (vcpus != NULL) {
@@ -897,9 +903,9 @@ void * __start_function(void* arg){
 #endif
 #endif
 
-    TRACE(MAPPER_LOGGER,"started");
+    TRACE(MAPPER_LOGGER, "started");
 
-    while(true){
+    while (true) {
 
 #ifndef ZMQ
 #ifdef FADD
@@ -936,7 +942,7 @@ void * __start_function(void* arg){
 #else
         int rc = zmq_poll(items, 2, -1); // -1 -> wait infinitely
         if (rc == -1) {
-            if(zmq_errno() == EINTR) continue;
+            if (zmq_errno() == EINTR) continue;
             return bxierr_errno("Calling zmq_poll failed.");
         }
         if (items [0].revents & ZMQ_POLLIN) {
@@ -961,16 +967,16 @@ void * __start_function(void* arg){
             zmq_msg_close(&zmsg);
         }
         // Any waiting controller command acts as 'KILL'
-        if (items [1].revents & ZMQ_POLLIN) {
+        if (items[1].revents & ZMQ_POLLIN) {
             break; // Exit loop
         }
 #endif
 
-        if(shared_info.global_task == &last_task){
+        if (shared_info.global_task == &last_task) {
             TRACE(MAPPER_LOGGER, "thread:%zu got last task", thread_id);
             break;
         }
-        if(shared_info.global_task == NULL){
+        if (shared_info.global_task == NULL) {
             TRACE(MAPPER_LOGGER, "thread:%zu got null pointer", thread_id);
             break;
         }
@@ -978,7 +984,7 @@ void * __start_function(void* arg){
 #ifndef ZMQ
         working_time = 0;
         nb_iterations = 0;
-        if (thread_id < shared_info.nb_tasks){
+        if (thread_id < shared_info.nb_tasks) {
             current_task = &shared_info.tasks[thread_id];
             TRACE(MAPPER_LOGGER, "thread:%zu start task:%zu", thread_id, current_task->id);
             err2 = bxitime_get(CLOCK_MONOTONIC, &starting_time);
@@ -1051,14 +1057,14 @@ void * __start_function(void* arg){
     return err;
 }
 
-void * _start_function(void* arg){
-   bxierr_p  err = __start_function(arg);
-   if (bxierr_isko(err)) {
-       BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err, "Error");
-   }
-    size_t thread_id = *(size_t*) arg;
+void * _start_function(void * arg) {
+    bxierr_p err = __start_function(arg);
+    if (bxierr_isko(err)) {
+        BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err, "Error");
+    }
+    size_t thread_id = *(size_t *)arg;
     TRACE(MAPPER_LOGGER, "thread:%zu stop", thread_id);
-   return err;
+    return err;
 }
 
 
@@ -1073,7 +1079,7 @@ bxierr_p _fill_vector_with_cpu(intptr_t first_cpu, intptr_t last_cpu, bxivector_
     }
     if (-1 == first_cpu) first_cpu = last_cpu;
     for (intptr_t i = first_cpu; i <= last_cpu; i++) {
-        bxivector_push(vcpus, (void *) i);
+        bxivector_push(vcpus, (void *)i);
     }
     return BXIERR_OK;
 }

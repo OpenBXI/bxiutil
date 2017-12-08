@@ -12,8 +12,8 @@
  */
 
 
-bxierr_p  test_function(size_t start, size_t end, size_t thread, void *usr_data){
-    int * test = (int*) usr_data;
+bxierr_p test_function(size_t start, size_t end, size_t thread, void * usr_data) {
+    int * test = (int *)usr_data;
 
     UNUSED(thread);
     bximap_ctx_p task = NULL;
@@ -24,15 +24,15 @@ bxierr_p  test_function(size_t start, size_t end, size_t thread, void *usr_data)
     CU_ASSERT_PTR_NOT_NULL(task);
     bximap_destroy(&task);
     bxierr_destroy(&err);
-        //fprintf(stderr, "start: %d end %d\n",start,end);
-    for(size_t i = start; i < end; i++){
+    //fprintf(stderr, "start: %d end %d\n",start,end);
+    for (size_t i = start; i < end; i++) {
         test[i]++;
         //fprintf(stderr, "i: %d -> %d\n", i, test[i]);
     }
     return BXIERR_OK;
 }
 
-bxierr_p  test_map_schedule(size_t start, size_t end, size_t thread, void *usr_data){
+bxierr_p test_map_schedule(size_t start, size_t end, size_t thread, void *usr_data) {
     UNUSED(start);
     UNUSED(end);
     DEBUG(TEST_LOGGER, "on thread %zu, first cpu %zu, %zu should equal %d\n",
@@ -42,11 +42,11 @@ bxierr_p  test_map_schedule(size_t start, size_t end, size_t thread, void *usr_d
 }
 
 #define TEST_ERR 10
-bxierr_p test_function2(size_t start, size_t end, size_t thread_id, void *usr_data){
+bxierr_p test_function2(size_t start, size_t end, size_t thread_id, void *usr_data) {
     UNUSED(thread_id);
-    int * test = (int*) usr_data;
+    int * test = (int *)usr_data;
         //fprintf(stderr, "start: %d end %d\n",start,end);
-    for(size_t i = start; i < end; i++){
+    for (size_t i = start; i < end; i++) {
         test[i]++;
         //fprintf(stderr, "i: %d -> %d\n", i, test[i]);
     }
@@ -67,12 +67,12 @@ void test_scheduler(void) {
     bxierr_destroy(&err);
     errno = 0;
     if (sched_getcpu() == -1) {
-         bxierr_p err = bxierr_errno("Getting the cpu calling sched_getcpu()");
+        bxierr_p err = bxierr_errno("Getting the cpu calling sched_getcpu()");
         BXILOG_REPORT(TEST_LOGGER, BXILOG_WARNING, err, "Can't be call sched_getcpu");
         return;
     }
 
-    for (size_t i=0; i < max_nb_cpu; i++) {
+    for (size_t i = 0; i < max_nb_cpu; i++) {
         bxierr_p err = bximap_on_cpu(i);
         CU_ASSERT_TRUE(bxierr_isok(err));
         CU_ASSERT_EQUAL(i, (size_t)sched_getcpu());
@@ -210,7 +210,7 @@ void test_map(void) {
     CU_ASSERT_EQUAL(errors, NULL);
 
     CU_ASSERT_EQUAL(test[0], 0);
-    for(size_t i = 1; i <10; i++){
+    for (size_t i = 1; i < 10; i++) {
         CU_ASSERT_EQUAL(test[i], 1);
     }
 
@@ -226,8 +226,8 @@ void test_map(void) {
 
     CU_ASSERT_TRUE(bxierr_isok(bximap_execute(task)));
     CU_ASSERT_EQUAL(test[0], 0);
-        //fprintf(stderr, "test i: %d -> %d and should be 0 \n", 0, test[0]);
-    for(size_t i = 1; i < 9; i++){
+    //fprintf(stderr, "test i: %d -> %d and should be 0 \n", 0, test[0]);
+    for (size_t i = 1; i < 9; i++) {
         //fprintf(stderr, "test i: %d -> %d and should be 1 \n", i, test[i]);
         CU_ASSERT_EQUAL(test[i], 1);
     }
@@ -240,8 +240,8 @@ void test_map(void) {
     CU_ASSERT_TRUE(bxierr_isok(rc));
     CU_ASSERT_TRUE(bxierr_isok(bximap_execute(task)));
     CU_ASSERT_EQUAL(test[0], 0);
-        //fprintf(stderr, "test i: %d -> %d and should be 0 \n", 0, test[0]);
-    for(size_t i = 1; i < 9; i++){
+    //fprintf(stderr, "test i: %d -> %d and should be 0 \n", 0, test[0]);
+    for (size_t i = 1; i < 9; i++) {
         //fprintf(stderr, "test i: %d -> %d and should be 1 \n", i, test[i]);
         CU_ASSERT_EQUAL(test[i], 1);
     }
@@ -257,8 +257,8 @@ void test_map(void) {
     CU_ASSERT_TRUE(bxierr_isok(rc));
     CU_ASSERT_TRUE(bxierr_isok(bximap_execute(task)));
     CU_ASSERT_EQUAL(test[0], 0);
-        //fprintf(stderr, "test i: %d -> %d and should be 0 \n", 0, test[0]);
-    for(size_t i = 1; i < 9; i++){
+    //fprintf(stderr, "test i: %d -> %d and should be 0 \n", 0, test[0]);
+    for (size_t i = 1; i < 9; i++) {
         //fprintf(stderr, "test i: %d -> %d and should be 1 \n", i, test[i]);
         CU_ASSERT_EQUAL(test[i], 1);
     }
@@ -274,8 +274,8 @@ void test_map(void) {
     CU_ASSERT_TRUE(bxierr_isok(rc));
     CU_ASSERT_TRUE(bxierr_isok(bximap_execute(task)));
     CU_ASSERT_EQUAL(test[0], 0);
-        //fprintf(stderr, "test i: %d -> %d and should be 0 \n", 0, test[0]);
-    for(size_t i = 1; i < 9; i++){
+    //fprintf(stderr, "test i: %d -> %d and should be 0 \n", 0, test[0]);
+    for (size_t i = 1; i < 9; i++) {
         //fprintf(stderr, "test i: %zu -> %d and should be 1 \n", i, test[i]);
         CU_ASSERT_EQUAL(test[i], 1);
     }
@@ -292,12 +292,12 @@ void test_map(void) {
     CU_ASSERT_TRUE(bxierr_isok(rc));
     CU_ASSERT_TRUE(bxierr_isok(bximap_execute(task)));
     CU_ASSERT_EQUAL(test[0], 0);
-        //fprintf(stderr, "test i: %d -> %d and should be 0 \n", 0, test[0]);
-    for(size_t i = 1; i < 48; i++){
+    //fprintf(stderr, "test i: %d -> %d and should be 0 \n", 0, test[0]);
+    for (size_t i = 1; i < 48; i++) {
         //fprintf(stderr, "test i: %zu -> %d and should be 1 \n", i, test[i]);
         CU_ASSERT_EQUAL(test[i], 1);
     }
-    for(size_t i = 48; i < 53; i++){
+    for (size_t i = 48; i < 53; i++) {
         CU_ASSERT_EQUAL(test[i], 0);
     }
 
@@ -316,11 +316,11 @@ void test_map(void) {
     CU_ASSERT_EQUAL(n, 8);
     CU_ASSERT_PTR_NOT_NULL(errors);
     CU_ASSERT_EQUAL(test[0], 0);
-        //fprintf(stderr, "test i: %d -> %d and should be 0 \n", 0, test[0]);
-    for(size_t i = 1; i < 9; i++){
+    //fprintf(stderr, "test i: %d -> %d and should be 0 \n", 0, test[0]);
+    for (size_t i = 1; i < 9; i++) {
         bxierr_p inerr = errors[i-1];
         CU_ASSERT_EQUAL(inerr->code,TEST_ERR);
-//        bxierr_destroy(&inerr);
+        //bxierr_destroy(&inerr);
         //fprintf(stderr, "test i: %d -> %d and should be 1 \n", i, test[i]);
         CU_ASSERT_EQUAL(test[i], 1);
     }
@@ -340,11 +340,11 @@ void test_map(void) {
     CU_ASSERT_EQUAL(n, 2);
     CU_ASSERT_PTR_NOT_NULL(errors);
     CU_ASSERT_EQUAL(test[0], 0);
-        //fprintf(stderr, "test i: %d -> %d and should be 0 \n", 0, test[0]);
-    for(size_t i = 2; i < 4; i++){
+    //fprintf(stderr, "test i: %d -> %d and should be 0 \n", 0, test[0]);
+    for (size_t i = 2; i < 4; i++) {
         bxierr_p inerr = errors[i-2];
         CU_ASSERT_EQUAL(inerr->code, TEST_ERR);
-//        bxierr_destroy(&inerr);
+        //bxierr_destroy(&inerr);
         //fprintf(stderr, "test i: %d -> %d and should be 1 \n", i, test[i]);
         CU_ASSERT_EQUAL(test[i], 1);
     }
@@ -388,11 +388,11 @@ void test_mapper_fork(void) {
         CU_ASSERT_TRUE(bxierr_isok(bximap_execute(task)));
         CU_ASSERT_EQUAL(test[0], 0);
         //fprintf(stderr, "test i: %d -> %d and should be 0 \n", 0, test[0]);
-        for(size_t i = 2; i < 4; i++){
+        for (size_t i = 2; i < 4; i++) {
             //fprintf(stderr, "test i: %d -> %d and should be 1 \n", i, test[i]);
             CU_ASSERT_EQUAL(test[i], 1);
         }
-        for(size_t i = 5; i < 9; i++){
+        for (size_t i = 5; i < 9; i++) {
             CU_ASSERT_EQUAL(test[9], 0);
         }
         CU_ASSERT_TRUE(bxierr_isok(bximap_finalize()));
@@ -409,11 +409,11 @@ void test_mapper_fork(void) {
 
         CU_ASSERT_EQUAL(test[0], 0);
         //fprintf(stderr, "test i: %d -> %d and should be 0 \n", 0, test[0]);
-        for(size_t i = 2; i < 4; i++){
+        for (size_t i = 2; i < 4; i++) {
             //fprintf(stderr, "test i: %d -> %d and should be 1 \n", i, test[i]);
             CU_ASSERT_EQUAL(test[i], 1);
         }
-        for(size_t i = 5; i < 9; i++){
+        for (size_t i = 5; i < 9; i++) {
             CU_ASSERT_EQUAL(test[9], 0);
         }
 

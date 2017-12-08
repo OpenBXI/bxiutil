@@ -31,22 +31,22 @@
  * To have the best performance with thread the first issue is to map each of them on cpus.
  * This could be done as:
  * @snippet bximap.c CPU BINDING
- * 
+ *
  * This module allows an easy way to balance the load between the threads for
  * the execution of a loop over the threads.
  * The following code shows how to initialize the threads the work to be done
  * and execute the different iterations:
  * @snippet bximap.c BALANCE LOAD
- * 
+ *
  * The work to be done should be factorize inside a function with a specific signature:
  * @snippet bximap.c INNER LOOP
  *
  * Then when the work is finished the result of the iterations could be checked:
  * @snippet bximap.c CHECK RESULT
- * 
+ *
  * Finally ending the threads:
  * @snippet bximap.c STOP THREADS
- * 
+ *
  * ### Full Running Examples
  * - @link bximap.c map a loop iteration on several threads. @endlink
  */
@@ -80,7 +80,7 @@
 /**
  * The error returned when the module is already running.
  */
-#define BXIMAP_RUNNING 216                   // Leet speak of R...1.G
+#define BXIMAP_RUNNING 216                   // Leet speak of R...I.G
 
 /**
  * The error returned when some arguments are invalid.
@@ -107,20 +107,20 @@ typedef struct bximap_ctx_s_t * bximap_ctx_p;
 
 
 /**
- * Initialize the bximap library.
+ * Initialize the bximap library
  *
  *
- * if nb_threads == NULL or *nb_threads is equal to 0
- *      the BXIMAP_NB_THREADS environment variable is used
- * if BXIMAP_NB_THREADS isn't defined or is equal to 0
- *          the number of physical processors is used.
+ * if nb_threads == NULL or *nb_threads is equal to 0,
+ *     the BXIMAP_NB_THREADS environment variable is used.
+ * if BXIMAP_NB_THREADS isn't defined or is equal to 0,
+ *     the number of physical processors is used.
  *
- * If nb_threads != NULL && *nb_threads == 0, the number of threads used
- * is written back into *nb_threads.
+ * If nb_threads != NULL && *nb_threads == 0,
+ *     the number of threads used is written back into *nb_threads.
  *
  * This function should be called before bximap_task
  *
- * @param[inout] nb_threads a pointer on the number of
+ * @param[inout] nb_threads a pointer to the number of
  *               threads to use (can be NULL)
  * @return BXIERR_OK on error, anything else on error
  *
@@ -171,11 +171,10 @@ bxierr_p bximap_new(size_t start,
  *
  * @return BXIERR_OK on success, anything else on error
  */
-bxierr_p bximap_destroy(bximap_ctx_p *ctx_p);
+bxierr_p bximap_destroy(bximap_ctx_p * ctx_p);
 
 /**
  * Execute the work describe by the context over the initialized threads
- *
  *
  *  WARNING bximap_init_threads should be called before
  *

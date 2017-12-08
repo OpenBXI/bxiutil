@@ -29,18 +29,18 @@ static bxierr_p distribute(size_t start, size_t end, size_t thread, void * usr_d
         // Fetch 2 numbers between 0 and max
         uint32_t s = bxirng_nextint(rnd, 0, task_data->max);
         uint32_t e = bxirng_nextint(rnd, 0, task_data->max);
-//        uint32_t s = bxirng_nextint_tsd(0, task_data->max);
-//        uint32_t e = bxirng_nextint_tsd(0, task_data->max);
+        //uint32_t s = bxirng_nextint_tsd(0, task_data->max);
+        //uint32_t e = bxirng_nextint_tsd(0, task_data->max);
         CU_ASSERT_TRUE(s < task_data->max);
         CU_ASSERT_TRUE(e < task_data->max);
 
         // Store the distribution
         __sync_fetch_and_add(task_data->distribution + s, 1);
         __sync_fetch_and_add(task_data->distribution + e, 1);
-//        pthread_mutex_lock(&lock);
-//        task_data->distribution[s]++;
-//        task_data->distribution[e]++;
-//        pthread_mutex_unlock(&lock);
+        //pthread_mutex_lock(&lock);
+        //task_data->distribution[s]++;
+        //task_data->distribution[e]++;
+        //pthread_mutex_unlock(&lock);
 
         if (e == s) continue;
 

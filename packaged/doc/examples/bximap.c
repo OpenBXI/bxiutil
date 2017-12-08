@@ -56,7 +56,7 @@ SET_LOGGER(MAIN_LOGGER, "main");
  * - return BXIERR_OK is every thing goes well
  *   In our example we return an error if the thread number isn't modulo 2
  */
-bxierr_p  test_function(size_t start, size_t end, size_t thread, void *usr_data){
+bxierr_p test_function(size_t start, size_t end, size_t thread, void * usr_data) {
     char * str = (char *)usr_data;
     OUT(MAIN_LOGGER, "Thread %zu work on range [%zu, %zu[ %s",
         thread, start, end, str);
