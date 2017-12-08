@@ -11,8 +11,6 @@
 ###############################################################################
 */
 
-#include <unistd.h>
-
 #include "bxi/base/err.h"
 #include "bxi/base/log.h"
 #include "bxi/util/map.h"
@@ -74,7 +72,6 @@ bxierr_p test_function(size_t start, size_t end, size_t thread, void * usr_data)
 int main(int argc, char **argv) {
     UNUSED(argc);
     UNUSED(argv);
-
 
     /**! [CPU BINDING] */
     //Bind the process only on cpu one

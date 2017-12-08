@@ -16,7 +16,7 @@
 #include <sched.h>
 
 #include <stdlib.h> // getenv
-#include <unistd.h> // sysconf
+#include <sys/sysinfo.h> // get_nprocs_conf
 #include <pthread.h>
 #include <math.h>
 #include <errno.h>
@@ -447,24 +447,24 @@ bxierr_p bximap_init(size_t * nb_threads) {
 
     if (thr_nb == 0) {
         char * nb_threads_s = getenv("BXIMAP_NB_THREADS");
-        long sys_cpu = 0;
-        if (nb_threads_s != NULL){
-            bxierr_p err2 = bximisc_strtol(nb_threads_s, 10, &sys_cpu);
+        int sys_cpu = 0;
+        if (nb_threads_s != NULL) {
+            bxierr_p err2 = bximisc_strtoi(nb_threads_s, 10, &sys_cpu);
             BXIERR_CHAIN(err, err2);
             if (bxierr_isko(err)) return err;
             TRACE(MAPPER_LOGGER,
-                  "Mapper getenv returned: %s, bximisc_strtol: %ld",
+                  "Mapper getenv returned: %s, bximisc_strtoi: %d",
                   nb_threads_s, sys_cpu);
         }
         if (sys_cpu <= 0) {
-            sys_cpu = sysconf(_SC_NPROCESSORS_CONF);
+            sys_cpu = get_nprocs_conf();
             if (sys_cpu < 1) {
                 WARNING(MAPPER_LOGGER,
                         "Can't detect the number of processors only"
                         " one thread will be used");
                 sys_cpu = 1;
             }
-            TRACE(MAPPER_LOGGER, "Mapper sysconf returned: %ld", sys_cpu);
+            TRACE(MAPPER_LOGGER, "Mapper sysconf returned: %d", sys_cpu);
         }
         thr_nb = (size_t)sys_cpu;
     }

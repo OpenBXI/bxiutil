@@ -56,7 +56,7 @@ bxierr_p test_function2(size_t start, size_t end, size_t thread_id, void *usr_da
 
 void test_scheduler(void) {
     DEBUG(TEST_LOGGER, "Starting test");
-    size_t max_nb_cpu = (size_t)sysconf(_SC_NPROCESSORS_ONLN);;
+    size_t max_nb_cpu = (size_t)get_nprocs();
 
     bxierr_p err = bximap_on_cpu(65356);
     CU_ASSERT_TRUE(bxierr_isko(err));
