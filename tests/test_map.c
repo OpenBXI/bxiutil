@@ -11,8 +11,10 @@
  ###############################################################################
  */
 
-
-bxierr_p test_function(size_t start, size_t end, size_t thread, void * usr_data) {
+bxierr_p test_function(bximap_task_idx_t start,
+                       bximap_task_idx_t end,
+                       bximap_thrd_idx_t thread,
+                       void *usr_data) {
     int * test = (int *)usr_data;
 
     UNUSED(thread);
@@ -25,28 +27,41 @@ bxierr_p test_function(size_t start, size_t end, size_t thread, void * usr_data)
     bximap_destroy(&task);
     bxierr_destroy(&err);
     //fprintf(stderr, "start: %d end %d\n",start,end);
-    for (size_t i = start; i < end; i++) {
+    for (bximap_task_idx_t i = start; i < end; i++) {
         test[i]++;
         //fprintf(stderr, "i: %d -> %d\n", i, test[i]);
     }
     return BXIERR_OK;
 }
 
-bxierr_p test_map_schedule(size_t start, size_t end, size_t thread, void *usr_data) {
+bxierr_p test_map_schedule(bximap_task_idx_t start,
+                           bximap_task_idx_t end,
+                           bximap_thrd_idx_t thread,
+                           void *usr_data) {
     UNUSED(start);
     UNUSED(end);
-    DEBUG(TEST_LOGGER, "on thread %zu, first cpu %zu, %zu should equal %d\n",
-          thread, (size_t)usr_data,  (size_t)usr_data + thread, sched_getcpu());
-    CU_ASSERT_EQUAL((size_t)usr_data + thread, (size_t)sched_getcpu());
+    bximap_cpu_idx_t first_cpu = (bximap_cpu_idx_t)(intptr_t)usr_data;
+    DEBUG(TEST_LOGGER,
+          "on thread "THRD_IDX_FMT", "
+          "first cpu "CPU_IDX_FMT", "
+          THRD_IDX_FMT" should equal %d\n",
+          thread, first_cpu,
+          (bximap_thrd_idx_t)first_cpu + thread,
+          sched_getcpu());
+    CU_ASSERT_EQUAL((bximap_thrd_idx_t)first_cpu + thread,
+                    (bximap_thrd_idx_t)sched_getcpu());
     return BXIERR_OK;
 }
 
 #define TEST_ERR 10
-bxierr_p test_function2(size_t start, size_t end, size_t thread_id, void *usr_data) {
+bxierr_p test_function2(bximap_task_idx_t start,
+                        bximap_task_idx_t end,
+                        bximap_thrd_idx_t thread_id,
+                        void *usr_data) {
     UNUSED(thread_id);
     int * test = (int *)usr_data;
         //fprintf(stderr, "start: %d end %d\n",start,end);
-    for (size_t i = start; i < end; i++) {
+    for (bximap_task_idx_t i = start; i < end; i++) {
         test[i]++;
         //fprintf(stderr, "i: %d -> %d\n", i, test[i]);
     }
@@ -56,7 +71,7 @@ bxierr_p test_function2(size_t start, size_t end, size_t thread_id, void *usr_da
 
 void test_scheduler(void) {
     DEBUG(TEST_LOGGER, "Starting test");
-    size_t max_nb_cpu = (size_t)get_nprocs();
+    bximap_cpu_idx_t max_nb_cpu = (bximap_cpu_idx_t)get_nprocs();
 
     bxierr_p err = bximap_on_cpu(65356);
     CU_ASSERT_TRUE(bxierr_isko(err));
@@ -72,10 +87,10 @@ void test_scheduler(void) {
         return;
     }
 
-    for (size_t i = 0; i < max_nb_cpu; i++) {
+    for (bximap_cpu_idx_t i = 0; i < max_nb_cpu; i++) {
         bxierr_p err = bximap_on_cpu(i);
         CU_ASSERT_TRUE(bxierr_isok(err));
-        CU_ASSERT_EQUAL(i, (size_t)sched_getcpu());
+        CU_ASSERT_EQUAL(i, (bximap_cpu_idx_t)sched_getcpu());
     }
 
     err = bximap_set_cpumask(NULL);
@@ -99,7 +114,7 @@ void test_scheduler(void) {
 
     err = bximap_set_cpumask("0");
     CU_ASSERT_TRUE(bxierr_isok(err));
-    size_t threads_nb = 1;
+    bximap_thrd_idx_t threads_nb = 1;
 
     CU_ASSERT_EQUAL(0, sched_getcpu());
     CU_ASSERT_TRUE(bxierr_isok(bximap_init(&threads_nb)));
@@ -107,15 +122,17 @@ void test_scheduler(void) {
     CU_ASSERT_TRUE(bxierr_isok(bximap_finalize()));
 
     if (max_nb_cpu == 1) {
-        WARNING(TEST_LOGGER, "Only one core is available all the tests cannot be run");
+        WARNING(TEST_LOGGER,
+                "Only one core is available all the tests cannot be run");
         return;
     }
 
     bxirng_p rnd = bxirng_new(bxirng_new_seed());
-    size_t min_cpu = bxirng_nextint(rnd, 0, (uint32_t)max_nb_cpu - 2);
-    size_t max_cpu = bxirng_nextint(rnd, (uint32_t)min_cpu + 1, (uint32_t)max_nb_cpu -1);
-    threads_nb = max_cpu - min_cpu + 1;
-    char * cpus = bxistr_new("%zu-%zu", min_cpu, max_cpu);
+    bximap_cpu_idx_t min_cpu = (bximap_cpu_idx_t)bxirng_nextint(rnd, 0, (uint32_t)max_nb_cpu - 2);
+    bximap_cpu_idx_t max_cpu = (bximap_cpu_idx_t)bxirng_nextint(rnd, (uint32_t)min_cpu + 1, (uint32_t)max_nb_cpu -1);
+    threads_nb = (bximap_thrd_idx_t)(max_cpu - min_cpu + 1);
+    char * cpus = bxistr_new(CPU_IDX_FMT"-"CPU_IDX_FMT,
+                             min_cpu, max_cpu);
     bxirng_destroy(&rnd);
     err = bximap_set_cpumask(cpus);
     CU_ASSERT_TRUE(bxierr_isok(err));
@@ -125,12 +142,12 @@ void test_scheduler(void) {
     CU_ASSERT_TRUE(bxierr_isok(bximap_init(&threads_nb)));
 
     bximap_ctx_p task = NULL;
-    err = bximap_new(1, 10, 0, &test_map_schedule, (void*)min_cpu, &task);
+    err = bximap_new(1, 10, 0, &test_map_schedule, (void*)(intptr_t)min_cpu, &task);
     CU_ASSERT_TRUE(bxierr_isok(err));
     CU_ASSERT_TRUE(bxierr_isok(bximap_execute(task)));
 
 
-    cpus = bxistr_new("%zu,%zu", min_cpu, max_cpu);
+    cpus = bxistr_new(CPU_IDX_FMT","CPU_IDX_FMT, min_cpu, max_cpu);
     err = bximap_set_cpumask(cpus);
     CU_ASSERT_TRUE(bxierr_isko(err));
     bxierr_destroy(&err);
@@ -141,26 +158,28 @@ void test_scheduler(void) {
     BXIFREE(cpus);
     CU_ASSERT_TRUE(bxierr_isok(bximap_init(&threads_nb)));
 
-    CU_ASSERT_EQUAL(min_cpu, (size_t)sched_getcpu());
+    CU_ASSERT_EQUAL(min_cpu, (bximap_cpu_idx_t)sched_getcpu());
 
-    cpus = bxistr_new("%zu-%zu,%zu", min_cpu, max_cpu-1, max_cpu);
+    cpus = bxistr_new(CPU_IDX_FMT"-"CPU_IDX_FMT","CPU_IDX_FMT,
+                      min_cpu, max_cpu-1, max_cpu);
     CU_ASSERT_TRUE(bxierr_isok(bximap_finalize()));
     err = bximap_set_cpumask(cpus);
     CU_ASSERT_TRUE(bxierr_isok(err));
     BXIFREE(cpus);
     CU_ASSERT_TRUE(bxierr_isok(bximap_init(&threads_nb)));
 
-    CU_ASSERT_EQUAL(min_cpu, (size_t)sched_getcpu());
+    CU_ASSERT_EQUAL(min_cpu, (bximap_cpu_idx_t)sched_getcpu());
     CU_ASSERT_TRUE(bxierr_isok(bximap_execute(task)));
 
-    cpus = bxistr_new("%zu-%zu,%zu", min_cpu, max_cpu, max_cpu);
+    cpus = bxistr_new(CPU_IDX_FMT"-"CPU_IDX_FMT","CPU_IDX_FMT,
+                      min_cpu, max_cpu, max_cpu);
     CU_ASSERT_TRUE(bxierr_isok(bximap_finalize()));
     err = bximap_set_cpumask(cpus);
     CU_ASSERT_TRUE(bxierr_isok(err));
     BXIFREE(cpus);
     CU_ASSERT_TRUE(bxierr_isok(bximap_init(&threads_nb)));
 
-    CU_ASSERT_EQUAL(min_cpu, (size_t)sched_getcpu());
+    CU_ASSERT_EQUAL(min_cpu, (bximap_cpu_idx_t)sched_getcpu());
     CU_ASSERT_TRUE(bxierr_isok(bximap_execute(task)));
 
     CU_ASSERT_TRUE(bxierr_isok(bximap_finalize()));
@@ -183,7 +202,7 @@ void test_map(void) {
     CU_ASSERT_PTR_NOT_NULL(task2);
     bximap_destroy(&task2);
 
-    size_t threads_nb = 0;
+    bximap_thrd_idx_t threads_nb = 0;
     CU_ASSERT_TRUE(bxierr_isok(bximap_init(&threads_nb)));
     CU_ASSERT_NOT_EQUAL(threads_nb, 0);
     err = bximap_init(&threads_nb);
@@ -203,14 +222,14 @@ void test_map(void) {
 
     CU_ASSERT_TRUE(bxierr_isok(bximap_init(&threads_nb)));
     CU_ASSERT_TRUE(bxierr_isok(bximap_execute(task)));
-    size_t n = 0;
+    bximap_thrd_idx_t n = 0;
     bxierr_p * errors = NULL;
     CU_ASSERT_TRUE(bxierr_isok(bximap_get_error(task, &n, &errors)));
     CU_ASSERT_EQUAL(n, 0);
     CU_ASSERT_EQUAL(errors, NULL);
 
     CU_ASSERT_EQUAL(test[0], 0);
-    for (size_t i = 1; i < 10; i++) {
+    for (int i = 1; i < 10; i++) {
         CU_ASSERT_EQUAL(test[i], 1);
     }
 
@@ -227,7 +246,7 @@ void test_map(void) {
     CU_ASSERT_TRUE(bxierr_isok(bximap_execute(task)));
     CU_ASSERT_EQUAL(test[0], 0);
     //fprintf(stderr, "test i: %d -> %d and should be 0 \n", 0, test[0]);
-    for (size_t i = 1; i < 9; i++) {
+    for (int i = 1; i < 9; i++) {
         //fprintf(stderr, "test i: %d -> %d and should be 1 \n", i, test[i]);
         CU_ASSERT_EQUAL(test[i], 1);
     }
@@ -241,7 +260,7 @@ void test_map(void) {
     CU_ASSERT_TRUE(bxierr_isok(bximap_execute(task)));
     CU_ASSERT_EQUAL(test[0], 0);
     //fprintf(stderr, "test i: %d -> %d and should be 0 \n", 0, test[0]);
-    for (size_t i = 1; i < 9; i++) {
+    for (int i = 1; i < 9; i++) {
         //fprintf(stderr, "test i: %d -> %d and should be 1 \n", i, test[i]);
         CU_ASSERT_EQUAL(test[i], 1);
     }
@@ -258,7 +277,7 @@ void test_map(void) {
     CU_ASSERT_TRUE(bxierr_isok(bximap_execute(task)));
     CU_ASSERT_EQUAL(test[0], 0);
     //fprintf(stderr, "test i: %d -> %d and should be 0 \n", 0, test[0]);
-    for (size_t i = 1; i < 9; i++) {
+    for (int i = 1; i < 9; i++) {
         //fprintf(stderr, "test i: %d -> %d and should be 1 \n", i, test[i]);
         CU_ASSERT_EQUAL(test[i], 1);
     }
@@ -275,7 +294,7 @@ void test_map(void) {
     CU_ASSERT_TRUE(bxierr_isok(bximap_execute(task)));
     CU_ASSERT_EQUAL(test[0], 0);
     //fprintf(stderr, "test i: %d -> %d and should be 0 \n", 0, test[0]);
-    for (size_t i = 1; i < 9; i++) {
+    for (int i = 1; i < 9; i++) {
         //fprintf(stderr, "test i: %zu -> %d and should be 1 \n", i, test[i]);
         CU_ASSERT_EQUAL(test[i], 1);
     }
@@ -293,11 +312,11 @@ void test_map(void) {
     CU_ASSERT_TRUE(bxierr_isok(bximap_execute(task)));
     CU_ASSERT_EQUAL(test[0], 0);
     //fprintf(stderr, "test i: %d -> %d and should be 0 \n", 0, test[0]);
-    for (size_t i = 1; i < 48; i++) {
+    for (int i = 1; i < 48; i++) {
         //fprintf(stderr, "test i: %zu -> %d and should be 1 \n", i, test[i]);
         CU_ASSERT_EQUAL(test[i], 1);
     }
-    for (size_t i = 48; i < 53; i++) {
+    for (int i = 48; i < 53; i++) {
         CU_ASSERT_EQUAL(test[i], 0);
     }
 
@@ -317,7 +336,7 @@ void test_map(void) {
     CU_ASSERT_PTR_NOT_NULL(errors);
     CU_ASSERT_EQUAL(test[0], 0);
     //fprintf(stderr, "test i: %d -> %d and should be 0 \n", 0, test[0]);
-    for (size_t i = 1; i < 9; i++) {
+    for (int i = 1; i < 9; i++) {
         bxierr_p inerr = errors[i-1];
         CU_ASSERT_EQUAL(inerr->code,TEST_ERR);
         //bxierr_destroy(&inerr);
@@ -341,7 +360,7 @@ void test_map(void) {
     CU_ASSERT_PTR_NOT_NULL(errors);
     CU_ASSERT_EQUAL(test[0], 0);
     //fprintf(stderr, "test i: %d -> %d and should be 0 \n", 0, test[0]);
-    for (size_t i = 2; i < 4; i++) {
+    for (int i = 2; i < 4; i++) {
         bxierr_p inerr = errors[i-2];
         CU_ASSERT_EQUAL(inerr->code, TEST_ERR);
         //bxierr_destroy(&inerr);
@@ -359,7 +378,7 @@ void test_map(void) {
 void test_mapper_fork(void) {
     DEBUG(TEST_LOGGER, "Starting test");
 
-    size_t threads_nb = 4;
+    bximap_thrd_idx_t threads_nb = 4;
     CU_ASSERT_EQUAL(shared_info.state, MAPPER_UNSET);
     CU_ASSERT_TRUE(bxierr_isok(bximap_init(&threads_nb)));
     int * test = bximem_calloc(10 * sizeof(*test));
@@ -388,11 +407,11 @@ void test_mapper_fork(void) {
         CU_ASSERT_TRUE(bxierr_isok(bximap_execute(task)));
         CU_ASSERT_EQUAL(test[0], 0);
         //fprintf(stderr, "test i: %d -> %d and should be 0 \n", 0, test[0]);
-        for (size_t i = 2; i < 4; i++) {
+        for (int i = 2; i < 4; i++) {
             //fprintf(stderr, "test i: %d -> %d and should be 1 \n", i, test[i]);
             CU_ASSERT_EQUAL(test[i], 1);
         }
-        for (size_t i = 5; i < 9; i++) {
+        for (int i = 5; i < 9; i++) {
             CU_ASSERT_EQUAL(test[9], 0);
         }
         CU_ASSERT_TRUE(bxierr_isok(bximap_finalize()));
@@ -409,11 +428,11 @@ void test_mapper_fork(void) {
 
         CU_ASSERT_EQUAL(test[0], 0);
         //fprintf(stderr, "test i: %d -> %d and should be 0 \n", 0, test[0]);
-        for (size_t i = 2; i < 4; i++) {
+        for (int i = 2; i < 4; i++) {
             //fprintf(stderr, "test i: %d -> %d and should be 1 \n", i, test[i]);
             CU_ASSERT_EQUAL(test[i], 1);
         }
-        for (size_t i = 5; i < 9; i++) {
+        for (int i = 5; i < 9; i++) {
             CU_ASSERT_EQUAL(test[9], 0);
         }
 

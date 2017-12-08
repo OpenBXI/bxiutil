@@ -20,12 +20,16 @@ typedef struct {
 
 //static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
-static bxierr_p distribute(size_t start, size_t end, size_t thread, void * usr_data) {
+static bxierr_p distribute(bximap_task_idx_t start,
+                           bximap_task_idx_t end,
+                           bximap_thrd_idx_t thread,
+                           void * usr_data) {
     UNUSED(thread);
     task_data_s * task_data = usr_data;
     bxirng_p rnd = &task_data->rnds[thread];
-    INFO(TEST_LOGGER, "Using rnd #%zu at %p, seed: %u", thread, rnd, rnd->seed);
-    for (size_t i = start; i < end; i++) {
+    INFO(TEST_LOGGER, "Using rnd #"THRD_IDX_FMT" at %p, seed: %u",
+         thread, rnd, rnd->seed);
+    for (bximap_task_idx_t i = start; i < end; i++) {
         // Fetch 2 numbers between 0 and max
         uint32_t s = bxirng_nextint(rnd, 0, task_data->max);
         uint32_t e = bxirng_nextint(rnd, 0, task_data->max);
@@ -66,12 +70,12 @@ void test_rng(void) {
     uint32_t distribution[max];
     memset(distribution, 0, max * sizeof(max));
     // Get the number of threads
-    size_t threads_nb = 0;
+    bximap_thrd_idx_t threads_nb = 0;
     bxierr_p rc = bximap_init(&threads_nb);
     CU_ASSERT_TRUE(rc == BXIERR_OK);
     // Generate a random seed for each threads
     bxirng_s * rnds = NULL;
-    bxirng_new_rngs(bxirng_new_seed(), threads_nb, &rnds);
+    bxirng_new_rngs(bxirng_new_seed(), (uint32_t)threads_nb, &rnds);
     task_data_s task_data = {.distribution = distribution,
                              .max = max, // number of lines
                              .rnds = rnds,
@@ -117,5 +121,3 @@ void test_rng(void) {
         stats.min, stats.max, stats.mean, stats.stddev);
     BXIFREE(pattern);
 }
-
-

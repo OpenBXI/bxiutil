@@ -54,14 +54,19 @@ SET_LOGGER(MAIN_LOGGER, "main");
  * - return BXIERR_OK is every thing goes well
  *   In our example we return an error if the thread number isn't modulo 2
  */
-bxierr_p test_function(size_t start, size_t end, size_t thread, void * usr_data) {
+bxierr_p test_function(bximap_task_idx_t start,
+                       bximap_task_idx_t end,
+                       bximap_thrd_idx_t thread,
+                       void *usr_data) {
     char * str = (char *)usr_data;
-    OUT(MAIN_LOGGER, "Thread %zu work on range [%zu, %zu[ %s",
+    OUT(MAIN_LOGGER,
+        "Thread "THRD_IDX_FMT" work on range "
+        "["TASK_IDX_FMT", "TASK_IDX_FMT"[ %s",
         thread, start, end, str);
     if (thread % 2 == 0) {
         return BXIERR_OK;
     } else {
-        return bxierr_gen("Thread %zu no modulo 2", thread);
+        return bxierr_gen("Thread "THRD_IDX_FMT" no modulo 2", thread);
     }
 }
 /**! [INNER LOOP] */
@@ -84,7 +89,7 @@ int main(int argc, char **argv) {
 
     /**! [BALANCE LOAD] */
     //Initialize 10 threads
-    size_t thread_nb = 10;
+    bximap_thrd_idx_t thread_nb = 10;
     err = bximap_init(&thread_nb);
     if (bxierr_isko(err)) BXIEXIT(EXIT_FAILURE, err, MAIN_LOGGER, BXILOG_CRITICAL);
 
@@ -102,13 +107,13 @@ int main(int argc, char **argv) {
 
     /**! [CHECK RESULT] */
     //Check the result of the iteration execution
-    size_t n = 0;
+    bximap_thrd_idx_t n = 0;
     bxierr_p * errors = NULL;
     err = bximap_get_error(ctx, &n, &errors);
     if (bxierr_isko(err)) BXIEXIT(EXIT_FAILURE, err, MAIN_LOGGER, BXILOG_CRITICAL);
     // Half of the iteration doesn't return BXIERR_OK
     if (n != 5) BXIEXIT(EXIT_FAILURE, err, MAIN_LOGGER, BXILOG_CRITICAL);
-    for (size_t i = 0; i < n; i++) {
+    for (bximap_thrd_idx_t i = 0; i < n; i++) {
         BXILOG_REPORT(MAIN_LOGGER, BXILOG_WARNING, errors[i],
                       "Got error from some iterations");
     }

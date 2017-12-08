@@ -96,6 +96,28 @@
  */
 typedef struct bximap_ctx_s_t * bximap_ctx_p;
 
+/* Type which can hold a number of threads (or index thereof),
+ * or a number of errors (or index thereof).
+ * We set a theoretical limit of 2^15-1 threads/errors for this purpose.
+ * We do not need to optimize for space
+ */
+typedef int bximap_thrd_idx_t;
+#define THRD_IDX_FMT "%d"
+
+/* Type which can hold a number of tasks (or index thereof),
+ * as well as the start/end values described by each task.
+ * We choose to allow integers as large as possible
+ * with which we can dereference an array
+ */
+typedef long long bximap_task_idx_t;
+#define TASK_IDX_FMT "%lld"
+
+/* CPU indices are specified with type int,
+ * like in the example of sched_setaffinity's man page
+ */
+typedef int bximap_cpu_idx_t;
+#define CPU_IDX_FMT "%d"
+
 // *********************************************************************************
 // ********************************** Global Variables *****************************
 // *********************************************************************************
@@ -125,7 +147,7 @@ typedef struct bximap_ctx_s_t * bximap_ctx_p;
  * @return BXIERR_OK on error, anything else on error
  *
  */
-bxierr_p bximap_init(size_t * nb_threads);
+bxierr_p bximap_init(bximap_thrd_idx_t * nb_threads);
 
 /**
  * Clean all resources allocated by the library
@@ -154,15 +176,15 @@ bxierr_p bximap_finalize();
  *
  * @return BXIERR_OK on success, anything else on error
  */
-bxierr_p bximap_new(size_t start,
-                    size_t end,
-                    size_t granularity,
-                    bxierr_p (*func)(size_t start,
-                                     size_t end,
-                                     size_t thread,
-                                     void *usr_data),
-                    void * usr_data,
-                    bximap_ctx_p * ctx_p);
+bxierr_p bximap_new(bximap_task_idx_t start,
+                    bximap_task_idx_t end,
+                    bximap_task_idx_t granularity,
+                    bxierr_p       (* func)(bximap_task_idx_t start,
+                                            bximap_task_idx_t end,
+                                            bximap_thrd_idx_t thread,
+                                            void * usr_data),
+                    void            * usr_data,
+                    bximap_ctx_p    * ctx_p);
 
 /**
  * Release the given bximap context.
@@ -193,7 +215,9 @@ bxierr_p bximap_execute(bximap_ctx_p context);
  *
  * @return BXIERR_OK on success, anything else on error.
  */
-bxierr_p bximap_get_error(bximap_ctx_p context, size_t *n, bxierr_p **err_p);
+bxierr_p bximap_get_error(bximap_ctx_p context,
+                          bximap_thrd_idx_t * n,
+                          bxierr_p ** err_p);
 
 /**
  * Bind the current thread on the provided cpu index.
@@ -203,7 +227,7 @@ bxierr_p bximap_get_error(bximap_ctx_p context, size_t *n, bxierr_p **err_p);
  * @returns BXIERR_OK when the mapping is possible,
  *          if the index is larger than the number of cpu an error is returned.
  */
-bxierr_p bximap_on_cpu(size_t cpu);
+bxierr_p bximap_on_cpu(bximap_cpu_idx_t cpu);
 
 /**
  * Set a cpu mask to be used by bximap threads. This mapping should be

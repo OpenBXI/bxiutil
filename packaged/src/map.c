@@ -60,34 +60,37 @@ typedef enum {
 // ********************************** Types ****************************************
 // *********************************************************************************
 
-typedef struct bximap_ctx_s_t{
-    size_t      start;
-    size_t      end;
-    size_t      granularity;
-    size_t      id;
-    bxierr_p    (*func)(size_t start, size_t end, size_t thread, void *usr_data);
-    void *      usr_data;
-    bxierr_p *  tasks_error;
-    size_t      next_error;
+typedef struct bximap_ctx_s_t {
+    bximap_task_idx_t  start;
+    bximap_task_idx_t  end;
+    bximap_task_idx_t  granularity;
+    bximap_task_idx_t  id;
+    bxierr_p        (* func)(bximap_task_idx_t start,
+                             bximap_task_idx_t end,
+                             bximap_thrd_idx_t thread,
+                             void * usr_data);
+    void             * usr_data;
+    bxierr_p         * tasks_error;
+    bximap_thrd_idx_t  next_error;
 } bximap_ctx_s;
 
 
-typedef struct{
-    bximap_ctx_p    global_task;
-    bximap_ctx_s*   tasks;
-    size_t          nb_threads;
-    size_t          nb_tasks;
-    size_t          ended;
-    pthread_t   *   threads_id;
-    size_t *        threads_args;
-    _state_mapper   state;
+typedef struct {
+    bximap_ctx_p        global_task;
+    bximap_ctx_s      * tasks;
+    bximap_thrd_idx_t   nb_threads;
+    bximap_task_idx_t   nb_tasks;
+    bximap_thrd_idx_t   ended; // Number of ended threads
+    pthread_t         * threads_id;
+    bximap_thrd_idx_t * threads_args;
+    _state_mapper       state;
 #ifndef ZMQ
-    size_t          next_task;
+    bximap_task_idx_t   next_task;
 #else
-    void *          context;
-    void *          zocket_pub;
-    void *          zocket_tasks;
-    void *          zocket_result;
+    void              * context;
+    void              * zocket_pub;
+    void              * zocket_tasks;
+    void              * zocket_result;
 #endif
 } _intern_info;
 
@@ -97,9 +100,10 @@ typedef struct{
 static void _mapper_parent_before_fork(void);
 static void _mapper_parent_after_fork(void);
 static void _mapper_once(void);
-static bxierr_p _do_job(bximap_ctx_p task, size_t thread_id);
-static void * _start_function(void* arg);
-static bxierr_p _fill_vector_with_cpu(intptr_t first_cpu, intptr_t last_cpu,
+static bxierr_p _do_job(bximap_ctx_p task, bximap_thrd_idx_t thread_id);
+static void * _start_function(void * arg);
+static bxierr_p _fill_vector_with_cpu(bximap_cpu_idx_t first_cpu,
+                                      bximap_cpu_idx_t last_cpu,
                                       bxivector_p vcpu);
 
 // *********************************************************************************
@@ -145,14 +149,15 @@ bxivector_p vcpus = NULL;
 
 /* Initialize a new mapping
  * Map the iteration from start to end over the threads
- * each thread has grain iteration to do (only the last one could be shorter)
- *  if gain is equal to 0 the optimal size is used */
-bxierr_p bximap_new(size_t start,
-                    size_t end,
-                    size_t granularity,
-                    bxierr_p   (*func)(size_t start, size_t end,
-                                       size_t thread,
-                                       void *usr_data),
+ * Each thread has granularity iteration to do (only the last one could be shorter)
+ * If granularity is 0, an optimal size is computed */
+bxierr_p bximap_new(bximap_task_idx_t start,
+                    bximap_task_idx_t end,
+                    bximap_task_idx_t granularity,
+                    bxierr_p (*func)(bximap_task_idx_t start,
+                                     bximap_task_idx_t end,
+                                     bximap_thrd_idx_t thread,
+                                     void * usr_data),
                     void * usr_data,
                     bximap_ctx_p * task_p) {
 
@@ -171,7 +176,7 @@ bxierr_p bximap_new(size_t start,
 
 bxierr_p bximap_destroy(bximap_ctx_p *ctx) {
 
-    for (size_t i = 0; i < (*ctx)->next_error; i++) {
+    for (bximap_thrd_idx_t i = 0; i < (*ctx)->next_error; i++) {
         bxierr_p err = (*ctx)->tasks_error[i];
         bxierr_destroy(&err);
     }
@@ -180,7 +185,7 @@ bxierr_p bximap_destroy(bximap_ctx_p *ctx) {
     return BXIERR_OK;
 }
 
-bxierr_p bximap_get_error(bximap_ctx_p context, size_t *n, bxierr_p **err_p) {
+bxierr_p bximap_get_error(bximap_ctx_p context, bximap_thrd_idx_t *n, bxierr_p **err_p) {
     bxiassert(NULL != context);
     bxiassert(NULL != n  && NULL != err_p);
 
@@ -214,9 +219,9 @@ bxierr_p bximap_execute(bximap_ctx_p context) {
 
     // Split the work between the threads.
     shared_info.global_task = context;
-    size_t cur_start = context->start;
-    size_t granularity = context->granularity;
-    if (granularity == 0){
+    bximap_task_idx_t cur_start = context->start;
+    bximap_task_idx_t granularity = context->granularity;
+    if (granularity == 0) {
         granularity = (context->end - context->start) / (shared_info.nb_threads);
         granularity /= 10;
         if (granularity == 0) {
@@ -228,12 +233,14 @@ bxierr_p bximap_execute(bximap_ctx_p context) {
         BXIFREE(shared_info.global_task->tasks_error);
     }
 
-    TRACE(MAPPER_LOGGER, "tasks_error allocate %zu error", shared_info.nb_tasks);
-    shared_info.global_task->tasks_error = bximem_calloc(shared_info.nb_tasks *
+    TRACE(MAPPER_LOGGER,
+          "tasks_error allocate "TASK_IDX_FMT" errors",
+          shared_info.nb_tasks);
+    shared_info.global_task->tasks_error = bximem_calloc((size_t)shared_info.nb_tasks *
                                                          sizeof(*shared_info.global_task->tasks_error));
     shared_info.global_task->next_error = 0;
 
-    size_t remaining_work = (context->end - context->start) % granularity;
+    bximap_task_idx_t remaining_work = (context->end - context->start) % granularity;
     if (remaining_work != 0) {
         // With this granularity some work remain
         if (shared_info.nb_tasks % shared_info.nb_threads != 0) {
@@ -247,12 +254,12 @@ bxierr_p bximap_execute(bximap_ctx_p context) {
     }
 
     shared_info.tasks = bximem_calloc((size_t)shared_info.nb_tasks * sizeof(*shared_info.tasks));
-    for (size_t i = 0; i < shared_info.nb_tasks; i++) {
+    for (bximap_task_idx_t i = 0; i < shared_info.nb_tasks; i++) {
 
         // Spread the remaining work among all
         // First tasks could have less
         // It's mandatory to have less work inside some tasks
-        size_t additional_work = remaining_work / (shared_info.nb_tasks - i);
+        bximap_task_idx_t additional_work = remaining_work / (shared_info.nb_tasks - i);
         if (remaining_work % (shared_info.nb_tasks - i) != 0) {
             additional_work++;
         }
@@ -269,15 +276,22 @@ bxierr_p bximap_execute(bximap_ctx_p context) {
         }
 
         shared_info.tasks[i].id = i;
-        TRACE(MAPPER_LOGGER, "Task %zu start %zu end %zu granularity %zu"
-              " granularity requested %zu",
+        TRACE(MAPPER_LOGGER,
+              "Task: "                  TASK_IDX_FMT " "
+              "start: "                 TASK_IDX_FMT " "
+              "end: "                   TASK_IDX_FMT " "
+              "granularity: "           TASK_IDX_FMT " "
+              "granularity requested: " TASK_IDX_FMT,
               i, shared_info.tasks[i].start, shared_info.tasks[i].end,
               shared_info.tasks[i].granularity, granularity);
         cur_start += shared_info.tasks[i].granularity;
     }
 
-    TRACE(MAPPER_LOGGER, "last task end: %zu global task end: %zu"
-          " task granularity %zu nb tasks: %zu",
+    TRACE(MAPPER_LOGGER,
+          "last task end: "    TASK_IDX_FMT " "
+          "global task end: "  TASK_IDX_FMT " "
+          "task granularity: " TASK_IDX_FMT " "
+          "nb tasks: "         TASK_IDX_FMT,
           shared_info.tasks[shared_info.nb_tasks - 1].end,
           shared_info.global_task->end,
           shared_info.tasks[shared_info.nb_tasks - 1].granularity,
@@ -323,8 +337,8 @@ bxierr_p bximap_execute(bximap_ctx_p context) {
 
     struct timespec running_time;
 
-    size_t nb_iterations = shared_info.tasks[0].end
-                           - shared_info.tasks[0].start;
+    bximap_task_idx_t nb_iterations = shared_info.tasks[0].end
+                                      - shared_info.tasks[0].start;
 
     bxierr_p err = bxitime_get(CLOCK_MONOTONIC, &running_time);
     bxierr_p task_err = _do_job( &shared_info.tasks[0], 0);
@@ -332,12 +346,14 @@ bxierr_p bximap_execute(bximap_ctx_p context) {
     BXIERR_CHAIN(err, err2);
     running_duration += tmp;
     if (bxierr_isko(task_err)) {
-        size_t next_error = __sync_fetch_and_add(&shared_info.global_task->next_error, 1);
-        TRACE(MAPPER_LOGGER, "thread:%d next_error %zu", 0, next_error);
+        bximap_thrd_idx_t next_error = __sync_fetch_and_add(&shared_info.global_task->next_error, 1);
+        TRACE(MAPPER_LOGGER,
+              "thread:"THRD_IDX_FMT" next_error:"THRD_IDX_FMT,
+              (bximap_thrd_idx_t)0, next_error);
         shared_info.global_task->tasks_error[next_error] = task_err;
     }
 
-    size_t next_task = __sync_fetch_and_add (&shared_info.next_task, 1);
+    bximap_task_idx_t next_task = __sync_fetch_and_add (&shared_info.next_task, 1);
     while (next_task < shared_info.nb_tasks) {
         nb_iterations += shared_info.tasks[next_task].end
                          - shared_info.tasks[next_task].start;
@@ -349,14 +365,18 @@ bxierr_p bximap_execute(bximap_ctx_p context) {
         BXIERR_CHAIN(err, err2);
         running_duration += tmp_duration;
         if (bxierr_isko(task_err)) {
-            size_t next_error = __sync_fetch_and_add(&shared_info.global_task->next_error, 1);
-            TRACE(MAPPER_LOGGER, "thread:%d next_error %zu", 0, next_error);
+            bximap_thrd_idx_t next_error = __sync_fetch_and_add(&shared_info.global_task->next_error, 1);
+            TRACE(MAPPER_LOGGER,
+                  "thread:"THRD_IDX_FMT" next_error:"THRD_IDX_FMT,
+                  (bximap_thrd_idx_t)0, next_error);
             shared_info.global_task->tasks_error[next_error] = task_err;
         }
         next_task = __sync_fetch_and_add (&shared_info.next_task, 1);
     }
-    INFO(MAPPER_LOGGER, "Timing thread:%zd worked %f seconds for %zu iterations",
-         (size_t)0, running_duration, nb_iterations);
+    INFO(MAPPER_LOGGER,
+         "Timing thread:"THRD_IDX_FMT" worked %f seconds "
+         "for "TASK_IDX_FMT" iterations",
+         (bximap_thrd_idx_t)0, running_duration, nb_iterations);
 
 #ifdef FADD
     while (shared_info.ended < shared_info.nb_threads - 1) {
@@ -378,7 +398,7 @@ bxierr_p bximap_execute(bximap_ctx_p context) {
     struct timespec sending_time, receiving_time;
     double sending_duration, receiving_duration;
     bxierr_p err = bxitime_get(CLOCK_MONOTONIC, &sending_time);
-    for (size_t i = 0; i < shared_info.nb_tasks; i++) {
+    for (bximap_task_idx_t i = 0; i < shared_info.nb_tasks; i++) {
         bxierr_p err2 = bxizmq_data_snd_zc(&shared_info.tasks[i],
                                            sizeof(shared_info.tasks[i]),
                                            shared_info.zocket_tasks, 0, 10, 10000,
@@ -391,7 +411,7 @@ bxierr_p bximap_execute(bximap_ctx_p context) {
     BXIERR_CHAIN(err, err2);
     err2 = bxitime_get(CLOCK_MONOTONIC, &receiving_time);
     BXIERR_CHAIN(err, err2);
-    for (size_t i = 0; i < shared_info.nb_tasks; i++) {
+    for (bximap_task_idx_t i = 0; i < shared_info.nb_tasks; i++) {
         bxierr_p task_err = NULL;
         bxierr_p * task_err_p = &task_err;
         size_t received_size = 0;
@@ -400,7 +420,7 @@ bxierr_p bximap_execute(bximap_ctx_p context) {
                                &received_size);
         BXIERR_CHAIN(err, err2);
         if (bxierr_isko(task_err)) {
-            size_t next_error = shared_info.global_task->next_error++;
+            bximap_thrd_idx_t next_error = shared_info.global_task->next_error++;
 
             shared_info.global_task->tasks_error[next_error] = task_err;
         }
@@ -430,11 +450,11 @@ bxierr_p bximap_execute(bximap_ctx_p context) {
  *      if the variable isn't valid or is equal to 0
  *      the number of physical cpu will be used
  */
-bxierr_p bximap_init(size_t * nb_threads) {
+bxierr_p bximap_init(bximap_thrd_idx_t * nb_threads) {
     if (shared_info.state == MAPPER_INITIALIZED) {
         return bxierr_simple(BXIMAP_INITIALIZE, INITIALIZE_MSG);
     }
-    size_t thr_nb = nb_threads == NULL ? 0 : *nb_threads;
+    bximap_thrd_idx_t thr_nb = nb_threads == NULL ? 0 : *nb_threads;
 
     struct timespec creation_time;
     bxierr_p err = BXIERR_OK;
@@ -447,13 +467,16 @@ bxierr_p bximap_init(size_t * nb_threads) {
 
     if (thr_nb == 0) {
         char * nb_threads_s = getenv("BXIMAP_NB_THREADS");
-        int sys_cpu = 0;
+        bximap_cpu_idx_t sys_cpu = 0;
         if (nb_threads_s != NULL) {
-            bxierr_p err2 = bximisc_strtoi(nb_threads_s, 10, &sys_cpu);
+            int sys_cpu_int;
+            bxierr_p err2 = bximisc_strtoi(nb_threads_s, 10, &sys_cpu_int);
             BXIERR_CHAIN(err, err2);
             if (bxierr_isko(err)) return err;
+            sys_cpu = sys_cpu_int;
             TRACE(MAPPER_LOGGER,
-                  "Mapper getenv returned: %s, bximisc_strtoi: %d",
+                  "Mapper getenv returned: %s, "
+                  "bximisc_strtol: "CPU_IDX_FMT,
                   nb_threads_s, sys_cpu);
         }
         if (sys_cpu <= 0) {
@@ -464,19 +487,21 @@ bxierr_p bximap_init(size_t * nb_threads) {
                         " one thread will be used");
                 sys_cpu = 1;
             }
-            TRACE(MAPPER_LOGGER, "Mapper sysconf returned: %d", sys_cpu);
+            TRACE(MAPPER_LOGGER,
+                  "Mapper get_nprocs_conf returned: "CPU_IDX_FMT,
+                  sys_cpu);
         }
-        thr_nb = (size_t)sys_cpu;
+        thr_nb = (bximap_thrd_idx_t)sys_cpu;
     }
     if (nb_threads != NULL) *nb_threads = thr_nb;
-    INFO(MAPPER_LOGGER, "Mapper initialized %zu threads", thr_nb);
+    INFO(MAPPER_LOGGER, "Mapper initialized "THRD_IDX_FMT" threads", thr_nb);
 
     shared_info.threads_args = bximem_calloc((size_t)thr_nb * sizeof(*shared_info.threads_args));
 
     shared_info.threads_id = bximem_calloc((size_t)thr_nb * sizeof(*shared_info.threads_id));
     shared_info.nb_threads = thr_nb;
     shared_info.ended = 0;
-    size_t first = 0;
+    bximap_thrd_idx_t first = 0;
     int rc = 0;
 
 #ifndef ZMQ
@@ -528,7 +553,7 @@ bxierr_p bximap_init(size_t * nb_threads) {
     BXIERR_CHAIN(err, err2);
 #endif
 
-    for (size_t i = first; i < shared_info.nb_threads; i++) {
+    for (bximap_thrd_idx_t i = first; i < shared_info.nb_threads; i++) {
         shared_info.threads_args[i] = i;
 
         errno = 0;
@@ -539,7 +564,7 @@ bxierr_p bximap_init(size_t * nb_threads) {
             err2 = bxierr_errno("Error on pthread create");
             BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err2, "Error");
         }
-        TRACE(MAPPER_LOGGER, "Creation of one thread:%zu", i);
+        TRACE(MAPPER_LOGGER, "Creation of one thread:"THRD_IDX_FMT, i);
     }
 
 #ifndef ZMQ
@@ -592,7 +617,7 @@ bxierr_p bximap_finalize() {
     BXIERR_CHAIN(err, err2);
 
     shared_info.global_task = &last_task;
-    size_t first = 0;
+    bximap_thrd_idx_t first = 0;
 
 #ifndef ZMQ
     first++;
@@ -647,7 +672,7 @@ bxierr_p bximap_finalize() {
 #endif
 #else
     TRACE(MAPPER_LOGGER, "Master sends last task");
-    for (size_t i = 0; i < shared_info.nb_threads; i++) {
+    for (bximap_thrd_idx_t i = 0; i < shared_info.nb_threads; i++) {
         err2 = bxizmq_data_snd_zc(&last_task,  sizeof(last_task),
                                   shared_info.zocket_pub,
                                   0, 10, 10000, NULL, NULL);
@@ -655,9 +680,9 @@ bxierr_p bximap_finalize() {
     }
 #endif
 
-    for (size_t i = first; i < shared_info.nb_threads; i++) {
+    for (bximap_thrd_idx_t i = first; i < shared_info.nb_threads; i++) {
         void * retval;
-        TRACE(MAPPER_LOGGER, "Master joins thread:%zu", i);
+        TRACE(MAPPER_LOGGER, "Master joins thread:"THRD_IDX_FMT, i);
         errno = 0;
         rc = pthread_join(shared_info.threads_id[i], &retval);
         if (0 != rc) {
@@ -667,9 +692,13 @@ bxierr_p bximap_finalize() {
             err2 = (bxierr_p)retval;
 
             if (bxierr_isko(err2)) {
-                TRACE(MAPPER_LOGGER, "thread:%zu return BIXERR OK: %ld", i, (long)retval);
+                TRACE(MAPPER_LOGGER,
+                      "thread:"THRD_IDX_FMT" return BIXERR OK: %ld",
+                      i, (long)retval);
             } else {
-                TRACE(MAPPER_LOGGER, "thread:%zu return error: %ld", i, (long)retval);
+                TRACE(MAPPER_LOGGER,
+                      "thread:"THRD_IDX_FMT" return error: %ld",
+                      i, (long)retval);
             }
             BXIERR_CHAIN(err, err2);
         }
@@ -710,11 +739,11 @@ bxierr_p bximap_finalize() {
     return BXIERR_OK;
 }
 
-bxierr_p bximap_on_cpu(size_t cpu) {
+bxierr_p bximap_on_cpu(bximap_cpu_idx_t cpu) {
     cpu_set_t cpu_mask;
 
     CPU_ZERO(&cpu_mask);
-    CPU_SET(cpu, &cpu_mask);
+    CPU_SET((size_t)cpu, &cpu_mask);
     errno = 0;
     if (sched_setaffinity(0, 1, &cpu_mask) != 0) {
         return bxierr_errno("Process binding on the cpu failed (sched_setaffinity)");
@@ -728,12 +757,12 @@ bxierr_p bximap_translate_cpumask(const char * cpus, bxivector_p * vcpus) {
     *vcpus = bxivector_new(0, NULL);
 
     char * next_int = (char *)cpus;
-    intptr_t previous_cpu = -1;
-    intptr_t cpu = -1;
+    bximap_cpu_idx_t previous_cpu = -1;
+    bximap_cpu_idx_t cpu;
     while (*next_int != '\0') {
         char * int_str = next_int;
         errno = 0;
-        cpu = strtol(int_str, &next_int, 10);
+        cpu = (bximap_cpu_idx_t)strtol(int_str, &next_int, 10);
         if (0 != errno) {
             bxivector_destroy(vcpus, NULL);
             return bxierr_errno("Error while parsing number: '%s'", int_str);
@@ -785,10 +814,11 @@ bxierr_p bximap_set_cpumask(char * cpus) {
 
     bxierr_p err = bximap_translate_cpumask(cpus, &vcpus);
     if (vcpus != NULL && 0 < bxivector_get_size(vcpus)) {
-        char * cpus_str = bxistr_new("%zd", (intptr_t)bxivector_get_elem(vcpus, 0));
+        bximap_cpu_idx_t cpu0 = (bximap_cpu_idx_t)(intptr_t)bxivector_get_elem(vcpus, 0);
+        char * cpus_str = bxistr_new(CPU_IDX_FMT, cpu0);
         for (size_t i = 1; i < bxivector_get_size(vcpus); i++) {
-            char * next_cpus = bxistr_new("%s,%zd", cpus_str,
-                                          (intptr_t)bxivector_get_elem(vcpus, i));
+            bximap_cpu_idx_t next_cpu = (bximap_cpu_idx_t)(intptr_t)bxivector_get_elem(vcpus, i);
+            char * next_cpus = bxistr_new("%s,"CPU_IDX_FMT, cpus_str, next_cpu);
             BXIFREE(cpus_str);
             cpus_str = next_cpus;
         }
@@ -797,12 +827,12 @@ bxierr_p bximap_set_cpumask(char * cpus) {
               cpus, bxivector_get_size(vcpus), cpus_str);
         BXIFREE(cpus_str);
 
-        size_t cpu = (size_t)bxivector_get_elem(vcpus, 0);
-        TRACE(MAPPER_LOGGER,"Schedule on cpu=\"%zu\"", cpu);
+        bximap_cpu_idx_t cpu = (bximap_cpu_idx_t)(intptr_t)bxivector_get_elem(vcpus, 0);
+        TRACE(MAPPER_LOGGER, "Schedule on cpu "CPU_IDX_FMT, cpu);
         bxierr_p next = bximap_on_cpu(cpu);
         if (bxierr_isko(err)) {
             BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, next,
-                          "Can't be mapped on cpu %zu", cpu);
+                          "Can't be mapped on cpu "CPU_IDX_FMT, cpu);
         }
     }
 
@@ -835,37 +865,43 @@ void _mapper_parent_after_fork(void) {
     BXIASSERT(MAPPER_LOGGER, rc == BXIERR_OK);
 }
 
-
-
-bxierr_p _do_job(bximap_ctx_p task, size_t thread_id){
-    size_t start = task->start;
-    size_t end = task->end ;
-    TRACE(MAPPER_LOGGER, "start %zu, end %zu, thread_id %zu", start, end, thread_id);
+bxierr_p _do_job(bximap_ctx_p task, bximap_thrd_idx_t thread_id) {
+    bximap_task_idx_t start = task->start;
+    bximap_task_idx_t end = task->end ;
+    TRACE(MAPPER_LOGGER,
+          "start "     TASK_IDX_FMT ", "
+          "end "       TASK_IDX_FMT ", "
+          "thread_id " THRD_IDX_FMT,
+          start, end, thread_id);
     bxierr_p err = task->func(start, end, thread_id, task->usr_data);
     return err;
 }
 
 void * __start_function(void *arg) {
-    size_t thread_id = *(size_t*) arg;
+    bximap_thrd_idx_t thread_id = *(bximap_thrd_idx_t *)arg;
     bximap_ctx_p current_task = NULL;
     bxierr_p err = BXIERR_OK, err2;
     struct timespec starting_time;
     double working_time = 0;
-    size_t nb_iterations = 0;
+    bximap_task_idx_t nb_iterations = 0;
     int rc = 0;
-    TRACE(MAPPER_LOGGER, "thread:%zu start", thread_id);
+    TRACE(MAPPER_LOGGER, "thread:"THRD_IDX_FMT" start", thread_id);
     if (vcpus != NULL) {
-        size_t nb_cpus = bxivector_get_size(vcpus);
-        size_t my_cpu = thread_id % nb_cpus;
-        size_t cpu = (size_t)bxivector_get_elem(vcpus, my_cpu);
-        TRACE(MAPPER_LOGGER,"Schedule on cpu=\"%zu\" thread_id=\"%zu\"", cpu, thread_id);
+        bximap_cpu_idx_t nb_cpus = (bximap_cpu_idx_t)bxivector_get_size(vcpus);
+        bximap_cpu_idx_t my_cpu = (bximap_cpu_idx_t)(thread_id % (bximap_thrd_idx_t)nb_cpus);
+        bximap_cpu_idx_t cpu = (bximap_cpu_idx_t)(intptr_t)bxivector_get_elem(vcpus, (size_t)my_cpu);
+        TRACE(MAPPER_LOGGER,
+              "Schedule on cpu="CPU_IDX_FMT" "
+              "thread_id="THRD_IDX_FMT,
+              cpu, thread_id);
         bxierr_p err = bximap_on_cpu(cpu);
         if (bxierr_isko(err)) {
-            BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err, "Can't be mapped on cpu %zu", cpu);
+            BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err,
+                          "Can't be mapped on cpu "CPU_IDX_FMT, cpu);
         }
     }
 #ifdef ZMQ
-    TRACE(MAPPER_LOGGER, "thread:%zu start zmq", thread_id);
+    TRACE(MAPPER_LOGGER, "thread:"THRD_IDX_FMT" start zmq", thread_id);
     void *  zocket_sub_end = NULL;
     err2 = bxizmq_zocket_connect(shared_info.context, ZMQ_SUB, MAP_PUB_ZMQ_URL,
                                  &zocket_sub_end);
@@ -973,11 +1009,13 @@ void * __start_function(void *arg) {
 #endif
 
         if (shared_info.global_task == &last_task) {
-            TRACE(MAPPER_LOGGER, "thread:%zu got last task", thread_id);
+            TRACE(MAPPER_LOGGER,
+                  "thread:"THRD_IDX_FMT" got last task", thread_id);
             break;
         }
         if (shared_info.global_task == NULL) {
-            TRACE(MAPPER_LOGGER, "thread:%zu got null pointer", thread_id);
+            TRACE(MAPPER_LOGGER,
+                  "thread:"THRD_IDX_FMT" got null pointer", thread_id);
             break;
         }
 
@@ -986,7 +1024,10 @@ void * __start_function(void *arg) {
         nb_iterations = 0;
         if (thread_id < shared_info.nb_tasks) {
             current_task = &shared_info.tasks[thread_id];
-            TRACE(MAPPER_LOGGER, "thread:%zu start task:%zu", thread_id, current_task->id);
+            TRACE(MAPPER_LOGGER,
+                  "thread:"     THRD_IDX_FMT " "
+                  "start task:" TASK_IDX_FMT,
+                  thread_id, current_task->id);
             err2 = bxitime_get(CLOCK_MONOTONIC, &starting_time);
             BXIERR_CHAIN(err, err2);
             bxierr_p task_err = _do_job(current_task, thread_id);
@@ -996,18 +1037,22 @@ void * __start_function(void *arg) {
             working_time += duration;
             nb_iterations += (current_task->end - current_task->start);
             if (bxierr_isko(task_err)) {
-                size_t next_error = __sync_fetch_and_add(&shared_info.global_task->next_error, 1);
-                TRACE(MAPPER_LOGGER, "thread:%zu next_error %zu", thread_id, next_error);
+                bximap_thrd_idx_t next_error = __sync_fetch_and_add(&shared_info.global_task->next_error, 1);
+                TRACE(MAPPER_LOGGER,
+                      "thread:"     THRD_IDX_FMT " "
+                      "next_error " THRD_IDX_FMT,
+                      thread_id, next_error);
                 shared_info.global_task->tasks_error[next_error] = task_err;
             }
         }
 
-        size_t next_task = __sync_fetch_and_add (&shared_info.next_task, 1);
-        while (next_task < shared_info.nb_tasks){
+        bximap_task_idx_t next_task = __sync_fetch_and_add(&shared_info.next_task, 1);
+        while (next_task < shared_info.nb_tasks) {
             current_task = &shared_info.tasks[next_task];
 #endif
             TRACE(MAPPER_LOGGER,
-                  "thread:%zu start task:%zu", thread_id, current_task->id);
+                  "thread:"THRD_IDX_FMT" start task:"TASK_IDX_FMT,
+                  thread_id, current_task->id);
             err2 = bxitime_get(CLOCK_MONOTONIC, &starting_time);
             BXIERR_CHAIN(err, err2);
             bxierr_p task_err = _do_job(current_task, thread_id);
@@ -1018,12 +1063,14 @@ void * __start_function(void *arg) {
             nb_iterations += (current_task->end - current_task->start);
 #ifndef ZMQ
             if (bxierr_isko(task_err)) {
-                size_t next_error = __sync_fetch_and_add(&shared_info.global_task->next_error, 1);
+                bximap_thrd_idx_t next_error = __sync_fetch_and_add(&shared_info.global_task->next_error, 1);
                 shared_info.global_task->tasks_error[next_error] = task_err;
             }
             next_task = __sync_fetch_and_add(&shared_info.next_task, 1);
         }
-        DEBUG(MAPPER_LOGGER, "Timing thread:%zu worked %f seconds for %zu iterations",
+        DEBUG(MAPPER_LOGGER,
+              "Timing thread:"THRD_IDX_FMT" worked %f seconds "
+              "for "TASK_IDX_FMT" iterations",
               thread_id, working_time, nb_iterations);
 #ifndef FADD
         errno = 0;
@@ -1043,8 +1090,10 @@ void * __start_function(void *arg) {
 
     }
 #ifdef ZMQ
-    TRACE(MAPPER_LOGGER, "thread:%zu clean zmq", thread_id);
-    INFO(MAPPER_LOGGER, "Timing thread:%zu worked %f seconds for %zu iterations",
+    TRACE(MAPPER_LOGGER, "thread:"THRD_IDX_FMT" clean zmq", thread_id);
+    INFO(MAPPER_LOGGER,
+         "Timing thread:"THRD_IDX_FMT" worked %f seconds "
+         "for "TASK_IDX_FMT" iterations",
          thread_id, working_time, nb_iterations);
     err2 = bxizmq_zocket_destroy(zocket_sub_end);
     BXIERR_CHAIN(err, err2);
@@ -1053,7 +1102,7 @@ void * __start_function(void *arg) {
     err2 = bxizmq_zocket_destroy(zocket_push_result);
     BXIERR_CHAIN(err, err2);
 #endif
-    TRACE(MAPPER_LOGGER, "thread:%zu stop", thread_id);
+    TRACE(MAPPER_LOGGER, "thread:"THRD_IDX_FMT" stop", thread_id);
     return err;
 }
 
@@ -1062,24 +1111,28 @@ void * _start_function(void * arg) {
     if (bxierr_isko(err)) {
         BXILOG_REPORT(MAPPER_LOGGER, BXILOG_WARNING, err, "Error");
     }
-    size_t thread_id = *(size_t *)arg;
-    TRACE(MAPPER_LOGGER, "thread:%zu stop", thread_id);
+    bximap_thrd_idx_t thread_id = *(bximap_thrd_idx_t *)arg;
+    TRACE(MAPPER_LOGGER, "thread:"THRD_IDX_FMT" stop", thread_id);
     return err;
 }
 
 
 
-bxierr_p _fill_vector_with_cpu(intptr_t first_cpu, intptr_t last_cpu, bxivector_p vcpus) {
-    TRACE(MAPPER_LOGGER, "first_cpu=\"%zd\" last_cpu=\"%zd\"",
+bxierr_p _fill_vector_with_cpu(bximap_cpu_idx_t first_cpu,
+                               bximap_cpu_idx_t last_cpu,
+                               bxivector_p vcpus) {
+    TRACE(MAPPER_LOGGER,
+          "first_cpu="CPU_IDX_FMT" last_cpu="CPU_IDX_FMT,
           first_cpu, last_cpu);
     if (first_cpu > last_cpu) {
         return bxierr_new(BXIMAP_INTERVAL_ERROR, NULL, NULL, NULL, NULL,
-                          "Interval with a greater first index %zu than last index %zu",
+                          "Interval with a greater first index "CPU_IDX_FMT" "
+                          "than last index "CPU_IDX_FMT,
                           first_cpu, last_cpu);
     }
     if (-1 == first_cpu) first_cpu = last_cpu;
-    for (intptr_t i = first_cpu; i <= last_cpu; i++) {
-        bxivector_push(vcpus, (void *)i);
+    for (bximap_cpu_idx_t i = first_cpu; i <= last_cpu; i++) {
+        bxivector_push(vcpus, (void *)(intptr_t)i);
     }
     return BXIERR_OK;
 }
