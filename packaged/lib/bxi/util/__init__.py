@@ -63,11 +63,11 @@ class Map(object):
     """
     def __init__(self, nb_thread=0):
         """
-        Initialise the threads for the task parallelization.
-        @param nb_thread number of threads should be start.
+        Initialize the threads for the task parallelization.
+        @param nb_thread number of threads that should be started
         @return
         """
-        nb_thread_p = __FFI__.new("size_t [1]")
+        nb_thread_p = __FFI__.new("int [1]")
         nb_thread_p[0] = nb_thread
         __CAPI__.bximap_init(nb_thread_p)
 
