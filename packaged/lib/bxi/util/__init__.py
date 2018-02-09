@@ -2,11 +2,11 @@
 
 """
 @authors Pierre Vignéras <pierre.vigneras@bull.net>
-@copyright 2013  Bull S.A.S.  -  All rights reserved.\n
+@copyright 2015  Bull S.A.S.  -  All rights reserved.\n
            This is not Free or Open Source software.\n
            Please contact Bull SAS for details about its license.\n
            Bull - Rue Jean Jaurès - B.P. 68 - 78340 Les Clayes-sous-Bois
-@namespace bxi.base Python BXI Base module
+@namespace bxi.util Python BXI Utilitaries
 
 """
 from __future__ import print_function
@@ -63,11 +63,11 @@ class Map(object):
     """
     def __init__(self, nb_thread=0):
         """
-        Initialise the threads for the task parallelization.
-        @param nb_thread number of threads should be start.
+        Initialize the threads for the task parallelization.
+        @param nb_thread number of threads that should be started
         @return
         """
-        nb_thread_p = __FFI__.new("size_t [1]")
+        nb_thread_p = __FFI__.new("int [1]")
         nb_thread_p[0] = nb_thread
         __CAPI__.bximap_init(nb_thread_p)
 
@@ -279,7 +279,7 @@ def smart_display(header, data,
         Values in the list should be a function f(s,w)->s such as
         unicode.rjust, unicode.ljust and unicode.center. Default is str.ljust.
 
-    @param columns_max: a {column_header: max} dictionnary that should be used
+    @param columns_max: a {column_header: max} dictionary that should be used
         for the display of the related column. If max is 0, it means
         that the column will not be displayed at all. If max is greater
         than 0, then max characters will be used for the display of the column.

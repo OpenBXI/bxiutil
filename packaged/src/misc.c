@@ -424,7 +424,6 @@ bxierr_p bximisc_strtoul(const char * const str,
     return BXIERR_OK;
 }
 
-
 bxierr_p bximisc_strtol(const char * const str, const int base, long * result) {
     errno = 0;
     char * endptr;
@@ -445,6 +444,21 @@ bxierr_p bximisc_strtol(const char * const str, const int base, long * result) {
                           NULL,
                           "Some non digits characters remain in string '%s'", str);
     }
+    return BXIERR_OK;
+}
+
+bxierr_p bximisc_strtoi(const char * const str, const int base, int * result) {
+    long longresult;
+    bxierr_p err = bximisc_strtol(str, base, &longresult);
+    if (bxierr_isko(err)) return err;
+    if (longresult < INT_MIN || longresult > INT_MAX) {
+        return bxierr_new(BXIMISC_INVALID_CAST_ERR,
+                          free, NULL, NULL, NULL,
+                          "Converted string '%s' could not be cast "
+                          "from long to int",
+                          str);
+    }
+    *result = (int)longresult;
     return BXIERR_OK;
 }
 

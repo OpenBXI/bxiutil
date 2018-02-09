@@ -81,8 +81,8 @@
 /**
  * The error code returned when no digits are found in a given string .
  *
- * @see bximisc_strtol()
  * @see bximisc_strtoul()
+ * @see bximisc_strtol()
  */
 #define BXIMISC_NODIGITS_ERR 1917  // nodIGIT in leet speek
 
@@ -92,16 +92,20 @@
  * In such a case, `bxierr_p.data` contains a pointer on the first found
  * non-digit character.
  *
- * @see bximisc_strtol()
  * @see bximisc_strtoul()
- *
+ * @see bximisc_strtol()
  */
-#define BXIMISC_REMAINING_CHAR 834116    //REmAInInG in leet speek
+#define BXIMISC_REMAINING_CHAR 834116 // REmAInInG in leet speek
 
+/**
+ * The error code returned when a number could not be down-cast
+ *
+ * @see bximisc_strtoi()
+ */
+#define BXIMISC_INVALID_CAST_ERR 1411457 // InvALIdcAST
 
 /**
  * The error code returned when an error happened while closing a file
- *
  */
 #define BXIMISC_FILE_CLOSE_ERROR 1918
 
@@ -269,9 +273,20 @@ bxierr_p bximisc_strtoul(const char * str, int base, unsigned long *result);
  * @param base the radix
  * @param[out] result a pointer on the result
  *
- * @return BXIERR_OK, BXIERR_OK, BXIMISC_NODIGITS_ERR, BXIMISC_REMAINING_CHAR
+ * @return BXIERR_OK, BXIMISC_NODIGITS_ERR, BXIMISC_REMAINING_CHAR
  */
-bxierr_p bximisc_strtol(const char * str, int base, long *result);
+bxierr_p bximisc_strtol(const char * str, int base, long * result);
+
+/**
+ * Same as bximap_strtol but cast strtol result to int
+ *
+ * @param str the string to parse
+ * @param base the radix
+ * @param[out] result a pointer on the result
+ *
+ * @return BXIERR_OK, BXIMISC_NODIGITS_ERR, BXIMISC_REMAINING_CHAR, BXIMISC_INVALID_CAST_ERR
+ */
+bxierr_p bximisc_strtoi(const char * str, int base, int * result);
 
 /**
  * Return a string representing the given bitarray.
