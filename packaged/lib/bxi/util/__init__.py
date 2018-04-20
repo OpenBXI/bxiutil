@@ -343,8 +343,6 @@ def smart_display(header, data,
                 i += 1
 
     remove_columns(header, columns_max, data)
-    col_nb = len(header)
-    line_nb = len(data)
     max_widths = []
     for head_line in header:
         max_widths.append(columns_max.get(head_line, 0))
