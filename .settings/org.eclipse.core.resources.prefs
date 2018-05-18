@@ -1,7 +1,13 @@
 eclipse.preferences.version=1
+encoding//build/packaged/lib/bxi/util/version.py=utf-8
+encoding//build/packaged/lib/bxi/util_cffi_def.py=utf-8
+encoding//build/template_version.py=utf-8
+encoding//build/version.py=utf-8
 encoding//misc/shared/cov_merge.py=utf-8
 encoding//misc/shared/doxypypy.py=utf-8
+encoding//packaged/lib/bxi/__init__.py=utf-8
 encoding//packaged/lib/bxi/util/__init__.py=utf-8
+encoding//packaged/lib/bxi/util/cffi_builder.py=utf-8
 encoding//packaged/lib/bxi/util/interface.py=utf-8
 encoding//packaged/lib/bxi/util/nodeset.py=utf-8
 encoding//packaged/lib/bxi/util/task.py=utf-8

@@ -61,6 +61,7 @@ class Map(object):
     """
     Wrap the map C module
     """
+
     def __init__(self, nb_thread=0):
         """
         Initialize the threads for the task parallelization.

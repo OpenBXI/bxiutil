@@ -27,7 +27,6 @@ import bxi.base.err as bxierr
 
 
 def interface(target):
-
     """ use the ip route command to determine which interface, among
         current host interfaces, is used to reach a given target
 
