@@ -26,7 +26,13 @@ union YYSTYPE
 /* Simple token stringification */
 char *tok2str(enum yytokentype tok) {
     switch(tok) {
-        case 0 ... 255: return (char*)&tok;
+        case 0 ... 255:
+        {
+            char* charval = malloc(16*sizeof(char));
+            snprintf(charval, 16, "%d", tok);
+            charval[15] = '\0';
+            return charval;
+        }
         case PREFIX:  return "PREFIX";
         case KEY:  return "KEY";
         case NUM: return "NUM";
