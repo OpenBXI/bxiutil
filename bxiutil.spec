@@ -79,7 +79,7 @@ Provides: %{name}
 
 # BXI
 BuildRequires: bxibase-devel >= 9.1.1
-Requires: bxibase >= 9.1.1
+Requires: bxibase >= 9.1.2
 
 # External
 Requires: zeromq
