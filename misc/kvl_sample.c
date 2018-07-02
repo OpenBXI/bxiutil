@@ -5,8 +5,8 @@
  # Contributors:
  #              
  ###############################################################################
- # Copyright (C) 2014  Bull S. A. S.  -  All rights reserved
- # Bull, Rue Jean Jaures, B.P.68, 78340, Les Clayes-sous-Bois
+ # Copyright (C) 2018 Bull S.A.S.  -  All rights reserved
+ # Bull, Rue Jean Jaures, B.P. 68, 78340 Les Clayes-sous-Bois
  # This is not Free or Open Source software.
  # Please contact Bull S. A. S. for details about its license.
  ###############################################################################
@@ -26,7 +26,13 @@ union YYSTYPE
 /* Simple token stringification */
 char *tok2str(enum yytokentype tok) {
     switch(tok) {
-        case 0 ... 255: return (char*)&tok;
+        case 0 ... 255:
+        {
+            char* charval = malloc(16*sizeof(char));
+            snprintf(charval, 16, "%d", tok);
+            charval[15] = '\0';
+            return charval;
+        }
         case PREFIX:  return "PREFIX";
         case KEY:  return "KEY";
         case NUM: return "NUM";

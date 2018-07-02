@@ -1,11 +1,11 @@
 /* -*- coding: utf-8 -*-
 ###############################################################################
-# Author:  Quintin Jean-Noël <jean-noel.quintin@bull.net>
+# Author: Quintin Jean-Noël <jean-noel.quintin@bull.net>
 # Created on: 2015-07-09
 # Contributors:
 ###############################################################################
-# Copyright (C) 2015  Bull S. A. S.  -  All rights reserved
-# Bull, Rue Jean Jaures, B.P.68, 78340, Les Clayes-sous-Bois
+# Copyright (C) 2018 Bull S.A.S.  -  All rights reserved
+# Bull, Rue Jean Jaures, B.P. 68, 78340 Les Clayes-sous-Bois
 # This is not Free or Open Source software.
 # Please contact Bull S. A. S. for details about its license.
 ###############################################################################

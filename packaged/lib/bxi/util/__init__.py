@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
 """
-@authors Pierre Vignéras <pierre.vigneras@bull.net>
-@copyright 2015  Bull S.A.S.  -  All rights reserved.\n
+@author Pierre Vignéras <<pierre.vigneras@bull.net>>
+@copyright 2018 Bull S.A.S.  -  All rights reserved.\n
            This is not Free or Open Source software.\n
            Please contact Bull SAS for details about its license.\n
-           Bull - Rue Jean Jaurès - B.P. 68 - 78340 Les Clayes-sous-Bois
+           Bull - Rue Jean Jaures - B.P. 68 - 78340 Les Clayes-sous-Bois
 @namespace bxi.util Python BXI Utilitaries
 
 """
@@ -61,6 +61,7 @@ class Map(object):
     """
     Wrap the map C module
     """
+
     def __init__(self, nb_thread=0):
         """
         Initialize the threads for the task parallelization.
@@ -343,8 +344,6 @@ def smart_display(header, data,
                 i += 1
 
     remove_columns(header, columns_max, data)
-    col_nb = len(header)
-    line_nb = len(data)
     max_widths = []
     for head_line in header:
         max_widths.append(columns_max.get(head_line, 0))

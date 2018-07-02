@@ -85,5 +85,5 @@ endif
 
 .l.c:
 	$(LEX) $(AM_LFLAGS) $(LFLAGS) -o $@ $<
-
+	sed 's#//bxiutil#/bxiutil#g' -i $@
 #########################################################
